@@ -3,7 +3,10 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
