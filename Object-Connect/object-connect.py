@@ -90,5 +90,3 @@ if __name__ == "__main__":
     editor = DiagramEditor()
     editor.show()
     sys.exit(app.exec_())
-
-    print("sucess")
