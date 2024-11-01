@@ -5,6 +5,8 @@ from Static import Ui_StaticWidget  # Импортируем класс Ui_Stati
 from PyQt5.QtCore import QTimer, QTime
 from PyQt5.QtCore import pyqtSignal  # Импортируем pyqtSignal
 
+
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 #Тест, чтобы проверить видимость изображения
 png_ = "imgs/startstate.png" #Сюда вбиваете путь изображения, который хотите проверить
 if not os.path.exists(png_):
@@ -78,7 +80,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.label = QtWidgets.QLabel(self.ToolBarBox)
         self.label.setText("")
         #Без понятия, что здесь должно быть
-        self.label.setPixmap(QtGui.QPixmap("../Downloads/Decision-node-and-merge-node-1.png"))
+        self.label.setPixmap(QtGui.QPixmap("imgs/decison.png"))
         self.label.setScaledContents(False)
         self.label.setAlignment(QtCore.Qt.AlignCenter)
         self.label.setObjectName("label")
@@ -88,7 +90,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.label_2 = QtWidgets.QLabel(self.ToolBarBox)
         self.label_2.setText("")
         #Здесь надо вписать полный путь для startstate.png
-        self.label_2.setPixmap(QtGui.QPixmap("C:/Users/79050/Desktop/Качество и надежность ИС/UMLEditor/imgs/startstate.png"))
+        self.label_2.setPixmap(QtGui.QPixmap("imgs/startstate.png"))
         self.label_2.setScaledContents(False)
         self.label_2.setAlignment(QtCore.Qt.AlignCenter)
         self.label_2.setWordWrap(False)
@@ -99,7 +101,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.label_3 = QtWidgets.QLabel(self.ToolBarBox)
         self.label_3.setText("")
         #Здесь надо вписать полный путь для finalstate.png"
-        self.label_3.setPixmap(QtGui.QPixmap("C:/Users/79050/Desktop/Качество и надежность ИС/UMLEditor/imgs/finalstate.png"))
+        self.label_3.setPixmap(QtGui.QPixmap("imgs/finalstate.png"))
         self.label_3.setAlignment(QtCore.Qt.AlignCenter)
         self.label_3.setObjectName("label_3")
         self.gridLayout.addWidget(self.label_3, 0, 2, 1, 1)
@@ -108,7 +110,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.label_5 = QtWidgets.QLabel(self.ToolBarBox)
         self.label_5.setText("")
         #Здесь надо вписать полный путь для merge.png
-        self.label_5.setPixmap(QtGui.QPixmap("C:/Users/79050/Desktop/Качество и надежность ИС/UMLEditor/imgs/merge.png")) 
+        self.label_5.setPixmap(QtGui.QPixmap("imgs/merge.png")) 
         self.label_5.setAlignment(QtCore.Qt.AlignCenter)
         self.label_5.setObjectName("label_5")
         self.gridLayout.addWidget(self.label_5, 1, 1, 1, 1)
@@ -117,7 +119,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.label_7 = QtWidgets.QLabel(self.ToolBarBox)
         self.label_7.setText("")
         #Здесь надо вписать полный путь для Signal-sending.png
-        self.label_7.setPixmap(QtGui.QPixmap("C:/Users/79050/Desktop/Качество и надежность ИС/UMLEditor/imgs/Signal-sending.png")) 
+        self.label_7.setPixmap(QtGui.QPixmap("imgs/Signal-sending.png")) 
         self.label_7.setAlignment(QtCore.Qt.AlignCenter)
         self.label_7.setObjectName("label_7")
         self.gridLayout.addWidget(self.label_7, 2, 0, 1, 1)
@@ -126,7 +128,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.label_8 = QtWidgets.QLabel(self.ToolBarBox)
         self.label_8.setText("")
         #Здесь надо вписать полный путь для Signal-receipt.png
-        self.label_8.setPixmap(QtGui.QPixmap("C:/Users/79050/Desktop/Качество и надежность ИС/UMLEditor/imgs/Signal-receipt.png")) 
+        self.label_8.setPixmap(QtGui.QPixmap("imgs/Signal-receipt.png")) 
         self.label_8.setAlignment(QtCore.Qt.AlignCenter)
         self.label_8.setObjectName("label_8")
         self.gridLayout.addWidget(self.label_8, 2, 1, 1, 1)
@@ -135,7 +137,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.label_9 = QtWidgets.QLabel(self.ToolBarBox)
         self.label_9.setText("")
         #Здесь надо вписать полный путь для arrowsolid.png
-        self.label_9.setPixmap(QtGui.QPixmap("C:/Users/79050/Desktop/Качество и надежность ИС/UMLEditor/imgs/arrowsolid.png")) 
+        self.label_9.setPixmap(QtGui.QPixmap("imgs/arrowsolid.png")) 
         self.label_9.setAlignment(QtCore.Qt.AlignCenter)
         self.label_9.setObjectName("label_9")
         self.gridLayout.addWidget(self.label_9, 2, 2, 1, 1)
@@ -144,7 +146,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.label_4 = QtWidgets.QLabel(self.ToolBarBox)
         self.label_4.setText("")
         #Здесь надо вписать полный путь для synchronize.png
-        self.label_4.setPixmap(QtGui.QPixmap("C:/Users/79050/Desktop/Качество и надежность ИС/UMLEditor/imgs/synchronize.png")) 
+        self.label_4.setPixmap(QtGui.QPixmap("imgs/synchronize.png")) 
         self.label_4.setAlignment(QtCore.Qt.AlignCenter)
         self.label_4.setObjectName("label_4")
         self.gridLayout.addWidget(self.label_4, 1, 0, 1, 1)
@@ -153,7 +155,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.label_6 = QtWidgets.QLabel(self.ToolBarBox)
         self.label_6.setText("")
         #Здесь надо вписать полный путь для ctivestate.png
-        self.label_6.setPixmap(QtGui.QPixmap("C:/Users/79050/Desktop/Качество и надежность ИС/UMLEditor/imgs/activestate.png")) 
+        self.label_6.setPixmap(QtGui.QPixmap("imgs/activestate.png")) 
         self.label_6.setAlignment(QtCore.Qt.AlignCenter)
         self.label_6.setObjectName("label_6")
         self.gridLayout.addWidget(self.label_6, 1, 2, 1, 1)
