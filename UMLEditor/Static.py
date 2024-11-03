@@ -1,7 +1,7 @@
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import *
-# from PyQt5.QtCore import QTimer, QTime
+from PyQt5.QtCore import QDateTime, QDate, QTime
 
 class Ui_StaticWidget(QtWidgets.QWidget): 
 
@@ -36,7 +36,7 @@ class Ui_StaticWidget(QtWidgets.QWidget):
         StaticWidget.setObjectName("StaticWidget")
         StaticWidget.setWindowModality(QtCore.Qt.NonModal)
         StaticWidget.resize(316, 157)
-        StaticWidget.setFixedSize(600, 250)  # Фиксируем размер окна
+        StaticWidget.setFixedSize(750, 250)  # Фиксируем размер окна
         
         self.gridLayout = QtWidgets.QGridLayout(StaticWidget)  # Основной layout для StaticWidget
         self.gridLayout.setObjectName("gridLayout")
@@ -124,7 +124,7 @@ class Ui_StaticWidget(QtWidgets.QWidget):
         # #Таймер
 
         # # Соединение сигнала с функцией в StaticWidget
-        # main_window.time_stopped.connect(self.update_timework) 
+        # main_window.time_stopped.connect(self.update_timeworkSW) 
 
         # #Инициализируем переменные для секундомера
         # self.running = False
@@ -161,17 +161,49 @@ class Ui_StaticWidget(QtWidgets.QWidget):
     #     self.lineEdit_timework.setText(self.elapsed_time.toString("hh:mm:ss"))  # Обновляем отображение времени
     #     self.dateTimeEdit_End.setText(self.elapsed_time.toString("00.00.0000 hh:mm:ss"))
 
-    def update_timework(self, new_time):
+    def update_timeworkSW(self, today, new_time, time_now):
         """Слот для приема нового времени и обновления lineEdit_timework."""
         self.lineEdit_timework.setText(new_time)
-        self.dateTimeEdit_End.setText(f"00.00.0000 {new_time}")
+
+        # time_now = QDateTime.fromString(time_now, "HH:mm:ss").time().second()
+        # new_time = QDateTime.fromString(new_time, "HH:mm:ss").addMSecs(time_now).toString("HH:mm:ss")
+
+        # time = QTime.fromString(new_time, "hh:mm:ss")
+        # if time.isValid():
+        #     time = time.addSecs(time_now)
+        #     time = time.toString("hh:mm:ss")
+
+        time1 = QDateTime.fromString(time_now, "hh:mm:ss").time()
+        time2 = QDateTime.fromString(new_time, "hh:mm:ss").time()
+
+        sum_seconds_time1 = time1.hour() * 3600 + time1.minute() * 60 + time1.second()
+        time2 = time2.addSecs(sum_seconds_time1)
+
+        self.dateTimeEdit_End.setText(f"{today} {time2.toString('hh:mm:ss')}")
         print(f"Received : {new_time}")
 
-    def update_last_time(self, last_time):
+    def update_last_timeSW(self, today, last_time, time_now):
         self.lineEdit_timework.setText(last_time)
-        self.dateTimeEdit_End.setText(f"00.00.0000 {last_time}")
+
+        # time_now = QDateTime.fromString(time_now, "HH:mm:ss").time().second()
+        # last_time = QDateTime.fromString(last_time, "HH:mm:ss").addMSecs(time_now).toString("HH:mm:ss")
+
+        time1 = QDateTime.fromString(time_now, "hh:mm:ss").time()
+        time2 = QDateTime.fromString(last_time, "hh:mm:ss").time()
+
+        sum_seconds_time1 = time1.hour() * 3600 + time1.minute() * 60 + time1.second()
+        time2 = time2.addSecs(sum_seconds_time1)
+
+        self.dateTimeEdit_End.setText(f"{today} {time2.toString('hh:mm:ss')}")
+
+        # self.dateTimeEdit_End.setText(f"{today} {last_time}")
         print(f"Received last_time: {last_time}")
         # self.lineEdit_timework.setText(last_time)
+
+    def accept_today(self, today, time_now, last_time):
+        self.dateTimeEdit_Start.setText(f"{today} {time_now}")
+
+        self.dateTimeEdit_End.setText(f"{today} {time_now}")
 
     def retranslateUi(self, StaticWidget):
 
@@ -193,8 +225,8 @@ class Ui_StaticWidget(QtWidgets.QWidget):
         self.label_6.setText(_translate("StaticWidget", "История действий"))
         
         # self.lineEdit_timework.setText("00:00:00")
-        self.dateTimeEdit_Start.setInputMask(_translate("StaticWindow", "00.00.0000 00:00:00"))
-        self.dateTimeEdit_Start.setText(_translate("StaticWindow", "00.00.0000 00:00:00"))
+        # self.dateTimeEdit_Start.setInputMask(_translate("StaticWindow", "00.00.0000 00:00:00"))
+        # self.dateTimeEdit_Start.setText(_translate("StaticWindow", "00.00.0000 00:00:00"))
         # self.dateTimeEdit_End.setInputMask(_translate("StaticWindow", "00.00.0000 00:00:00"))
         # self.dateTimeEdit_End.setText(_translate("StaticWindow", "00.00.0000 00:00:00"))
 

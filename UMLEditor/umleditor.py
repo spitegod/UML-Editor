@@ -2,7 +2,7 @@ import os
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from Static import Ui_StaticWidget  # Импортируем класс Ui_StaticWidget
-from PyQt5.QtCore import QTimer, QTime
+from PyQt5.QtCore import QTimer, QTime, QDateTime
 from PyQt5.QtCore import pyqtSignal  # Импортируем pyqtSignal
 
 
@@ -43,8 +43,8 @@ class UserManager:
         raise ValueError(f"Пользователя с id: {_id} нет!")
 
 class Ui_MainWindow(QtWidgets.QMainWindow):
-    time_updated = pyqtSignal(str)  # Создаем сигнал с параметром типа str для передачи запущенного времени
-    update_last_time = pyqtSignal(str)  # Создаем сигнал для передачи последнего значения времени
+    time_updated = pyqtSignal(str, str, str)  # Создаем сигнал с параметром типа str для передачи запущенного времени
+    update_last_timeSW = pyqtSignal(str, str, str)  # Создаем сигнал для передачи последнего значения времени
     # Создаем сигнал для передачи данных на моменте остановки таймера
     # timeStop_ChangedSignal = QtCore.pyqtSignal(str)
 
@@ -263,6 +263,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         #Таймер
 
+        self.today = self.get_current_Date()
+        self.time_now = self.get_current_Realtime()
+
         # Настраиваем второй таймер для обновления времени каждую секунду
         self.timer_2 = QTimer(self)
         self.timer_2.timeout.connect(self.increment_time)  # Соединяем таймер с функцией обновления времени
@@ -291,7 +294,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-    #Ниже 6 функции - реализация работы таймера
+    #Ниже 7 функции - реализация работы таймера
 
     def start(self):
         if not self.running:  # Запускаем таймер, только если он не запущен
@@ -305,7 +308,15 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             self.timer.stop()
             self.timer_2.stop()
             self.last_time = self.Start_Time.text()  # Сохраняем текущее значение времени перед остановкой
-            self.time_updated.emit(self.last_time)  # Отправляем сигнал с зафиксированным временем
+
+            n_datetime = QDateTime.fromString(self.change_end_time(), "dd.MM.yyyy HH:mm:ss").date().toString("dd.MM.yyyy")
+            n_time = QDateTime.fromString(self.change_end_time(), "dd.MM.yyyy HH:mm:ss").time().toString("HH:mm:ss")
+            print("Day is ", n_datetime, " and time is ", n_time)
+
+            self.time_updated.emit(self.today, self.last_time, self.time_now)  # Отправляем сигнал с зафиксированным временем
+            # changed_time = QDateTime.fromString(self.last_time, "HH:mm:ss")
+            # print(changed_time)
+            print(self.change_end_time())
 
     def reset(self):
         self.elapsed_time = QTime(0, 0)  # Сбрасываем время
@@ -317,10 +328,26 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.Start_Time.setText(time_str)  # Обновляем отображение времени
         self.last_time = time_str  # Сохраняем последнее значение времени
 
+        # self.last_time = QDateTime.fromString(self.last_time, "HH:mm:ss").addMSecs(new_time).toString("HH:mm:ss")
+
+    def get_current_Date(self):
+        from datetime import datetime
+        return datetime.now().strftime("%d.%m.%Y")  # Возвращает текущую дату в формате "dd.mm.yyyy"
+    
     # Возвращает сегодняшнее время
     def get_current_Realtime(self):
         from datetime import datetime
         return datetime.now().strftime("%H:%M:%S")  # Возвращает текущее время в формате "hh:mm:ss"
+
+    def change_end_time(self):
+        # curren_d = QDate.currentDate().addDays(10).toString("dd.MM.yyyy")
+        date_now = self.get_current_Date()
+        time_now = self.get_current_Realtime()
+        l_time_sec = QDateTime.fromString(self.last_time, "HH:mm:ss").time().second()
+
+        inc_time = QDateTime.fromString(time_now, "HH:mm:ss").addMSecs(l_time_sec).toString("HH:mm:ss")
+        # curren_d = QDate.fromString(self.today, "dd.MM.yyyy").addDays(10).toString("dd.MM.yyyy")
+        return f"{date_now} {inc_time}"
 
     
     def increment_time(self):
@@ -336,8 +363,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             hours += 1
         self.last_time = f"{hours:02}:{minutes:02}:{seconds:02}"
         
-        self.time_updated.emit(self.last_time)  # Отправляем обновленное значение
-        # self.update_last_time.emit(self.last_time)
+        self.time_updated.emit(self.today, self.last_time, self.time_now)  # Отправляем обновленное значение
+        # self.update_last_timeSW.emit(self.last_time)
 
     # time_stopped = pyqtSignal(str)  # Сигнал с последним временем
 
@@ -347,7 +374,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
     #Функция для передачи времени в UI_StaticWidget
 
-    # def update_last_time(self, new_time):
+    # def update_last_timeSW(self, new_time):
     #     """Метод для обновления last_time и отправки сигнала с новым значением."""
     #     self.last_time = new_time
     #     self.time_updated.emit(self.last_time)  # Отправляем сигнал с обновленным временем
@@ -361,18 +388,22 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     #Отображение окна статистики
     def show_static_widget(self):
 
-        self.Time_ToStatic = self.Start_Time.text()
+        # self.Time_ToStatic = self.Start_Time.text()
+
+        # lt_for_timeworkend = QDateTime.fromString(self.last_time, "HH:mm:ss")
+
 
         self.static_widget = QtWidgets.QWidget()  # Создаем новое окно
         self.static_ui = Ui_StaticWidget()  # Создаем экземпляр Ui_StaticWidget
         #self.static_ui = Ui_StaticWidget(self.get_last_time())   # Передаем last_time в Ui_StaticWidget
 
         # Подключаем слот StaticWidget к сигналу time_updated
-        self.time_updated.connect(self.static_ui.update_timework)
-        self.update_last_time.connect(self.static_ui.update_last_time)
-        self.static_ui.update_timework(self.Start_Time.text())
-        self.update_last_time.emit(self.last_time)  # Отправляем значение при открытии
-        # self.static_ui.update_timework(self.last_time)
+        self.time_updated.connect(self.static_ui.update_timeworkSW)
+        self.update_last_timeSW.connect(self.static_ui.update_last_timeSW)
+        self.static_ui.update_timeworkSW(self.today, self.Start_Time.text(), self.time_now)
+        self.static_ui.accept_today(self.today, self.time_now, self.last_time)
+        self.update_last_timeSW.emit(self.today, self.last_time, self.time_now)  # Отправляем значение при открытии
+        # self.static_ui.update_timeworkSW(self.last_time)
         # self.timeStop_ChangedSignal.connect(self.static_ui.receive_text)
         
         self.static_ui.setupUi(self.static_widget)  # Настраиваем новый виджет
