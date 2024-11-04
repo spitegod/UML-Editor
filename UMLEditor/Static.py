@@ -12,17 +12,22 @@ class Ui_StaticWidget(QtWidgets.QWidget):
         #Linedit начало времени работы
         self.dateTimeEdit_Start = QtWidgets.QLineEdit(self)
         self.dateTimeEdit_Start.setReadOnly(True)
+        self.dateTimeEdit_Start.setInputMask("00.00.0000 00:00:00")
+        self.dateTimeEdit_Start.setAlignment(QtCore.Qt.AlignCenter)
         self.dateTimeEdit_Start.setObjectName("dateTimeEdit_Start")
 
         #Lineedit в котором записывается время работы
         self.lineEdit_timework = QtWidgets.QLineEdit(self)
         self.lineEdit_timework.setReadOnly(True)
         self.lineEdit_timework.setInputMask("00:00:00")
+        self.lineEdit_timework.setAlignment(QtCore.Qt.AlignCenter)
         self.lineEdit_timework.setObjectName("lineEdit_timework")
 
         #Lineedit конец времени работы
         self.dateTimeEdit_End = QtWidgets.QLineEdit(self)
         self.dateTimeEdit_End.setReadOnly(True)
+        self.dateTimeEdit_End.setInputMask("00.00.0000 00:00:00")
+        self.dateTimeEdit_End.setAlignment(QtCore.Qt.AlignCenter)
         self.dateTimeEdit_End.setObjectName("dateTimeEdit_End")
     
 
@@ -37,6 +42,7 @@ class Ui_StaticWidget(QtWidgets.QWidget):
         StaticWidget.setWindowModality(QtCore.Qt.NonModal)
         StaticWidget.resize(316, 157)
         StaticWidget.setFixedSize(750, 250)  # Фиксируем размер окна
+        # StaticWidget.setStyleSheet("background-color: rgb(233, 233, 233);")
         
         self.gridLayout = QtWidgets.QGridLayout(StaticWidget)  # Основной layout для StaticWidget
         self.gridLayout.setObjectName("gridLayout")
@@ -59,13 +65,22 @@ class Ui_StaticWidget(QtWidgets.QWidget):
         
         self.label_2 = QtWidgets.QLabel(StaticWidget)
         self.label_2.setObjectName("label_2")
+        self.label_2.setAlignment(QtCore.Qt.AlignCenter)
         self.verticalLayout_UserChoose.addWidget(self.label_2)
         
         self.listWidget_Users = QtWidgets.QListWidget(StaticWidget)
         self.listWidget_Users.setObjectName("listWidget_Users")
         for username in ["User1"]:
             item = QtWidgets.QListWidgetItem(username)
+            item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.listWidget_Users.addItem(item)
+        # self.listWidget_Users.setItemAlignment(QtCore.Qt.AlignCenter)
+        self.listWidget_Users.setStyleSheet("""
+QListWidget {
+            border: none;
+            background: transparent;
+    }
+""")
         
         self.verticalLayout_UserChoose.addWidget(self.listWidget_Users)
         self.horizontalLayout_workarea.addLayout(self.verticalLayout_UserChoose)
@@ -80,23 +95,46 @@ class Ui_StaticWidget(QtWidgets.QWidget):
         
         # Lineedit_timework в котором записывается время работы
         self.gridLayout_1section.addWidget(self.lineEdit_timework, 2, 1, 1, 1)
+        self.lineEdit_timework.setStyleSheet("""
+QLineEdit {
+            border: none;
+            background: transparent;
+    }
+""")
         
         self.label_5 = QtWidgets.QLabel(StaticWidget)
         self.label_5.setObjectName("label_5")
+        self.label_5.setAlignment(QtCore.Qt.AlignCenter)
         self.gridLayout_1section.addWidget(self.label_5, 1, 2, 1, 1)
         
         self.label_4 = QtWidgets.QLabel(StaticWidget)
         self.label_4.setObjectName("label_4")
+        self.label_4.setAlignment(QtCore.Qt.AlignCenter)
         self.gridLayout_1section.addWidget(self.label_4, 1, 1, 1, 1)
         
         #Добавление lineedit начало времени в лэйаут
         self.gridLayout_1section.addWidget(self.dateTimeEdit_Start, 2, 0, 1, 1)
+        self.dateTimeEdit_Start.setMinimumWidth(200)
+        self.dateTimeEdit_Start.setStyleSheet("""
+QLineEdit {
+            border: none;
+            background: transparent;
+    }
+""")
         
         # Добавление lineedit конец времени в лэйаут
         self.gridLayout_1section.addWidget(self.dateTimeEdit_End, 2, 2, 1, 1)
+        self.dateTimeEdit_End.setMinimumWidth(200)
+        self.dateTimeEdit_End.setStyleSheet("""
+QLineEdit {
+            border: none;
+            background: transparent;
+    }
+""")
         
         self.label_3 = QtWidgets.QLabel(StaticWidget)
         self.label_3.setObjectName("label_3")
+        self.label_3.setAlignment(QtCore.Qt.AlignCenter)
         self.gridLayout_1section.addWidget(self.label_3, 1, 0, 1, 1)
         
         self.verticalLayout_2half.addLayout(self.gridLayout_1section)
@@ -104,6 +142,7 @@ class Ui_StaticWidget(QtWidgets.QWidget):
         # История действий
         self.label_6 = QtWidgets.QLabel(StaticWidget)
         self.label_6.setObjectName("label_6")
+        self.label_6.setAlignment(QtCore.Qt.AlignCenter)
         self.verticalLayout_2half.addWidget(self.label_6)
         
         self.tableWidget = QtWidgets.QTableWidget(StaticWidget)
@@ -111,6 +150,19 @@ class Ui_StaticWidget(QtWidgets.QWidget):
         self.tableWidget.setColumnCount(2)
         self.tableWidget.setRowCount(0)
         self.tableWidget.setHorizontalHeaderLabels(["Время", "Действие"])
+        self.tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.tableWidget.setStyleSheet("""
+    QTableWidget {
+        border: none;
+        background: transparent;
+    }
+    QTableWidget::item {
+        background-color: transparent;
+    }
+    QHeaderView::section {
+        background-color: transparent;
+    }
+""")
         
         self.verticalLayout_2half.addWidget(self.tableWidget)
         self.horizontalLayout_workarea.addLayout(self.verticalLayout_2half)
