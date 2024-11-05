@@ -6,6 +6,13 @@ from PyQt5.QtCore import QTimer, QTime, QDateTime
 from PyQt5.QtCore import pyqtSignal  # Импортируем pyqtSignal
 
 
+#НАЧАЛО ПЕРЕДЕЛЫВАНИЯ ПОД QFRAME
+
+#КОНЕЦ ПЕРЕДЕЛЫВАНИЯ ПОД QFRAME
+
+
+
+
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 #Тест, чтобы проверить видимость изображения
 png_ = "imgs/startstate.png" #Сюда вбиваете путь изображения, который хотите проверить
