@@ -3,7 +3,7 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from Static import Ui_StaticWidget  # Импортируем класс Ui_StaticWidget
 from PyQt5.QtCore import QTimer, QTime, QDateTime
-from PyQt5.QtCore import pyqtSignal  # Импортируем pyqtSignal
+from PyQt5.QtCore import pyqtSignal, QByteArray, QDataStream, QIODevice, QPoint, Qt, QMimeData  # Импортируем pyqtSignal
 from PyQt5.QtWidgets import QApplication, QFrame, QHBoxLayout, QLabel, QWidget, QGridLayout
 from PyQt5.QtGui import QPixmap, QDrag
 
@@ -42,6 +42,27 @@ class ToolbarWidget(QFrame):
                 self.grid_layout.addWidget(icon_label, row, col)
             else:
                 print(f"Изображение {icon_path} не найдено")
+    
+    def mousePressEvent(self, event):
+        child = self.childAt(event.pos())
+        if not child:
+            return
+
+        pixmap = QPixmap(child.pixmap())
+
+        itemData = QByteArray()
+        dataStream = QDataStream(itemData, QIODevice.WriteOnly)
+        dataStream << pixmap << QPoint(event.pos() - child.pos())
+
+        mimeData = QMimeData()
+        mimeData.setData('application/x-dnditemdata', itemData)
+
+        drag = QDrag(self)
+        drag.setMimeData(mimeData)
+        drag.setPixmap(pixmap)
+        drag.setHotSpot(event.pos() - child.pos())
+        
+        drag.exec_(Qt.CopyAction)
 
 
 class WorkspaceWidget(QFrame):
@@ -51,9 +72,59 @@ class WorkspaceWidget(QFrame):
         self.setFrameStyle(QFrame.Sunken | QFrame.StyledPanel)
         self.setAcceptDrops(True)
 
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasFormat('application/x-dnditemdata'):
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasFormat('application/x-dnditemdata'):
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        if event.mimeData().hasFormat('application/x-dnditemdata'):
+            itemData = event.mimeData().data('application/x-dnditemdata')
+            dataStream = QDataStream(itemData, QIODevice.ReadOnly)
+
+            pixmap = QPixmap()
+            offset = QPoint()
+            dataStream >> pixmap >> offset
+
+            newIcon = DraggableLabel(self)
+            newIcon.setPixmap(pixmap)
+            newIcon.move(event.pos() - offset)
+            newIcon.show()
+
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+
 #КОНЕЦ ПЕРЕДЕЛЫВАНИЯ ПОД QFRAME
 
+class DraggableLabel(QLabel):
+    def __init__(self, parent=None):
+        super(DraggableLabel, self).__init__(parent)
+        self.setAcceptDrops(True)
 
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            drag = QDrag(self)
+            mimeData = QMimeData()
+
+            itemData = QByteArray()
+            dataStream = QDataStream(itemData, QIODevice.WriteOnly)
+            dataStream << self.pixmap() << QPoint(event.pos())
+
+            mimeData.setData('application/x-dnditemdata', itemData)
+            drag.setMimeData(mimeData)
+            drag.setPixmap(self.pixmap())
+            drag.setHotSpot(event.pos())
+
+            if drag.exec_(Qt.MoveAction) == Qt.MoveAction:
+                self.close()
 
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
