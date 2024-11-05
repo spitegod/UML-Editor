@@ -1,8 +1,59 @@
 import os
+import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from Static import Ui_StaticWidget  # Импортируем класс Ui_StaticWidget
-from PyQt5.QtCore import QTimer, QTime
+from PyQt5.QtCore import QTimer, QTime, QDateTime
 from PyQt5.QtCore import pyqtSignal  # Импортируем pyqtSignal
+from PyQt5.QtWidgets import QApplication, QFrame, QHBoxLayout, QLabel, QWidget, QGridLayout
+from PyQt5.QtGui import QPixmap, QDrag
+
+
+#НАЧАЛО ПЕРЕДЕЛЫВАНИЯ ПОД QFRAME
+class ToolbarWidget(QFrame):
+    def __init__(self, parent=None):
+        super(ToolbarWidget, self).__init__(parent)
+        self.setMinimumSize(200, 400)
+        self.setFrameStyle(QFrame.Sunken | QFrame.StyledPanel)
+
+        # Устанавливаем сеточный layout для упорядочивания иконок
+        self.grid_layout = QGridLayout(self)
+        self.add_icons()
+
+    def add_icons(self):
+        # Путь к папке с изображениями
+        image_folder = r"C:\Новая папка\UML-Editor\UMLEditor\imgs"
+        # Список иконок с координатами для сетки (порядок добавления)
+        icons = [
+            "startstate.png", "finalstate.png", "activestate.png",
+            "decision.png", "merge.png", "synchronize.png",
+            "Signal-sending.png", "Signal-receipt.png", "arrowsolid.png"
+        ]
+
+        # Добавляем иконки в сетку
+        for i, icon_name in enumerate(icons):
+            icon_path = f"{image_folder}/{icon_name}"
+            if not QPixmap(icon_path).isNull():
+                icon_label = QLabel(self)
+                icon_label.setPixmap(QPixmap(icon_path))
+                
+                # Располагаем иконки по строкам и столбцам (по 3 в строке)
+                row = i // 3
+                col = i % 3
+                self.grid_layout.addWidget(icon_label, row, col)
+            else:
+                print(f"Изображение {icon_path} не найдено")
+
+
+class WorkspaceWidget(QFrame):
+    def __init__(self, parent=None):
+        super(WorkspaceWidget, self).__init__(parent)
+        self.setMinimumSize(400, 400)
+        self.setFrameStyle(QFrame.Sunken | QFrame.StyledPanel)
+        self.setAcceptDrops(True)
+
+#КОНЕЦ ПЕРЕДЕЛЫВАНИЯ ПОД QFRAME
+
+
 
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -42,35 +93,17 @@ class UserManager:
         raise ValueError(f"Пользователя с id: {_id} нет!")
 
 class Ui_MainWindow(QtWidgets.QMainWindow):
-    time_updated = pyqtSignal(str)  # Создаем сигнал с параметром типа str
+    time_updated = pyqtSignal(str, str, str)  # Создаем сигнал с параметром типа str для передачи запущенного времени
+    update_last_timeSW = pyqtSignal(str, str, str)  # Создаем сигнал для передачи последнего значения времени
+    # Создаем сигнал для передачи данных на моменте остановки таймера
+    # timeStop_ChangedSignal = QtCore.pyqtSignal(str)
 
-    def __init__(self):
-        super(Ui_MainWindow, self).__init__()
-        self.setupUi(self)
-        self.last_time = "00:00:00"  # Изначальное значение времени
-
-        # Настраиваем таймер для обновления времени каждую секунду
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.increment_time)  # Соединяем таймер с функцией обновления времени
-        self.timer.start(1000)  # Запускаем таймер с интервалом в 1 секунду
-
-    def increment_time(self):
-        """Метод для увеличения времени на 1 секунду и отправки обновленного значения."""
-        # Логика обновления last_time, например, в формате HH:MM:SS
-        hours, minutes, seconds = map(int, self.last_time.split(":"))
-        seconds += 1
-        if seconds >= 60:
-            seconds = 0
-            minutes += 1
-        if minutes >= 60:
-            minutes = 0
-            hours += 1
-        self.last_time = f"{hours:02}:{minutes:02}:{seconds:02}"
-        
-        self.time_updated.emit(self.last_time)  # Отправляем обновленное значение
+    # def __init__(self):
+    #     super().__init__()
 
 
     def setupUi(self, MainWindow):
+
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(858, 540)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -93,105 +126,24 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.gridLayout = QtWidgets.QGridLayout()
         self.gridLayout.setObjectName("gridLayout")
         
-        # Создание QLabel и добавление в gridLayout
-        self.label = QtWidgets.QLabel(self.ToolBarBox)
-        self.label.setText("")
-        #Без понятия, что здесь должно быть
-        self.label.setPixmap(QtGui.QPixmap("imgs/decison.png"))
-        self.label.setScaledContents(False)
-        self.label.setAlignment(QtCore.Qt.AlignCenter)
-        self.label.setObjectName("label")
-        self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
+        self.centralwidget = QtWidgets.QWidget(MainWindow)
+        self.centralwidget.setObjectName("centralwidget")
 
-        # startstate.png
-        self.label_2 = QtWidgets.QLabel(self.ToolBarBox)
-        self.label_2.setText("")
-        #Здесь надо вписать полный путь для startstate.png
-        self.label_2.setPixmap(QtGui.QPixmap("imgs/startstate.png"))
-        self.label_2.setScaledContents(False)
-        self.label_2.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_2.setWordWrap(False)
-        self.label_2.setObjectName("label_2")
-        self.gridLayout.addWidget(self.label_2, 0, 1, 1, 1)
+        self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
+        self.horizontalLayout.setObjectName("horizontalLayout")
 
-        # finalstate.png
-        self.label_3 = QtWidgets.QLabel(self.ToolBarBox)
-        self.label_3.setText("")
-        #Здесь надо вписать полный путь для finalstate.png"
-        self.label_3.setPixmap(QtGui.QPixmap("imgs/finalstate.png"))
-        self.label_3.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_3.setObjectName("label_3")
-        self.gridLayout.addWidget(self.label_3, 0, 2, 1, 1)
+        # Заменяем ToolBarBox на ToolbarWidget
+        self.toolbar = ToolbarWidget(self.centralwidget)
+        self.horizontalLayout.addWidget(self.toolbar)
 
-        # merge.png
-        self.label_5 = QtWidgets.QLabel(self.ToolBarBox)
-        self.label_5.setText("")
-        #Здесь надо вписать полный путь для merge.png
-        self.label_5.setPixmap(QtGui.QPixmap("imgs/merge.png")) 
-        self.label_5.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_5.setObjectName("label_5")
-        self.gridLayout.addWidget(self.label_5, 1, 1, 1, 1)
+        # Заменяем graphicsView на WorkspaceWidget
+        self.workspace = WorkspaceWidget(self.centralwidget)
+        self.horizontalLayout.addWidget(self.workspace)
 
-        # Signal-sending.png
-        self.label_7 = QtWidgets.QLabel(self.ToolBarBox)
-        self.label_7.setText("")
-        #Здесь надо вписать полный путь для Signal-sending.png
-        self.label_7.setPixmap(QtGui.QPixmap("imgs/Signal-sending.png")) 
-        self.label_7.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_7.setObjectName("label_7")
-        self.gridLayout.addWidget(self.label_7, 2, 0, 1, 1)
-
-        # Signal-receipt.png
-        self.label_8 = QtWidgets.QLabel(self.ToolBarBox)
-        self.label_8.setText("")
-        #Здесь надо вписать полный путь для Signal-receipt.png
-        self.label_8.setPixmap(QtGui.QPixmap("imgs/Signal-receipt.png")) 
-        self.label_8.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_8.setObjectName("label_8")
-        self.gridLayout.addWidget(self.label_8, 2, 1, 1, 1)
-
-        # arrowsolid.png
-        self.label_9 = QtWidgets.QLabel(self.ToolBarBox)
-        self.label_9.setText("")
-        #Здесь надо вписать полный путь для arrowsolid.png
-        self.label_9.setPixmap(QtGui.QPixmap("imgs/arrowsolid.png")) 
-        self.label_9.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_9.setObjectName("label_9")
-        self.gridLayout.addWidget(self.label_9, 2, 2, 1, 1)
-
-        # synchronize.png
-        self.label_4 = QtWidgets.QLabel(self.ToolBarBox)
-        self.label_4.setText("")
-        #Здесь надо вписать полный путь для synchronize.png
-        self.label_4.setPixmap(QtGui.QPixmap("imgs/synchronize.png")) 
-        self.label_4.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_4.setObjectName("label_4")
-        self.gridLayout.addWidget(self.label_4, 1, 0, 1, 1)
-
-        # ctivestate.png
-        self.label_6 = QtWidgets.QLabel(self.ToolBarBox)
-        self.label_6.setText("")
-        #Здесь надо вписать полный путь для ctivestate.png
-        self.label_6.setPixmap(QtGui.QPixmap("imgs/activestate.png")) 
-        self.label_6.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_6.setObjectName("label_6")
-        self.gridLayout.addWidget(self.label_6, 1, 2, 1, 1)
-
-        self.gridLayout_5.addLayout(self.gridLayout, 0, 0, 1, 1)
-        self.horizontalLayout.addWidget(self.ToolBarBox)
-        self.gridLayout_2.addLayout(self.horizontalLayout, 0, 0, 1, 1)
-
-        self.gridLayout_6 = QtWidgets.QGridLayout()
-        self.gridLayout_6.setObjectName("gridLayout_6")
-        self.graphicsView = QtWidgets.QGraphicsView(self.centralwidget)
-        self.graphicsView.setObjectName("graphicsView")
-        self.gridLayout_6 = QtWidgets.QGridLayout()
-        self.gridLayout_6.setObjectName("gridLayout_6")
-        self.gridLayout_6.addWidget(self.graphicsView, 0, 1, 1, 1)
-        self.gridLayout_2.addLayout(self.gridLayout_6, 0, 1, 1, 1)
-        #self.gridLayout_6.addWidget(self.frame, 0, 1, 1, 1)
-        self.gridLayout_2.addLayout(self.gridLayout_6, 0, 1, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
+
+
+        #Настройка главного меню
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 858, 18))
         self.menubar.setObjectName("menubar")
@@ -199,6 +151,12 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.menu.setObjectName("menu")
         self.menu_2 = QtWidgets.QMenu(self.menubar)
         self.menu_2.setObjectName("menu_2")
+
+        #Тестовое меню для таймера
+        self.menu_3 = QtWidgets.QMenu(self.menubar)
+        self.menu_3.setObjectName("menu_3")
+
+
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
@@ -215,6 +173,14 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.action_4.setObjectName("action_4")
         self.action_Statystics = QtWidgets.QAction(MainWindow)
         self.action_Statystics.setObjectName("action_Statystics")
+
+        #Тестовые вкладки для таймера
+        self.action_time_start = QtWidgets.QAction(MainWindow)
+        self.action_time_start.setObjectName("action_time_start")
+        self.action_time_stop = QtWidgets.QAction(MainWindow)
+        self.action_time_stop.setObjectName("action_time_stop")
+        self.action_time_reset = QtWidgets.QAction(MainWindow)
+        self.action_time_reset.setObjectName("action_time_reset")
 
         # self.label = QtWidgets.QLabel(self.ToolBarBox)
         # pixmap = QtGui.QPixmap("imgs\startstate.png")
@@ -238,13 +204,21 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.menu_2.addAction(self.action_Statystics)
         self.menubar.addAction(self.menu.menuAction())
         self.menubar.addAction(self.menu_2.menuAction())
+        self.menubar.addAction(self.menu_3.menuAction()) #Тестовое меню таймера
+
+        self.menu_3.addAction(self.action_time_start) #Добавление вкладок на тестовое меню для таймера
+        self.menu_3.addAction(self.action_time_stop)
+        self.menu_3.addAction(self.action_time_reset)
 
         # Создаём невидимый QLabel для записи времени
-        self.Start_Time = QtWidgets.QLabel(self.centralwidget)
+        self.Start_Time = QtWidgets.QLineEdit(self.centralwidget)
         self.Start_Time.setGeometry(QtCore.QRect(100, 100, 200, 50))  # Устанавливаем размер и позицию
         self.Start_Time.setAlignment(QtCore.Qt.AlignCenter)  # Центрируем текст
         self.Start_Time.setFont(QtGui.QFont("Helvetica", 16))  # Устанавливаем шрифт и размер
         self.Start_Time.setText("00:00:00")  # Устанавливаем начальное значение времени
+        self.Start_Time.setReadOnly(True)
+
+        # self.Start_Time.textChanged.connect(self.emit_text)
 
 
         # pixmap = QtGui.QPixmap("imgs/startstate.png")
@@ -256,35 +230,60 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         #Таймер
 
+        self.today = self.get_current_Date()
+        self.time_now = self.get_current_Realtime()
+
+        # Настраиваем второй таймер для обновления времени каждую секунду
+        self.timer_2 = QTimer(self)
+        self.timer_2.timeout.connect(self.increment_time)  # Соединяем таймер с функцией обновления времени
+        #self.timer_2.start(1000)  # Запускаем таймер с интервалом в 1 секунду
+
         #Инициализируем переменные для секундомера
         self.running = False
         self.elapsed_time = QTime(0, 0)
 
         self.timer = QTimer()
 
-        Start_Time = "00:00:00"
-        self.Start_Time.setVisible(False)
+        self.last_time = self.Start_Time.text() # Изначальное значение времени
+        self.Start_Time.setVisible(False) #По умолчанию всегда невиден
         self.timer.timeout.connect(self.update_time)
 
         self.start()
 
 
+        #self.Start_Time.textChanged.connect(self.update_time)
+
+        self.action_time_start.triggered.connect(self.start)
+        self.action_time_stop.triggered.connect(self.stop)
+        self.action_time_reset.triggered.connect(self.reset)
+
+
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-    #Ниже 4 функции - реализация работы таймера
+    #Ниже 7 функции - реализация работы таймера
 
     def start(self):
         if not self.running:  # Запускаем таймер, только если он не запущен
             self.running = True
             self.timer.start(1000)  # Интервал 1000 мс (1 секунда)
+            self.timer_2.start(1000)  # Запускаем таймер с интервалом в 1 секунду
 
     def stop(self):
         if self.running:  # Останавливаем таймер
             self.running = False
             self.timer.stop()
+            self.timer_2.stop()
             self.last_time = self.Start_Time.text()  # Сохраняем текущее значение времени перед остановкой
 
+            n_datetime = QDateTime.fromString(self.change_end_time(), "dd.MM.yyyy HH:mm:ss").date().toString("dd.MM.yyyy")
+            n_time = QDateTime.fromString(self.change_end_time(), "dd.MM.yyyy HH:mm:ss").time().toString("HH:mm:ss")
+            print("Day is ", n_datetime, " and time is ", n_time)
+
+            self.time_updated.emit(self.today, self.last_time, self.time_now)  # Отправляем сигнал с зафиксированным временем
+            # changed_time = QDateTime.fromString(self.last_time, "HH:mm:ss")
+            # print(changed_time)
+            print(self.change_end_time())
 
     def reset(self):
         self.elapsed_time = QTime(0, 0)  # Сбрасываем время
@@ -296,24 +295,83 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.Start_Time.setText(time_str)  # Обновляем отображение времени
         self.last_time = time_str  # Сохраняем последнее значение времени
 
-    #2 функции для передачи времени в UI_StaticWidget
+        # self.last_time = QDateTime.fromString(self.last_time, "HH:mm:ss").addMSecs(new_time).toString("HH:mm:ss")
 
-    def update_last_time(self, new_time):
-        """Метод для обновления last_time и отправки сигнала с новым значением."""
-        self.last_time = new_time
-        self.time_updated.emit(self.last_time)  # Отправляем сигнал с обновленным временем
+    def get_current_Date(self):
+        from datetime import datetime
+        return datetime.now().strftime("%d.%m.%Y")  # Возвращает текущую дату в формате "dd.mm.yyyy"
+    
+    # Возвращает сегодняшнее время
+    def get_current_Realtime(self):
+        from datetime import datetime
+        return datetime.now().strftime("%H:%M:%S")  # Возвращает текущее время в формате "hh:mm:ss"
 
-    def get_last_time(self):
-        return self.last_time
+    def change_end_time(self):
+        # curren_d = QDate.currentDate().addDays(10).toString("dd.MM.yyyy")
+        date_now = self.get_current_Date()
+        time_now = self.get_current_Realtime()
+        l_time_sec = QDateTime.fromString(self.last_time, "HH:mm:ss").time().second()
+
+        inc_time = QDateTime.fromString(time_now, "HH:mm:ss").addMSecs(l_time_sec).toString("HH:mm:ss")
+        # curren_d = QDate.fromString(self.today, "dd.MM.yyyy").addDays(10).toString("dd.MM.yyyy")
+        return f"{date_now} {inc_time}"
+
+    
+    def increment_time(self):
+        # Логика обновления last_time, например, в формате HH:MM:SS
+
+        hours, minutes, seconds = map(int, self.last_time.split(":"))
+        seconds += 1
+        if seconds >= 60:
+            seconds = 0
+            minutes += 1
+        if minutes >= 60:
+            minutes = 0
+            hours += 1
+        self.last_time = f"{hours:02}:{minutes:02}:{seconds:02}"
+        
+        self.time_updated.emit(self.today, self.last_time, self.time_now)  # Отправляем обновленное значение
+        # self.update_last_timeSW.emit(self.last_time)
+
+    # time_stopped = pyqtSignal(str)  # Сигнал с последним временем
+
+    # def stop_timer(self):
+    #     last_time = self.elapsed_time.toString("hh:mm:ss")
+    #     self.time_stopped.emit(last_time)  # Передаем последнее значение времени через сигнал
+
+    #Функция для передачи времени в UI_StaticWidget
+
+    # def update_last_timeSW(self, new_time):
+    #     """Метод для обновления last_time и отправки сигнала с новым значением."""
+    #     self.last_time = new_time
+    #     self.time_updated.emit(self.last_time)  # Отправляем сигнал с обновленным временем
+
+    # def get_last_time(self):
+    #     return self.elapsed_time.toString("hh:mm:ss")
+
+    # def get_last_time(self):
+    #     return self.last_time
 
     #Отображение окна статистики
     def show_static_widget(self):
-        self.static_widget = QtWidgets.QWidget()  # Создаем новый виджет
+
+        # self.Time_ToStatic = self.Start_Time.text()
+
+        # lt_for_timeworkend = QDateTime.fromString(self.last_time, "HH:mm:ss")
+
+
+        self.static_widget = QtWidgets.QWidget()  # Создаем новое окно
         self.static_ui = Ui_StaticWidget()  # Создаем экземпляр Ui_StaticWidget
-        #self.static_ui = Ui_StaticWidget(self.get_last_time())  # Передаем last_time в Ui_StaticWidget
+        #self.static_ui = Ui_StaticWidget(self.get_last_time())   # Передаем last_time в Ui_StaticWidget
 
         # Подключаем слот StaticWidget к сигналу time_updated
-        self.time_updated.connect(self.static_ui.update_timework)
+        self.time_updated.connect(self.static_ui.update_timeworkSW)
+        self.update_last_timeSW.connect(self.static_ui.update_last_timeSW)
+        self.static_ui.update_timeworkSW(self.today, self.Start_Time.text(), self.time_now)
+        self.static_ui.accept_today(self.today, self.time_now, self.last_time)
+        self.update_last_timeSW.emit(self.today, self.last_time, self.time_now)  # Отправляем значение при открытии
+        # self.static_ui.update_timeworkSW(self.last_time)
+        # self.timeStop_ChangedSignal.connect(self.static_ui.receive_text)
         
         self.static_ui.setupUi(self.static_widget)  # Настраиваем новый виджет
         self.static_widget.setWindowTitle("Статистика")  # Заголовок нового окна
@@ -326,12 +384,19 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.ToolBarBox.setTitle(_translate("MainWindow", "Панель инструментов"))
         self.menu.setTitle(_translate("MainWindow", "Файл"))
         self.menu_2.setTitle(_translate("MainWindow", "Статистика"))
+
+        self.menu_3.setTitle(_translate("MainWindow", "Тест таймера"))
+
         self.action.setText(_translate("MainWindow", "Открыть"))
         self.action_2.setText(_translate("MainWindow", "Сохранить"))
         self.action_3.setText(_translate("MainWindow", "Сохранить как"))
         self.action_PNG.setText(_translate("MainWindow", "Экспорт в PNG"))
         self.action_4.setText(_translate("MainWindow", "Создать"))
         self.action_Statystics.setText(_translate("MainWindow", "Запустить статистику"))
+
+        self.action_time_start.setText(_translate("MainWindow", "Запустить таймер"))
+        self.action_time_stop.setText(_translate("MainWindow", "Остановить таймер"))
+        self.action_time_reset.setText(_translate("MainWindow", "Сбросить таймер"))
 
 
 if __name__ == "__main__":
