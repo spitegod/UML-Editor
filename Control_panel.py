@@ -81,6 +81,7 @@ class Ui_Dialog(object):
         if color.isValid():
             self.pushButton_BGcolor.setStyleSheet(f"background-color: {color.name()};")
             self.lineEdit_text.setStyleSheet(f"QLineEdit {{ color: {color.name()} }}")#цвет текста
+            print("huhu")
 
 
 
