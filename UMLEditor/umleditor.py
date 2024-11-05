@@ -20,9 +20,11 @@ class ToolbarWidget(QFrame):
         self.add_icons()
 
     def add_icons(self):
-        # Путь к папке с изображениями
-        image_folder = r"C:\Новая папка\UML-Editor\UMLEditor\imgs"
-        # Список иконок с координатами для сетки (порядок добавления)
+        # Получаем путь к папке с изображениями относительно текущего файла
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        image_folder = os.path.join(current_dir, "imgs")
+        
+        # Список иконок
         icons = [
             "startstate.png", "finalstate.png", "activestate.png",
             "decision.png", "merge.png", "synchronize.png",
@@ -31,10 +33,12 @@ class ToolbarWidget(QFrame):
 
         # Добавляем иконки в сетку
         for i, icon_name in enumerate(icons):
-            icon_path = f"{image_folder}/{icon_name}"
-            if not QPixmap(icon_path).isNull():
+            icon_path = os.path.join(image_folder, icon_name)
+            pixmap = QPixmap(icon_path)
+            
+            if not pixmap.isNull():
                 icon_label = QLabel(self)
-                icon_label.setPixmap(QPixmap(icon_path))
+                icon_label.setPixmap(pixmap)
                 
                 # Располагаем иконки по строкам и столбцам (по 3 в строке)
                 row = i // 3
