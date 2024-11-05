@@ -3,7 +3,7 @@ from PyQt5.QtCore import (QByteArray, QDataStream, QIODevice, QMimeData,
 from PyQt5.QtGui import QColor, QDrag, QPainter, QPixmap
 from PyQt5.QtWidgets import QApplication, QFrame, QHBoxLayout, QLabel, QWidget
 
-import draggableicons_rc
+
 
 
 class DragWidget(QFrame):
