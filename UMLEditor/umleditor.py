@@ -4,9 +4,52 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from Static import Ui_StaticWidget  # Импортируем класс Ui_StaticWidget
 from PyQt5.QtCore import QTimer, QTime, QDateTime
 from PyQt5.QtCore import pyqtSignal  # Импортируем pyqtSignal
+from PyQt5.QtWidgets import QApplication, QFrame, QHBoxLayout, QLabel, QWidget, QGridLayout
+from PyQt5.QtGui import QPixmap, QDrag
 
 
 #НАЧАЛО ПЕРЕДЕЛЫВАНИЯ ПОД QFRAME
+class ToolbarWidget(QFrame):
+    def __init__(self, parent=None):
+        super(ToolbarWidget, self).__init__(parent)
+        self.setMinimumSize(200, 400)
+        self.setFrameStyle(QFrame.Sunken | QFrame.StyledPanel)
+
+        # Устанавливаем сеточный layout для упорядочивания иконок
+        self.grid_layout = QGridLayout(self)
+        self.add_icons()
+
+    def add_icons(self):
+        # Путь к папке с изображениями
+        image_folder = r"C:\Новая папка\UML-Editor\UMLEditor\imgs"
+        # Список иконок с координатами для сетки (порядок добавления)
+        icons = [
+            "startstate.png", "finalstate.png", "activestate.png",
+            "decision.png", "merge.png", "synchronize.png",
+            "Signal-sending.png", "Signal-receipt.png", "arrowsolid.png"
+        ]
+
+        # Добавляем иконки в сетку
+        for i, icon_name in enumerate(icons):
+            icon_path = f"{image_folder}/{icon_name}"
+            if not QPixmap(icon_path).isNull():
+                icon_label = QLabel(self)
+                icon_label.setPixmap(QPixmap(icon_path))
+                
+                # Располагаем иконки по строкам и столбцам (по 3 в строке)
+                row = i // 3
+                col = i % 3
+                self.grid_layout.addWidget(icon_label, row, col)
+            else:
+                print(f"Изображение {icon_path} не найдено")
+
+
+class WorkspaceWidget(QFrame):
+    def __init__(self, parent=None):
+        super(WorkspaceWidget, self).__init__(parent)
+        self.setMinimumSize(400, 400)
+        self.setFrameStyle(QFrame.Sunken | QFrame.StyledPanel)
+        self.setAcceptDrops(True)
 
 #КОНЕЦ ПЕРЕДЕЛЫВАНИЯ ПОД QFRAME
 
@@ -83,105 +126,22 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.gridLayout = QtWidgets.QGridLayout()
         self.gridLayout.setObjectName("gridLayout")
         
-        # Создание QLabel и добавление в gridLayout
-        self.label = QtWidgets.QLabel(self.ToolBarBox)
-        self.label.setText("")
-        #Без понятия, что здесь должно быть
-        self.label.setPixmap(QtGui.QPixmap("imgs/decison.png"))
-        self.label.setScaledContents(False)
-        self.label.setAlignment(QtCore.Qt.AlignCenter)
-        self.label.setObjectName("label")
-        self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
+        self.centralwidget = QtWidgets.QWidget(MainWindow)
+        self.centralwidget.setObjectName("centralwidget")
 
-        # startstate.png
-        self.label_2 = QtWidgets.QLabel(self.ToolBarBox)
-        self.label_2.setText("")
-        #Здесь надо вписать полный путь для startstate.png
-        self.label_2.setPixmap(QtGui.QPixmap("imgs/startstate.png"))
-        self.label_2.setScaledContents(False)
-        self.label_2.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_2.setWordWrap(False)
-        self.label_2.setObjectName("label_2")
-        self.gridLayout.addWidget(self.label_2, 0, 1, 1, 1)
+        self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
+        self.horizontalLayout.setObjectName("horizontalLayout")
 
-        # finalstate.png
-        self.label_3 = QtWidgets.QLabel(self.ToolBarBox)
-        self.label_3.setText("")
-        #Здесь надо вписать полный путь для finalstate.png"
-        self.label_3.setPixmap(QtGui.QPixmap("imgs/finalstate.png"))
-        self.label_3.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_3.setObjectName("label_3")
-        self.gridLayout.addWidget(self.label_3, 0, 2, 1, 1)
+        # Заменяем ToolBarBox на ToolbarWidget
+        self.toolbar = ToolbarWidget(self.centralwidget)
+        self.horizontalLayout.addWidget(self.toolbar)
 
-        # merge.png
-        self.label_5 = QtWidgets.QLabel(self.ToolBarBox)
-        self.label_5.setText("")
-        #Здесь надо вписать полный путь для merge.png
-        self.label_5.setPixmap(QtGui.QPixmap("imgs/merge.png")) 
-        self.label_5.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_5.setObjectName("label_5")
-        self.gridLayout.addWidget(self.label_5, 1, 1, 1, 1)
+        # Заменяем graphicsView на WorkspaceWidget
+        self.workspace = WorkspaceWidget(self.centralwidget)
+        self.horizontalLayout.addWidget(self.workspace)
 
-        # Signal-sending.png
-        self.label_7 = QtWidgets.QLabel(self.ToolBarBox)
-        self.label_7.setText("")
-        #Здесь надо вписать полный путь для Signal-sending.png
-        self.label_7.setPixmap(QtGui.QPixmap("imgs/Signal-sending.png")) 
-        self.label_7.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_7.setObjectName("label_7")
-        self.gridLayout.addWidget(self.label_7, 2, 0, 1, 1)
-
-        # Signal-receipt.png
-        self.label_8 = QtWidgets.QLabel(self.ToolBarBox)
-        self.label_8.setText("")
-        #Здесь надо вписать полный путь для Signal-receipt.png
-        self.label_8.setPixmap(QtGui.QPixmap("imgs/Signal-receipt.png")) 
-        self.label_8.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_8.setObjectName("label_8")
-        self.gridLayout.addWidget(self.label_8, 2, 1, 1, 1)
-
-        # arrowsolid.png
-        self.label_9 = QtWidgets.QLabel(self.ToolBarBox)
-        self.label_9.setText("")
-        #Здесь надо вписать полный путь для arrowsolid.png
-        self.label_9.setPixmap(QtGui.QPixmap("imgs/arrowsolid.png")) 
-        self.label_9.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_9.setObjectName("label_9")
-        self.gridLayout.addWidget(self.label_9, 2, 2, 1, 1)
-
-        # synchronize.png
-        self.label_4 = QtWidgets.QLabel(self.ToolBarBox)
-        self.label_4.setText("")
-        #Здесь надо вписать полный путь для synchronize.png
-        self.label_4.setPixmap(QtGui.QPixmap("imgs/synchronize.png")) 
-        self.label_4.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_4.setObjectName("label_4")
-        self.gridLayout.addWidget(self.label_4, 1, 0, 1, 1)
-
-        # ctivestate.png
-        self.label_6 = QtWidgets.QLabel(self.ToolBarBox)
-        self.label_6.setText("")
-        #Здесь надо вписать полный путь для ctivestate.png
-        self.label_6.setPixmap(QtGui.QPixmap("imgs/activestate.png")) 
-        self.label_6.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_6.setObjectName("label_6")
-        self.gridLayout.addWidget(self.label_6, 1, 2, 1, 1)
-
-        self.gridLayout_5.addLayout(self.gridLayout, 0, 0, 1, 1)
-        self.horizontalLayout.addWidget(self.ToolBarBox)
-        self.gridLayout_2.addLayout(self.horizontalLayout, 0, 0, 1, 1)
-
-        self.gridLayout_6 = QtWidgets.QGridLayout()
-        self.gridLayout_6.setObjectName("gridLayout_6")
-        self.graphicsView = QtWidgets.QGraphicsView(self.centralwidget)
-        self.graphicsView.setObjectName("graphicsView")
-        self.gridLayout_6 = QtWidgets.QGridLayout()
-        self.gridLayout_6.setObjectName("gridLayout_6")
-        self.gridLayout_6.addWidget(self.graphicsView, 0, 1, 1, 1)
-        self.gridLayout_2.addLayout(self.gridLayout_6, 0, 1, 1, 1)
-        #self.gridLayout_6.addWidget(self.frame, 0, 1, 1, 1)
-        self.gridLayout_2.addLayout(self.gridLayout_6, 0, 1, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
+
 
         #Настройка главного меню
         self.menubar = QtWidgets.QMenuBar(MainWindow)
