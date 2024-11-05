@@ -417,6 +417,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.start()
 
 
+
         #self.Start_Time.textChanged.connect(self.update_time)
 
         self.action_time_start.triggered.connect(self.start)
@@ -430,8 +431,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
 
     # Подключаем обработчик событий для ПКМ ---------------------------------------------------------------------------
-        self.centralwidget.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.centralwidget.customContextMenuRequested.connect(self.open_dialog)
+        self.workspace.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.workspace.customContextMenuRequested.connect(self.open_dialog)
 
     def open_dialog(self):
         # Создаем и отображаем диалоговое окно
