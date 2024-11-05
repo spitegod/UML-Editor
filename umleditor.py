@@ -430,8 +430,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
 
     # Подключаем обработчик событий для ПКМ ---------------------------------------------------------------------------
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.open_dialog)
+        self.centralwidget.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.centralwidget.customContextMenuRequested.connect(self.open_dialog)
 
     def open_dialog(self):
         # Создаем и отображаем диалоговое окно
@@ -440,7 +440,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         #------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         #Ниже 7 функции - реализация работы таймера
-        
+
     def start(self):
         if not self.running:  # Запускаем таймер, только если он не запущен
             self.running = True
