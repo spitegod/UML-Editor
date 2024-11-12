@@ -2,7 +2,7 @@ import sys
 import json
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QMenuBar, QMenu, QFileDialog,
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QStatusBar, QLineEdit, QSizeGrip
+    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QStatusBar, QLineEdit, QSizeGrip, QMenu
 )
 from PyQt5.QtCore import Qt, QMimeData, QPoint, QSize
 from PyQt5.QtGui import QDrag, QPixmap, QIcon, QColor, QPainter
@@ -35,30 +35,44 @@ class UMLItem(QWidget):
         self.label.setPixmap(pixmap)
         self.label.setScaledContents(True)
 
-        # Используем QSizeGrip для изменения размеров
-        self.size_grip = QSizeGrip(self)
-        self.size_grip.setVisible(True)
-
-        # Устанавливаем прозрачный фон и рамку
-        self.setStyleSheet("background: transparent; border: 1px solid gray;")
+        # Убираем любые рамки у QLabel и самого объекта
+        self.setStyleSheet("background: transparent; border: none;")  # Убираем рамку и фон
 
         # Переменная для хранения смещения при перетаскивании
         self.offset = QPoint()
 
+        # Для контекстного меню
+        self.context_menu = None
+
     def resizeEvent(self, event):
-        # Обновляем размеры QLabel и позицию QSizeGrip
+        # Обновляем размеры QLabel
         self.label.setGeometry(0, 0, self.width(), self.height())
-        self.size_grip.move(self.width() - self.size_grip.width(), self.height() - self.size_grip.height())
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
             # Запоминаем начальную позицию мыши для перемещения
             self.offset = event.pos()
+        elif event.button() == Qt.RightButton:
+            self.show_context_menu(event.pos())
 
     def mouseMoveEvent(self, event):
         if event.buttons() == Qt.LeftButton:
             # Перемещаем элемент по рабочей области
             self.move(self.mapToParent(event.pos() - self.offset))
+
+    def show_context_menu(self, position):
+        if self.context_menu is None:
+            self.context_menu = QMenu(self)
+
+            # Добавляем кнопки "TEST"
+            for i in range(3):
+                action = self.context_menu.addAction(f"TEST {i + 1}")
+                action.triggered.connect(lambda checked, i=i: self.test_action(i))
+
+        self.context_menu.exec_(self.mapToGlobal(position))
+
+    def test_action(self, index):
+        print(f"Test {index + 1} action triggered")
 
     def get_data(self):
         # Возвращаем данные элемента для сохранения
@@ -75,7 +89,8 @@ class DropArea(QWidget):
     def __init__(self):
         super().__init__()
         self.setAcceptDrops(True)
-        self.setStyleSheet("background-color: #404040; border-radius: 5px;")
+        # Сделаем рабочее поле более заметным: фон и граница
+        self.setStyleSheet("background-color: #f0f0f0; border: 2px dashed #808080;")
         self.elements = []
 
     def dragEnterEvent(self, event):
@@ -109,6 +124,12 @@ class DropArea(QWidget):
             uml_item.setGeometry(data["x"], data["y"], data["width"], data["height"])
             uml_item.show()
             self.elements.append(uml_item)
+
+    def mousePressEvent(self, event):
+        # Закрываем контекстные меню при клике в другую область
+        for element in self.elements:
+            if element.context_menu:
+                element.context_menu.close()
 
 
 def create_icon(element_type):
@@ -160,18 +181,49 @@ def create_icon(element_type):
     return pixmap
 
 
+# Новый класс для работы с изображением
+class ImageItem(QWidget):
+    def __init__(self, pixmap, parent=None):
+        super().__init__(parent)
+        self.pixmap = pixmap
+        self.setFixedSize(pixmap.size())
+        self.label = QLabel(self)
+        self.label.setPixmap(pixmap)
+        self.label.setScaledContents(True)
+
+        # Переменная для хранения смещения при перетаскивании
+        self.offset = QPoint()
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.offset = event.pos()
+
+    def mouseMoveEvent(self, event):
+        if event.buttons() == Qt.LeftButton:
+            self.move(self.mapToParent(event.pos() - self.offset))
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("UML Activity Diagram Editor")
+        self.setWindowTitle("UML-Editor")
         self.setGeometry(100, 100, 800, 600)
 
+        # История добавленных объектов
+        self.history = []
+
         menu_bar = QMenuBar(self)
+
         file_menu = QMenu("Файл", self)
         file_menu.addAction("Сохранить", self.save_diagram)
-        file_menu.addAction("Загрузить", self.load_diagram)
+        file_menu.addAction("Открыть", self.load_diagram)
         menu_bar.addMenu(file_menu)
         self.setMenuBar(menu_bar)
+
+        # Добавляем вкладку «Вставка»
+        insert_menu = QMenu("Вставка", self)
+        insert_menu.addAction("Изображение из файла", self.insert_image_from_file)
+        menu_bar.addMenu(insert_menu)
 
         central_widget = QWidget(self)
         main_layout = QHBoxLayout(central_widget)
@@ -201,23 +253,41 @@ class MainWindow(QMainWindow):
         status_bar = QStatusBar(self)
         self.setStatusBar(status_bar)
 
+    def keyPressEvent(self, event):
+        if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Z:
+            self.undo_last_action()
+
+    def undo_last_action(self):
+        if self.drop_area.elements:
+            # Удаляем последний элемент из рабочего поля
+            last_element = self.drop_area.elements.pop()
+            last_element.close()  # Закрываем объект, что фактически удаляет его
+
     def save_diagram(self):
-        file_path, _ = QFileDialog.getSaveFileName(self, "Сохранить диаграмму", "", "CHEP Files (*.chep)")
+        file_path, _ = QFileDialog.getSaveFileName(self, "Сохранить", "", "CHEP Files (*.chep)")
         if file_path:
             data = self.drop_area.get_elements_data()
             with open(file_path, 'w') as file:
                 json.dump(data, file)
 
     def load_diagram(self):
-        file_path, _ = QFileDialog.getOpenFileName(self, "Загрузить диаграмму", "", "CHEP Files (*.chep)")
+        file_path, _ = QFileDialog.getOpenFileName(self, "Открыть", "", "CHEP Files (*.chep)")
         if file_path:
             with open(file_path, 'r') as file:
                 data = json.load(file)
                 self.drop_area.load_elements(data)
+
+    def insert_image_from_file(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Выберите изображение", "", "Image Files (*.png *.jpg *.bmp)")
+        if file_path:
+            pixmap = QPixmap(file_path)
+            image_item = ImageItem(pixmap, self.drop_area)
+            image_item.move(self.drop_area.mapToParent(self.drop_area.rect().center()) - QPoint(pixmap.width() // 2, pixmap.height() // 2))
+            image_item.show()
+            self.drop_area.elements.append(image_item)
 
 
 app = QApplication(sys.argv)
 window = MainWindow()
 window.show()
 sys.exit(app.exec_())
-
