@@ -211,6 +211,8 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("UML-Editor")
         self.setGeometry(100, 100, 800, 600)
 
+        self.current_file_path = "" 
+
         # История добавленных объектов
         self.history = []
 
@@ -267,14 +269,21 @@ class MainWindow(QMainWindow):
             last_element.close()  # Закрываем объект, что фактически удаляет его
 
     def save_diagram(self):
-        file_path, _ = QFileDialog.getSaveFileName(self, "Сохранить", "", "CHEP Files (*.chep)")
-        if file_path:
-            data = self.drop_area.get_elements_data()
-            with open(file_path, 'w') as file:
-                json.dump(data, file)
+        if not self.current_file_path:
+            self.save_as_diagram()
+        else:
+            self.save_to_file(self.current_file_path)
 
     def save_as_diagram(self):
-        self.save_diagram()
+        file_path, _ = QFileDialog.getSaveFileName(self, "Сохранить как", "", "CHEP Files (*.chep)")
+        if file_path:
+            self.current_file_path = file_path
+            self.save_to_file(file_path)
+
+    def save_to_file(self, file_path):
+        data = self.drop_area.get_elements_data()
+        with open(file_path, 'w') as file:
+            json.dump(data, file)
 
 
     def load_diagram(self):
