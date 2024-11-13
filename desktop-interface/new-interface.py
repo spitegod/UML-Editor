@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt, QMimeData, QPoint, QSize
 from PyQt5.QtGui import QDrag, QPixmap, QIcon, QColor, QPainter
 
+isFileChanged = False
 
 class DraggableButton(QPushButton):
     def __init__(self, element_type, icon_pixmap, parent):
@@ -190,6 +191,7 @@ class ImageItem(QWidget):
         self.label = QLabel(self)
         self.label.setPixmap(pixmap)
         self.label.setScaledContents(True)
+        self.context_menu = None
 
         # Переменная для хранения смещения при перетаскивании
         self.offset = QPoint()
@@ -216,6 +218,7 @@ class MainWindow(QMainWindow):
 
         file_menu = QMenu("Файл", self)
         file_menu.addAction("Сохранить", self.save_diagram)
+        file_menu.addAction("Сохранить как", self.save_as_diagram)
         file_menu.addAction("Открыть", self.load_diagram)
         menu_bar.addMenu(file_menu)
         self.setMenuBar(menu_bar)
@@ -269,6 +272,10 @@ class MainWindow(QMainWindow):
             data = self.drop_area.get_elements_data()
             with open(file_path, 'w') as file:
                 json.dump(data, file)
+
+    def save_as_diagram(self):
+        self.save_diagram()
+
 
     def load_diagram(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Открыть", "", "CHEP Files (*.chep)")
