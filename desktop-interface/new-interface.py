@@ -220,9 +220,10 @@ class MainWindow(QMainWindow):
 
         file_menu = QMenu("Файл", self)
         file_menu.addAction("Открыть", self.load_diagram)
+        file_menu.addSeparator()
         file_menu.addAction("Сохранить", self.save_diagram)
         file_menu.addAction("Сохранить как", self.save_as_diagram)
-        
+        file_menu.addSeparator()
         exit_action = file_menu.addAction("Выход")
         exit_action.triggered.connect(self.close)
 
