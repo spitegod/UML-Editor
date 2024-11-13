@@ -3,10 +3,9 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from Static import Ui_StaticWidget  # Импортируем класс Ui_StaticWidget
 from PyQt5.QtCore import QTimer, QTime, QDateTime
-from PyQt5.QtCore import pyqtSignal, QByteArray, QDataStream, QIODevice, QPoint, Qt, QMimeData  # Импортируем pyqtSignal
+from PyQt5.QtCore import pyqtSignal, QByteArray, QDataStream, QIODevice, QPoint, Qt, QMimeData
 from PyQt5.QtWidgets import QApplication, QFrame, QHBoxLayout, QLabel, QWidget, QGridLayout, QDialog
-from PyQt5.QtGui import QPixmap, QDrag
-
+from PyQt5.QtGui import QPixmap, QDrag, QTransform, QMouseEvent
 
 
 #НАЧАЛО ПЕРЕДЕЛЫВАНИЯ ПОД QFRAME
@@ -99,10 +98,11 @@ class WorkspaceWidget(QFrame):
             offset = QPoint()
             dataStream >> pixmap >> offset
 
-            newIcon = DraggableLabel(self)
-            newIcon.setPixmap(pixmap)
-            newIcon.move(event.pos() - offset)
-            newIcon.show()
+            if not isinstance(event.source(), DraggableLabel):
+                newIcon = DraggableLabel(self)
+                newIcon.setPixmap(pixmap)
+                newIcon.move(event.pos() - offset)
+                newIcon.show()
 
             event.acceptProposedAction()
         else:
@@ -114,23 +114,70 @@ class DraggableLabel(QLabel):
     def __init__(self, parent=None):
         super(DraggableLabel, self).__init__(parent)
         self.setAcceptDrops(True)
+        self.angle = 0  # Угол вращения
+        self.corner_click_threshold = 15
+        self.drag_start_position = None  # Для отслеживания начала перетаскивания
+
+    def is_in_bottom_right_corner(self, pos: QPoint) -> bool:
+        rect = self.rect()
+        bottom_right = rect.bottomRight()
+        return (bottom_right.x() - self.corner_click_threshold <= pos.x() <= bottom_right.x() and
+                bottom_right.y() - self.corner_click_threshold <= pos.y() <= bottom_right.y())
+
+    def rotate(self, degrees):
+        # if not self.pixmap():
+        #     return  # Проверка наличия изображения
+
+        self.angle += degrees  # Увеличиваем угол вращения
+
+        # Оригинальный pixmap
+        original_pixmap = self.pixmap()
+        original_size = original_pixmap.size()
+
+        # Создаем трансформацию и вращаем вокруг центра изображения
+        transform = QTransform()
+        center = original_size.width() / 2, original_size.height() / 2
+        transform.translate(center[0], center[1])  # Перемещаем к центру pixmap
+        transform.rotate(self.angle)
+        transform.translate(-center[0], -center[1])  # Возвращаем назад
+        # transform = original_pixmap.scaled(self.size(), QtCore.Qt.KeepAspectRatio)
+
+        # Применяем трансформацию с флагом сглаживания
+        rotated_pixmap = original_pixmap.transformed(transform, mode=Qt.SmoothTransformation)
+
+        # Центрируем вращенное изображение в пределах QLabel
+        self.setPixmap(rotated_pixmap)
+        self.setAlignment(Qt.AlignCenter)
+
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
-            drag = QDrag(self)
-            mimeData = QMimeData()
+            self.drag_start_position = event.pos()  # Сохранение начальной позиции нажатия
 
-            itemData = QByteArray()
-            dataStream = QDataStream(itemData, QIODevice.WriteOnly)
-            dataStream << self.pixmap() << QPoint(event.pos())
+        # Вращение на правый клик в правом нижнем углу
+        if event.button() == Qt.LeftButton and self.is_in_bottom_right_corner(event.pos()):
+            self.rotate(90)
+        else:
+            super().mousePressEvent(event)
 
-            mimeData.setData('application/x-dnditemdata', itemData)
-            drag.setMimeData(mimeData)
-            drag.setPixmap(self.pixmap())
-            drag.setHotSpot(event.pos())
+    def mouseMoveEvent(self, event):
+        if event.buttons() == Qt.LeftButton:
+            # Проверяем, достаточно ли смещения для перемещения (чтобы не срабатывать на случайные клики)
+            if (event.pos() - self.drag_start_position).manhattanLength() >= QApplication.startDragDistance():
+                # Обновляем положение виджета при перемещении мыши
+                new_pos = self.mapToParent(event.pos() - self.drag_start_position)
+                self.move(new_pos)
 
-            if drag.exec_(Qt.MoveAction) == Qt.MoveAction:
-                self.close()
+        super().mouseMoveEvent(event)
+
+
+
+    # def rotate_label(self):
+    #     self.rotation_angle += 15  # увеличиваем угол на 15 градусов (можно изменить)
+    #     transform = QTransform()
+    #     transform.rotate(self.rotation_angle)
+    #     rotated_pixmap = self.pixmap().transformed(transform, Qt.SmoothTransformation)
+    #     self.setPixmap(rotated_pixmap)
 
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -348,14 +395,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.action_time_reset = QtWidgets.QAction(MainWindow)
         self.action_time_reset.setObjectName("action_time_reset")
 
-        # self.label = QtWidgets.QLabel(self.ToolBarBox)
-        # pixmap = QtGui.QPixmap("imgs\startstate.png")
-        # if pixmap.isNull():
-        #     print("Ошибка загрузки изображения: imgs/startstate.png")
-        # self.label.setPixmap(pixmap)
-        # self.label.setScaledContents(True)
-        # self.label.adjustSize()
-
 
         # Подключаем действие для запуска окна статистики
         self.action_Statystics.triggered.connect(self.show_static_widget)
@@ -385,14 +424,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.Start_Time.setReadOnly(True)
 
         # self.Start_Time.textChanged.connect(self.emit_text)
-
-
-        # pixmap = QtGui.QPixmap("imgs/startstate.png")
-        # if pixmap.isNull():
-        #     print(f"Ошибка загрузки изображения: path/to/image.png")
-        #     self.label_2.setPixmap(pixmap)
-        #     self.label_2.setScaledContents(True)
-        #     self.label.adjustSize()  # Автоматически настраивает размер QLabel под изображение
 
         #Таймер
 
