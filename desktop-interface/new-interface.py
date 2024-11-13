@@ -219,9 +219,13 @@ class MainWindow(QMainWindow):
         menu_bar = QMenuBar(self)
 
         file_menu = QMenu("Файл", self)
+        file_menu.addAction("Открыть", self.load_diagram)
         file_menu.addAction("Сохранить", self.save_diagram)
         file_menu.addAction("Сохранить как", self.save_as_diagram)
-        file_menu.addAction("Открыть", self.load_diagram)
+        
+        exit_action = file_menu.addAction("Выход")
+        exit_action.triggered.connect(self.close)
+
         menu_bar.addMenu(file_menu)
         self.setMenuBar(menu_bar)
 
