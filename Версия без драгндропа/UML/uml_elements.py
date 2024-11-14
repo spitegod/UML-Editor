@@ -341,6 +341,12 @@ class RoundedRectangle(QtWidgets.QGraphicsRectItem):
 
         self.arrows = []  # Список стрелок, привязанных к этому прямоугольнику
 
+        # Создаем текстовое поле внутри объекта
+        self.text_item = QtWidgets.QGraphicsTextItem(self)
+        self.text_item.setPlainText("Текст")
+        self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)  # Разрешаем редактирование текста
+        self.text_item.setPos(x + width / 4, y + height / 4)  # Устанавливаем начальную позицию текста
+
     def paint(self, painter, option, widget=None):
         # Устанавливаем цвет заливки
         painter.setBrush(self.brush())
@@ -389,6 +395,7 @@ class RoundedRectangle(QtWidgets.QGraphicsRectItem):
         if self.is_resizing:
             rect = self.rect()
             x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
+            self.text_item.setPos(rect.x() + w / 4, rect.y() + h / 4)  # Обновляем позицию текста
 
             # Пропорциональное изменение размера прямоугольника
             if self.resize_side == 'left':
