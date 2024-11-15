@@ -30,9 +30,13 @@ class Ui_StaticWidget(QtWidgets.QWidget):
         self.dateTimeEdit_End.setAlignment(QtCore.Qt.AlignCenter)
         self.dateTimeEdit_End.setObjectName("dateTimeEdit_End")
 
+        #lineeit о количестве объектов на сцене
         self.label_count_el = QtWidgets.QLineEdit(self)
         self.label_count_el.setReadOnly(True)
         self.label_count_el.setObjectName("label_count_el")
+
+        self.tableWidget = QtWidgets.QTableWidget(self)
+        self.tableWidget.setObjectName("tableWidget")
     
 
     def setupUi(self, StaticWidget):  # Используем StaticWidget вместо StaticWindow
@@ -158,8 +162,6 @@ QLineEdit {
 
         # self.label_count_el.setText(f"Количество добавленных элементов: ")
         
-        self.tableWidget = QtWidgets.QTableWidget(StaticWidget)
-        self.tableWidget.setObjectName("tableWidget")
         self.tableWidget.setColumnCount(2)
         self.tableWidget.setRowCount(0)
         self.tableWidget.setHorizontalHeaderLabels(["Время", "Действие"])
@@ -229,7 +231,6 @@ QLineEdit {
 
     def get_count_objectS(self, int_):
         self.label_count_el.setText(f"Количество объектов на сцене: {int_}")
-        print("It", int_)
 
     def update_timeworkSW(self, today, new_time, time_now):
         """Слот для приема нового времени и обновления lineEdit_timework."""
@@ -281,7 +282,17 @@ QLineEdit {
 
         self.dateTimeEdit_End.setText(f"{today} {time_now}")
 
-    def uptade_static(self):
+    #Функция для обновления информации на статистике
+    def uptade_static(self, username: str, user_id: int, start_work: str, end_work: str, action: str, time_action: str):
+        row_position = self.tableWidget.rowCount()
+        
+        # Добавляем новую строку
+        self.tableWidget.insertRow(row_position)
+        
+        
+        # Добавляем данные в ячейки
+        self.tableWidget.setItem(row_position, 0, QTableWidgetItem(time_action))
+        self.tableWidget.setItem(row_position, 1, QTableWidgetItem(action))
         pass
 
     def retranslateUi(self, StaticWidget):

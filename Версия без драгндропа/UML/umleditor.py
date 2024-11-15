@@ -56,7 +56,8 @@ class UserManager:
 class Ui_MainWindow(QtWidgets.QMainWindow):
     time_updated = pyqtSignal(str, str, str)  # Создаем сигнал с параметром типа str для передачи запущенного времени
     update_last_timeSW = pyqtSignal(str, str, str)  # Создаем сигнал для передачи последнего значения времени
-    count_objectS = pyqtSignal(int)
+    count_objectS = pyqtSignal(int) # Создаем сигнал о подсчете количества объектов на сцене для отображения его в статистике
+    user_actions = pyqtSignal(str, int, str, str, str, str) # Создаем сигнал который учитывает дейсвтия пользователя на сцене для обновления информации на окне статистики
 
     # Создаем сигнал для передачи данных на моменте остановки таймера
     # timeStop_ChangedSignal = QtCore.pyqtSignal(str)
@@ -312,11 +313,14 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.scene_.update()  # Перерисовываем сцену
 
         # # Пользовательская информация
-        # user = User("User1", 0, self.time_now, self.get_time_for_user(self.last_time), len(self.objectS_))
+        self.user_ = User("User1", 0, self.time_now, self.get_time_for_user(self.last_time))
+        self.user_.add_action("Создана диаграмма UML", self.get_current_Realtime())
+        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
 
 
     def message_overcrowed_objectS(self):
         if len(self.objectS_) == 11:
+            self.count_objectS.emit(len(self.objectS_) - 1)
             msgBox = QMessageBox()
             msgBox.setIcon(QMessageBox.Information)
             msgBox.setText("Превышено максимальное значение элементов")
@@ -349,10 +353,13 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         print("Количество объектов на сцене - ", len(self.objectS_))
         self.count_objectS.emit(len(self.objectS_))
 
+        self.user_.add_action("Добавлен объект 'Решение'", self.get_current_Realtime())
+        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
         # Обновляем стрелки, если это необходимо
         for arrow in self.objectS_:
             if isinstance(arrow, Arrow):
                 arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
+
 
     def draw_circle(self):
         # Вставляем круг на сцену
@@ -367,6 +374,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         print("Количество объектов на сцене - ", len(self.objectS_))
         self.count_objectS.emit(len(self.objectS_))
 
+        self.user_.add_action("Добавлен объект 'Старт'", self.get_current_Realtime())
+        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
         # Обновляем стрелки, если это необходимо
         for arrow in self.objectS_:
             if isinstance(arrow, Arrow):
@@ -385,6 +394,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         print("Количество объектов на сцене - ", len(self.objectS_))
         self.count_objectS.emit(len(self.objectS_))
 
+        self.user_.add_action("Добавлен объект 'Конец'", self.get_current_Realtime())
+        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
         # Обновляем стрелки, если это необходимо
         for arrow in self.objectS_:
             if isinstance(arrow, Arrow):
@@ -401,6 +412,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         print("Количество объектов на сцене - ", len(self.objectS_))
         self.count_objectS.emit(len(self.objectS_))
+
+        self.user_.add_action("Добавлен объект 'Активное состояние'", self.get_current_Realtime())
+        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
 
         # Обновляем стрелки, если это необходимо
         for arrow in self.objectS_:
@@ -473,8 +487,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                         if arrow.scene():  # Проверяем, что стрелка все еще в сцене
                             self.scene_.removeItem(arrow)
                 self.scene_.removeItem(item)  # Удаляем сам круг
-                
+
         self.count_objectS.emit(len(self.objectS_))
+        self.scene_.update()  # Перерисовываем сцену
 
     # def count_objectS(self):
     #     return len(self.objectS_)
@@ -576,6 +591,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         self.count_objectS.connect(self.static_ui.get_count_objectS)
         self.count_objectS.emit(len(self.objectS_))
+
+        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
+        self.user_actions.connect(self.static_ui.uptade_static)
         
         self.static_ui.setupUi(self.static_widget)  # Настраиваем новый виджет
         self.static_widget.setWindowTitle("Статистика")  # Заголовок нового окна
