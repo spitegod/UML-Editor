@@ -3,7 +3,100 @@ from PyQt5.QtGui import QPen, QPainterPath, QColor
 from PyQt5.QtCore import QPointF, Qt
 from PyQt5.QtWidgets import QGraphicsItem, QGraphicsEllipseItem, QGraphicsRectItem, QGraphicsPolygonItem
 
-from math import atan2, cos, sin, pi
+from math import *
+
+from PyQt5 import QtCore, QtGui, QtWidgets
+
+# class Text_Edit(QtWidgets.QGraphicsTextItem):
+#     def __init__(self, x, y, width, height, text=""):
+#         super().__init__(text)  # Инициализация с начальным текстом
+#         self.setPos(x, y)  # Устанавливаем позицию текста
+#         self.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)  # Разрешаем редактирование текста
+#         self.setTextWidth(width)  # Устанавливаем ширину текста
+#         self.setDefaultTextColor(QtGui.QColor(0, 0, 0))  # Цвет текста (по умолчанию черный)
+#         self.setFont(QtGui.QFont("Arial", 12))  # Шрифт текста
+#
+#         # Создаем прямоугольник, который будет служить фоном для текстового поля
+#         self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)  # Позволяет перемещать элемент
+#         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события изменения положения
+#
+#         self.setAcceptHoverEvents(True)  # Для отслеживания наведения
+#
+#         self.resize_margin = 10  # Чувствительная область для изменения размера
+#         self.is_resizing = False  # Флаг, указывающий, идет ли изменение размера
+#         self.resize_side = None  # Определяем, с какой стороны идет изменение размера
+#
+#     def hoverMoveEvent(self, event):
+#         rect = self.boundingRect()
+#         x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
+#
+#         # Определяем курсор на основе стороны, к которой он ближе
+#         if abs(event.pos().x() - x) <= self.resize_margin:
+#             self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))
+#             self.resize_side = 'left'
+#         elif abs(event.pos().x() - (x + w)) <= self.resize_margin:
+#             self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))
+#             self.resize_side = 'right'
+#         elif abs(event.pos().y() - y) <= self.resize_margin:
+#             self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))
+#             self.resize_side = 'top'
+#         elif abs(event.pos().y() - (y + h)) <= self.resize_margin:
+#             self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))
+#             self.resize_side = 'bottom'
+#         else:
+#             self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+#             self.resize_side = None
+#         super().hoverMoveEvent(event)
+#
+#     def mousePressEvent(self, event):
+#         if self.resize_side:
+#             self.is_resizing = True
+#         else:
+#             self.is_resizing = False
+#         super().mousePressEvent(event)
+#
+#     def mouseMoveEvent(self, event):
+#         if self.is_resizing:
+#             rect = self.boundingRect()
+#             x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
+#
+#             if self.resize_side == 'right':
+#                 delta = event.pos().x() - (x + w)
+#                 new_width = max(10, w + delta)
+#                 self.setTextWidth(new_width)
+#             elif self.resize_side == 'left':
+#                 delta = x - event.pos().x()
+#                 new_width = max(10, w + delta)
+#                 new_x = x + w - new_width
+#                 self.setPos(new_x, y)
+#                 self.setTextWidth(new_width)
+#             elif self.resize_side == 'bottom':
+#                 delta = event.pos().y() - (y + h)
+#                 new_height = max(10, h + delta)
+#                 self.setTextHeight(new_height)
+#             elif self.resize_side == 'top':
+#                 delta = y - event.pos().y()
+#                 new_height = max(10, h + delta)
+#                 new_y = y + h - new_height
+#                 self.setPos(x, new_y)
+#                 self.setTextHeight(new_height)
+#
+#         else:
+#             super().mouseMoveEvent(event)
+#
+#     def mouseReleaseEvent(self, event):
+#         self.is_resizing = False
+#         super().mouseReleaseEvent(event)
+#
+#     def setTextHeight(self, height):
+#         rect = self.boundingRect()
+#         self.setTextWidth(rect.width())  # Фиксируем ширину
+#         self.setTextHeight(height)  # Устанавливаем новую высоту
+#
+#     def setTextWidth(self, width):
+#         rect = self.boundingRect()
+#         self.setTextWidth(width)  # Устанавливаем новую ширину
+
 
 class Arrow(QGraphicsItem):
     def __init__(self, node1, node2):

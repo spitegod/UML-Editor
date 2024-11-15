@@ -29,6 +29,10 @@ class Ui_StaticWidget(QtWidgets.QWidget):
         self.dateTimeEdit_End.setInputMask("00.00.0000 00:00:00")
         self.dateTimeEdit_End.setAlignment(QtCore.Qt.AlignCenter)
         self.dateTimeEdit_End.setObjectName("dateTimeEdit_End")
+
+        self.label_count_el = QtWidgets.QLineEdit(self)
+        self.label_count_el.setReadOnly(True)
+        self.label_count_el.setObjectName("label_count_el")
     
 
     def setupUi(self, StaticWidget):  # Используем StaticWidget вместо StaticWindow
@@ -144,6 +148,15 @@ QLineEdit {
         self.label_6.setObjectName("label_6")
         self.label_6.setAlignment(QtCore.Qt.AlignCenter)
         self.verticalLayout_2half.addWidget(self.label_6)
+
+        self.label_count_el.setStyleSheet("""
+QLineEdit {
+            border: none;
+            background: transparent;
+    }
+""")
+
+        # self.label_count_el.setText(f"Количество добавленных элементов: ")
         
         self.tableWidget = QtWidgets.QTableWidget(StaticWidget)
         self.tableWidget.setObjectName("tableWidget")
@@ -165,6 +178,7 @@ QLineEdit {
 """)
         
         self.verticalLayout_2half.addWidget(self.tableWidget)
+        self.verticalLayout_2half.addWidget(self.label_count_el)
         self.horizontalLayout_workarea.addLayout(self.verticalLayout_2half)
         
         self.gridLayout_2.addLayout(self.horizontalLayout_workarea, 1, 0, 1, 1)
@@ -212,6 +226,10 @@ QLineEdit {
     #     self.elapsed_time = self.elapsed_time.addSecs(1)  # Увеличиваем время на 1 секунду
     #     self.lineEdit_timework.setText(self.elapsed_time.toString("hh:mm:ss"))  # Обновляем отображение времени
     #     self.dateTimeEdit_End.setText(self.elapsed_time.toString("00.00.0000 hh:mm:ss"))
+
+    def get_count_objectS(self, int_):
+        self.label_count_el.setText(f"Количество объектов на сцене: {int_}")
+        print("It", int_)
 
     def update_timeworkSW(self, today, new_time, time_now):
         """Слот для приема нового времени и обновления lineEdit_timework."""
@@ -262,6 +280,9 @@ QLineEdit {
         self.dateTimeEdit_Start.setText(f"{today} {time_now}")
 
         self.dateTimeEdit_End.setText(f"{today} {time_now}")
+
+    def uptade_static(self):
+        pass
 
     def retranslateUi(self, StaticWidget):
 

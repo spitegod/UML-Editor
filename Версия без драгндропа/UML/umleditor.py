@@ -26,6 +26,7 @@ class User:
         self.action_history = {}  # Хэш-таблица для хранения истории действий с временными метками
         self.start_work = start_work #"dd.MM.yyyy HH:mm:ss"
         self.end_work = end_work #"dd.MM.yyyy HH:mm:ss"
+        # self.count_elements = count_elements #Длинна списка objectS_
 
 
     def add_action(self, action: str, time: str) -> None:
@@ -55,6 +56,8 @@ class UserManager:
 class Ui_MainWindow(QtWidgets.QMainWindow):
     time_updated = pyqtSignal(str, str, str)  # Создаем сигнал с параметром типа str для передачи запущенного времени
     update_last_timeSW = pyqtSignal(str, str, str)  # Создаем сигнал для передачи последнего значения времени
+    count_objectS = pyqtSignal(int)
+
     # Создаем сигнал для передачи данных на моменте остановки таймера
     # timeStop_ChangedSignal = QtCore.pyqtSignal(str)
 
@@ -231,7 +234,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.Start_Time = QtWidgets.QLineEdit(self.centralwidget)
         self.Start_Time.setGeometry(QtCore.QRect(100, 100, 200, 50))  # Устанавливаем размер и позицию
         self.Start_Time.setAlignment(QtCore.Qt.AlignCenter)  # Центрируем текст
-        self.Start_Time.setFont(QtGui.QFont("Helvetica", 16))  # Устанавливаем шрифт и размер
         self.Start_Time.setText("00:00:00")  # Устанавливаем начальное значение времени
         self.Start_Time.setReadOnly(True)
 
@@ -296,12 +298,10 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.button_9.clicked.connect(self.message_overcrowed_objectS)
 
         msg = QMessageBox()
-        msg.setWindowTitle("Название окна")
-        msg.setText("Описание")
         msg.setIcon(QMessageBox.Warning)
 
         self.objectS_ = []
-        self.graphicsView.setFocus()  # Устанавливаем фокус на graphicsView, чтобы горячие клавиши срабатывали
+        self.graphicsView.setFocus()  # Устанавливаем фокус на graphicsView, чтобы горячие клавиши срабатывали через QShortcut
         self.connect_objectS = QShortcut(QKeySequence("Q"), self.graphicsView)
         self.connect_objectS.activated.connect(self.add_edge)
 
@@ -310,6 +310,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
          # Обновляем сцену после инициализации
         self.scene_.update()  # Перерисовываем сцену
+
+        # # Пользовательская информация
+        # user = User("User1", 0, self.time_now, self.get_time_for_user(self.last_time), len(self.objectS_))
 
 
     def message_overcrowed_objectS(self):
@@ -327,6 +330,12 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             self.scene_.removeItem(self.objectS_[len(self.objectS_) - 1])
             self.objectS_.pop()
 
+    # def add_text_edit(self, x, y, width, height, text="Введите текст"):
+    #     text_item = Text_Edit(x, y, width, height, text)
+    #
+    #     text_item.setFlags(
+    #         QtWidgets.QGraphicsItem.ItemIsMovable | QtWidgets.QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать и выделять
+    #     self.scene_.addItem(text_item)  # Добавляем текстовое поле на сцену
 
     def draw_diamond(self):
         # Координаты центра и размер ромба
@@ -338,6 +347,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.objectS_.append(diamond)
 
         print("Количество объектов на сцене - ", len(self.objectS_))
+        self.count_objectS.emit(len(self.objectS_))
 
         # Обновляем стрелки, если это необходимо
         for arrow in self.objectS_:
@@ -355,6 +365,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.objectS_.append(circle)
 
         print("Количество объектов на сцене - ", len(self.objectS_))
+        self.count_objectS.emit(len(self.objectS_))
 
         # Обновляем стрелки, если это необходимо
         for arrow in self.objectS_:
@@ -372,6 +383,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.objectS_.append(circle)
 
         print("Количество объектов на сцене - ", len(self.objectS_))
+        self.count_objectS.emit(len(self.objectS_))
 
         # Обновляем стрелки, если это необходимо
         for arrow in self.objectS_:
@@ -388,6 +400,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.objectS_.append(rounded_rect)
 
         print("Количество объектов на сцене - ", len(self.objectS_))
+        self.count_objectS.emit(len(self.objectS_))
 
         # Обновляем стрелки, если это необходимо
         for arrow in self.objectS_:
@@ -460,6 +473,11 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                         if arrow.scene():  # Проверяем, что стрелка все еще в сцене
                             self.scene_.removeItem(arrow)
                 self.scene_.removeItem(item)  # Удаляем сам круг
+                
+        self.count_objectS.emit(len(self.objectS_))
+
+    # def count_objectS(self):
+    #     return len(self.objectS_)
 
 
 
@@ -533,7 +551,11 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.last_time = f"{hours:02}:{minutes:02}:{seconds:02}"
         
         self.time_updated.emit(self.today, self.last_time, self.time_now)  # Отправляем обновленное значение
+        self.get_time_for_user(self.last_time)
         # self.update_last_timeSW.emit(self.last_time)
+
+    def get_time_for_user(self, last_time):
+        return last_time
 
 
     #Отображение окна статистики
@@ -543,7 +565,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.static_widget = QtWidgets.QWidget()  # Создаем новое окно
         self.static_ui = Ui_StaticWidget()  # Создаем экземпляр Ui_StaticWidget
         #self.static_ui = Ui_StaticWidget(self.get_last_time())   # Передаем last_time в Ui_StaticWidget
-
         # Подключаем слот StaticWidget к сигналу time_updated
         self.time_updated.connect(self.static_ui.update_timeworkSW)
         self.update_last_timeSW.connect(self.static_ui.update_last_timeSW)
@@ -552,6 +573,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.update_last_timeSW.emit(self.today, self.last_time, self.time_now)  # Отправляем значение при открытии
         # self.static_ui.update_timeworkSW(self.last_time)
         # self.timeStop_ChangedSignal.connect(self.static_ui.receive_text)
+
+        self.count_objectS.connect(self.static_ui.get_count_objectS)
+        self.count_objectS.emit(len(self.objectS_))
         
         self.static_ui.setupUi(self.static_widget)  # Настраиваем новый виджет
         self.static_widget.setWindowTitle("Статистика")  # Заголовок нового окна
