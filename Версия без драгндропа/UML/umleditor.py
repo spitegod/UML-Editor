@@ -308,8 +308,11 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.connect_objectS = QShortcut(QKeySequence("Q"), self.graphicsView)
         self.connect_objectS.activated.connect(self.add_edge)
 
-        self.connect_objectS = QShortcut(QKeySequence("D"), self.graphicsView)
+        self.connect_objectS = QShortcut(QKeySequence("delete"), self.graphicsView)
         self.connect_objectS.activated.connect(self.delete_selected_item)
+
+        self.connect_objectS = QShortcut(QKeySequence("Ctrl+A"), self.graphicsView)
+        self.connect_objectS.activated.connect(self.select_all_item)
 
          # Обновляем сцену после инициализации
         self.scene_.update()  # Перерисовываем сцену
@@ -467,6 +470,11 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             self.scene_.update()  # Перерисовываем сцену
 
     
+    def select_all_item(self):
+        for item in self.scene_.items():
+            # Проверяем может ли элемент выделяться
+            if isinstance(item, QtWidgets.QGraphicsItem):
+                item.setSelected(True)
 
     def delete_selected_item(self):
         # Получаем текущие выделенные элементы в сцене
