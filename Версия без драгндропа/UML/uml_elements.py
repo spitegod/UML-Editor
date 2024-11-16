@@ -4,6 +4,7 @@ from PyQt5.QtCore import QPointF, Qt
 from PyQt5.QtWidgets import QGraphicsItem, QGraphicsEllipseItem, QGraphicsRectItem, QGraphicsPolygonItem
 
 from math import *
+import math
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
@@ -527,3 +528,120 @@ class RoundedRectangle(QtWidgets.QGraphicsRectItem):
     def add_arrow(self, arrow):
         if arrow not in self.arrows:
             self.arrows.append(arrow)
+
+
+
+class SignalSending(QtWidgets.QGraphicsPolygonItem):
+    def __init__(self, x, y, size):
+        super().__init__()
+        self.size = size
+        self.center_x = x  # Сохраняем центр при инициализации
+        self.center_y = y
+
+        # Создаем пентагон с отражением сразу при его создании
+        self.setPolygon(self.create_pentagon(self.center_x, self.center_y, self.size))
+
+        self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)  # Позволяет перемещать элемент
+        self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
+        self.setAcceptHoverEvents(True)  # Для отслеживания наведения
+
+        self.is_resizing = False  # Флаг, указывающий, идет ли изменение размера
+        self.resize_side = None  # Определяем, с какой стороны идет изменение размера
+        self.resize_margin = 10  # Чувствительная область для изменения размера
+
+        self.arrows = []  # Список стрелок, привязанных к этому пентагону
+
+    def create_pentagon(self, x, y, size):
+        # Создает прямоугольный пятиугольник с заданным центром (x, y) и размером.
+        points = []
+        
+        # Первая горизонтальная сторона (слева направо)
+        points.append(QtCore.QPointF(x - size / 2, y))
+        points.append(QtCore.QPointF(x + size / 2, y))
+        
+        # Второй угол (вниз)
+        points.append(QtCore.QPointF(x + size / 2, y + size / 2))
+        
+        # Третий угол (вправо и вверх)
+        points.append(QtCore.QPointF(x, y + size))
+        
+        # Четвертая сторона (вверх и влево, закрывает фигуру)
+        points.append(QtCore.QPointF(x - size / 2, y + size / 2))
+
+        polygon = QtGui.QPolygonF(points)
+
+        # Применяем отражение по горизонтали и поворот на 90 градусов при создании полигона
+        transform = QtGui.QTransform()
+        transform.translate(self.center_x, self.center_y)  # Переводим систему координат в центр полигона
+        transform.scale(-1, 1)  # Отражение по оси X
+        transform.rotate(90)  # Поворот на 90 градусов
+        transform.translate(-self.center_x, -self.center_y)  # Возвращаем систему координат в исходное положение
+
+        # Поскольку полигон по умолчаю создается так, что острый угол у него находится внизу, а сторона
+        # с прямыми углами в верху, то мы его переворачиваем
+        reflected_rotated_polygon = QtGui.QPolygonF([transform.map(point) for point in polygon])
+
+        return reflected_rotated_polygon
+
+    # Настройка выделения
+    def hoverMoveEvent(self, event):
+        rect = self.boundingRect()
+        x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
+
+        # Определяем курсор на основе стороны, к которой он ближе
+        if abs(event.pos().x() - x) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))
+            self.resize_side = 'left'
+        elif abs(event.pos().x() - (x + w)) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))
+            self.resize_side = 'right'
+        elif abs(event.pos().y() - y) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))
+            self.resize_side = 'top'
+        elif abs(event.pos().y() - (y + h)) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))
+            self.resize_side = 'bottom'
+        else:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+            self.resize_side = None
+        super().hoverMoveEvent(event)
+
+    def mousePressEvent(self, event):
+        if self.resize_side:
+            self.is_resizing = True
+        else:
+            self.is_resizing = False
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        for arrow in self.arrows:
+            arrow.update_arrow()
+
+        if self.is_resizing:
+            # Пропорциональное изменение размера пентагона, оставляя центр фиксированным
+            delta_x = abs(event.pos().x() - self.center_x)
+            delta_y = abs(event.pos().y() - self.center_y)
+            delta = max(delta_x, delta_y) * 2  # Умножаем на 2, чтобы изменить размер симметрично
+
+            new_size = max(10, delta)  # Минимальный размер 10
+            new_polygon = self.create_pentagon(self.center_x, self.center_y, new_size)
+            self.setPolygon(new_polygon)
+        else:
+            super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        self.is_resizing = False
+        super().mouseReleaseEvent(event)
+
+    def itemChange(self, change, value):
+        if change == QtWidgets.QGraphicsItem.ItemPositionChange:
+            for arrow in self.arrows:
+                arrow.update_arrow()
+        return super().itemChange(change, value)
+
+    def add_arrow(self, arrow):
+        if arrow not in self.arrows:
+            self.arrows.append(arrow)
+
+

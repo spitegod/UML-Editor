@@ -291,6 +291,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.button_2.clicked.connect(self.draw_circle)
         self.button_3.clicked.connect(self.draw_circle_2)
         self.button_9.clicked.connect(self.draw_rounded_rectangle)
+        self.button_6.clicked.connect(self.draw_pentagon_signal)
 
         #Проверка превышение количества объектов на сцене
         self.button.clicked.connect(self.message_overcrowed_objectS)
@@ -321,6 +322,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     def message_overcrowed_objectS(self):
         if len(self.objectS_) == 11:
             self.count_objectS.emit(len(self.objectS_) - 1)
+            self.scene_.removeItem(self.objectS_[len(self.objectS_) - 1])
+            self.objectS_.pop()
             msgBox = QMessageBox()
             msgBox.setIcon(QMessageBox.Information)
             msgBox.setText("Превышено максимальное значение элементов")
@@ -329,10 +332,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             # msgBox.buttonClicked.connect(msgButtonClick)
 
             returnValue = msgBox.exec()
-
-
-            self.scene_.removeItem(self.objectS_[len(self.objectS_) - 1])
-            self.objectS_.pop()
 
     # def add_text_edit(self, x, y, width, height, text="Введите текст"):
     #     text_item = Text_Edit(x, y, width, height, text)
@@ -422,6 +421,27 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
 
 
+    def draw_pentagon_signal(self):
+        # Координаты центра, ширина, высота и радиус закругления
+        x, y, size = 200, 200, 100  # Пример координат, размера и радиуса
+        rounded_rect = SignalSending(x, y, size)
+        rounded_rect.setFlags(QtWidgets.QGraphicsItem.ItemIsMovable | QtWidgets.QGraphicsItem.ItemIsSelectable)
+        self.scene_.addItem(rounded_rect)  # Добавляем закругленный прямоугольник на сцену
+
+        self.objectS_.append(rounded_rect)
+
+        print("Количество объектов на сцене - ", len(self.objectS_))
+        self.count_objectS.emit(len(self.objectS_))
+
+        self.user_.add_action("Добавлен объект 'Активное состояние'", self.get_current_Realtime())
+        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
+
+        # Обновляем стрелки, если это необходимо
+        for arrow in self.objectS_:
+            if isinstance(arrow, Arrow):
+                arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
+
+
     def add_edge(self):
         selected_nodes = [object_ for object_ in self.objectS_ if object_.isSelected()]
 
@@ -461,6 +481,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                         if arrow.scene():  # Проверяем, что стрелка все еще в сцене
                             self.scene_.removeItem(arrow)
                 self.scene_.removeItem(item)  # Удаляем сам круг
+                self.user_.add_action("Удален объект 'Старт'", self.get_current_Realtime())
+                self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
 
             if isinstance(item, Diamond):  # Проверяем, является ли элемент ромбом
                 self.objectS_.remove(item)
@@ -468,6 +490,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                     for arrow in item.arrows:
                         if arrow.scene():  # Проверяем, что стрелка все еще в сцене
                             self.scene_.removeItem(arrow)
+                self.user_.add_action("Удален объект 'Решение'", self.get_current_Realtime())
+                self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
                 self.scene_.removeItem(item) 
 
             if isinstance(item, Circle_2):  # Проверяем, является ли элемент кругом
@@ -477,6 +501,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                     for arrow in item.arrows:
                         if arrow.scene():  # Проверяем, что стрелка все еще в сцене
                             self.scene_.removeItem(arrow)
+                self.user_.add_action("Удален объект 'Конец'", self.get_current_Realtime())
+                self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
                 self.scene_.removeItem(item)  # Удаляем сам круг
 
             if isinstance(item, RoundedRectangle):  # Проверяем, является ли элемент кругом
@@ -486,6 +512,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                     for arrow in item.arrows:
                         if arrow.scene():  # Проверяем, что стрелка все еще в сцене
                             self.scene_.removeItem(arrow)
+                self.user_.add_action("Удален объект 'Активное состояние'", self.get_current_Realtime())
+                self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
                 self.scene_.removeItem(item)  # Удаляем сам круг
 
         self.count_objectS.emit(len(self.objectS_))

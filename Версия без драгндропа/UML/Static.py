@@ -37,6 +37,8 @@ class Ui_StaticWidget(QtWidgets.QWidget):
 
         self.tableWidget = QtWidgets.QTableWidget(self)
         self.tableWidget.setObjectName("tableWidget")
+        self.tableWidget.setEditTriggers(QTableWidget.NoEditTriggers)
+
     
 
     def setupUi(self, StaticWidget):  # Используем StaticWidget вместо StaticWindow
@@ -174,6 +176,9 @@ QLineEdit {
     QTableWidget::item {
         background-color: transparent;
     }
+    QTableWidget::item:selected {
+        color: black;
+    }
     QHeaderView::section {
         background-color: transparent;
     }
@@ -291,9 +296,8 @@ QLineEdit {
         
         
         # Добавляем данные в ячейки
-        self.tableWidget.setItem(row_position, 0, QTableWidgetItem(time_action))
-        self.tableWidget.setItem(row_position, 1, QTableWidgetItem(action))
-        pass
+        self.tableWidget.setItem(row_position, 0, QTableWidgetItem(action))
+        self.tableWidget.setItem(row_position, 1, QTableWidgetItem(time_action))
 
     def retranslateUi(self, StaticWidget):
 
