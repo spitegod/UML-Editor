@@ -291,13 +291,14 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.button_2.clicked.connect(self.draw_circle)
         self.button_3.clicked.connect(self.draw_circle_2)
         self.button_9.clicked.connect(self.draw_rounded_rectangle)
-        self.button_6.clicked.connect(self.draw_pentagon_signal)
+        self.button_5.clicked.connect(self.draw_pentagon_signal)
 
         #Проверка превышение количества объектов на сцене
         self.button.clicked.connect(self.message_overcrowed_objectS)
         self.button_2.clicked.connect(self.message_overcrowed_objectS)
         self.button_3.clicked.connect(self.message_overcrowed_objectS)
         self.button_9.clicked.connect(self.message_overcrowed_objectS)
+        self.button_5.clicked.connect(self.message_overcrowed_objectS)
 
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Warning)
@@ -424,16 +425,16 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     def draw_pentagon_signal(self):
         # Координаты центра, ширина, высота и радиус закругления
         x, y, size = 200, 200, 100  # Пример координат, размера и радиуса
-        rounded_rect = SignalSending(x, y, size)
-        rounded_rect.setFlags(QtWidgets.QGraphicsItem.ItemIsMovable | QtWidgets.QGraphicsItem.ItemIsSelectable)
-        self.scene_.addItem(rounded_rect)  # Добавляем закругленный прямоугольник на сцену
+        pentagon = SignalSending(x, y, 50, 170)
+        pentagon.setFlags(QtWidgets.QGraphicsItem.ItemIsMovable | QtWidgets.QGraphicsItem.ItemIsSelectable)
+        self.scene_.addItem(pentagon)  # Добавляем закругленный прямоугольник на сцену
 
-        self.objectS_.append(rounded_rect)
+        self.objectS_.append(pentagon)
 
         print("Количество объектов на сцене - ", len(self.objectS_))
         self.count_objectS.emit(len(self.objectS_))
 
-        self.user_.add_action("Добавлен объект 'Активное состояние'", self.get_current_Realtime())
+        self.user_.add_action("Добавлен объект 'Signal sending'", self.get_current_Realtime())
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
 
         # Обновляем стрелки, если это необходимо
@@ -515,6 +516,17 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.user_.add_action("Удален объект 'Активное состояние'", self.get_current_Realtime())
                 self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
                 self.scene_.removeItem(item)  # Удаляем сам круг
+
+            if isinstance(item, SignalSending):  # Проверяем, является ли элемент кругом
+                # Удаляем все стрелки, связанные с кругом, если они есть
+                self.objectS_.remove(item)
+                if hasattr(item, 'arrows') and item.arrows:
+                    for arrow in item.arrows:
+                        if arrow.scene():  # Проверяем, что стрелка все еще в сцене
+                            self.scene_.removeItem(arrow)
+                self.scene_.removeItem(item)  # Удаляем сам круг
+                self.user_.add_action("Удален объект 'Sending signal'", self.get_current_Realtime())
+                self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
 
         self.count_objectS.emit(len(self.objectS_))
         self.scene_.update()  # Перерисовываем сцену

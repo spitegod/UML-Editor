@@ -532,64 +532,61 @@ class RoundedRectangle(QtWidgets.QGraphicsRectItem):
 
 
 class SignalSending(QtWidgets.QGraphicsPolygonItem):
-    def __init__(self, x, y, size):
+    def __init__(self, x, y, width, height):
         super().__init__()
-        self.size = size
-        self.center_x = x  # Сохраняем центр при инициализации
+        self.width = width
+        self.height = height
+        self.center_x = x
         self.center_y = y
 
-        # Создаем пентагон с отражением сразу при его создании
-        self.setPolygon(self.create_pentagon(self.center_x, self.center_y, self.size))
+        # Создаем пентагон
+        self.setPolygon(self.create_pentagon(self.center_x, self.center_y, self.width, self.height))
 
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)  # Позволяет перемещать элемент
-        self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
-        self.setAcceptHoverEvents(True)  # Для отслеживания наведения
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
+        self.setAcceptHoverEvents(True)
 
-        self.is_resizing = False  # Флаг, указывающий, идет ли изменение размера
-        self.resize_side = None  # Определяем, с какой стороны идет изменение размера
-        self.resize_margin = 10  # Чувствительная область для изменения размера
+        self.is_resizing = False # Флаг, указывающий, идет ли изменение размера
+        self.resize_side = None # Определяем, с какой стороны идет изменение размера
+        self.resize_margin = 10 # Чувствительная область для изменения размера
 
-        self.arrows = []  # Список стрелок, привязанных к этому пентагону
+        self.arrows = []
 
-    def create_pentagon(self, x, y, size):
+    def create_pentagon(self, x, y, width, height):
         # Создает прямоугольный пятиугольник с заданным центром (x, y) и размером.
-        points = []
-        
-        # Первая горизонтальная сторона (слева направо)
-        points.append(QtCore.QPointF(x - size / 2, y))
-        points.append(QtCore.QPointF(x + size / 2, y))
-        
-        # Второй угол (вниз)
-        points.append(QtCore.QPointF(x + size / 2, y + size / 2))
-        
-        # Третий угол (вправо и вверх)
-        points.append(QtCore.QPointF(x, y + size))
-        
-        # Четвертая сторона (вверх и влево, закрывает фигуру)
-        points.append(QtCore.QPointF(x - size / 2, y + size / 2))
+        points = [
+            QtCore.QPointF(x - width / 2, y),          # Середина слева
+            QtCore.QPointF(x + width / 2, y),          # Середина справа
+            QtCore.QPointF(x + width / 2, y + height / 2),  # Нижний правый угол
+            QtCore.QPointF(x, y + height),             # Середина внизу
+            QtCore.QPointF(x - width / 2, y + height / 2)   # Нижний левый угол
+        ]
 
         polygon = QtGui.QPolygonF(points)
 
         # Применяем отражение по горизонтали и поворот на 90 градусов при создании полигона
-        transform = QtGui.QTransform()
-        transform.translate(self.center_x, self.center_y)  # Переводим систему координат в центр полигона
-        transform.scale(-1, 1)  # Отражение по оси X
-        transform.rotate(90)  # Поворот на 90 градусов
-        transform.translate(-self.center_x, -self.center_y)  # Возвращаем систему координат в исходное положение
-
         # Поскольку полигон по умолчаю создается так, что острый угол у него находится внизу, а сторона
         # с прямыми углами в верху, то мы его переворачиваем
+        transform = QtGui.QTransform()
+        transform.translate(self.center_x, self.center_y)
+        transform.scale(-1, 1)  # Отражение по оси X
+        transform.rotate(90) 
+        transform.translate(-self.center_x, -self.center_y)
         reflected_rotated_polygon = QtGui.QPolygonF([transform.map(point) for point in polygon])
+
+        # # Создаем текстовое поле внутри полигона
+        # self.text_item = QtWidgets.QGraphicsTextItem(self)
+        # self.text_item.setPlainText("Signal Sending")
+        # # self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+        # self.text_item.setPos(x + width/150, y + width/50)
 
         return reflected_rotated_polygon
 
-    # Настройка выделения
     def hoverMoveEvent(self, event):
         rect = self.boundingRect()
         x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
 
-        # Определяем курсор на основе стороны, к которой он ближе
         if abs(event.pos().x() - x) <= self.resize_margin:
             self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))
             self.resize_side = 'left'
@@ -608,24 +605,24 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
         super().hoverMoveEvent(event)
 
     def mousePressEvent(self, event):
-        if self.resize_side:
-            self.is_resizing = True
-        else:
-            self.is_resizing = False
+        self.is_resizing = bool(self.resize_side)
         super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
         for arrow in self.arrows:
             arrow.update_arrow()
-
         if self.is_resizing:
-            # Пропорциональное изменение размера пентагона, оставляя центр фиксированным
             delta_x = abs(event.pos().x() - self.center_x)
             delta_y = abs(event.pos().y() - self.center_y)
-            delta = max(delta_x, delta_y) * 2  # Умножаем на 2, чтобы изменить размер симметрично
 
-            new_size = max(10, delta)  # Минимальный размер 10
-            new_polygon = self.create_pentagon(self.center_x, self.center_y, new_size)
+            if self.resize_side in ['left', 'right']:
+                new_width = max(10, delta_x * 2)
+                self.width = new_width
+            if self.resize_side in ['top', 'bottom']:
+                new_height = max(10, delta_y * 2)
+                self.height = new_height
+
+            new_polygon = self.create_pentagon(self.center_x, self.center_y, self.width, self.height)
             self.setPolygon(new_polygon)
         else:
             super().mouseMoveEvent(event)
@@ -641,7 +638,5 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
         return super().itemChange(change, value)
 
     def add_arrow(self, arrow):
-        if arrow not in self.arrows:
-            self.arrows.append(arrow)
-
+        self.arrows.append(arrow)
 
