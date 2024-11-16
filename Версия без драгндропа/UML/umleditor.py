@@ -10,6 +10,60 @@ from PyQt5.QtCore import pyqtSignal  # Импортируем pyqtSignal
 from PyQt5.QtCore import Qt, QPointF, QLineF
 from PyQt5.QtGui import QPen, QBrush, QPainterPath, QKeySequence
 
+from PyQt5 import QtWidgets, QtGui, QtCore
+
+class My_GraphicsScene(QtWidgets.QGraphicsScene):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.selection_rect = None  # Прямоугольник для выделения
+        self.start_pos = None  # Начальная позиция для выделения
+        self.is_dragging = False  # Флаг, указывающий, что элемент перетаскивается
+
+    def drawBackground(self, painter, rect):
+        # Включаем сглаживание
+        painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
+        painter.setRenderHint(QtGui.QPainter.SmoothPixmapTransform, True)  # Для сглаживания изображения
+
+        super().drawBackground(painter, rect)
+
+    def mousePressEvent(self, event):
+        # Проверяем, перетаскивается ли какой-то элемент
+        if self.itemAt(event.scenePos(), QtGui.QTransform()) is not None:
+            self.is_dragging = True  # Если элемент найден, устанавливаем флаг перетаскивания
+        else:
+            self.is_dragging = False  # Если нет — снимаем флаг
+
+        if not self.is_dragging:  # Начинаем рисовать прямоугольник выделения is_dragging = True
+            if event.button() == QtCore.Qt.LeftButton:
+                self.start_pos = event.scenePos()  # Запоминаем начальную точку выделения
+                if self.selection_rect is None:
+                    self.selection_rect = QtWidgets.QGraphicsRectItem()
+                    self.selection_rect.setPen(QtGui.QPen(QtGui.QColor(0, 0, 255, 150)))  # линия для выделения
+                    self.selection_rect.setBrush(QtGui.QBrush(QtGui.QColor(0, 0, 255, 50)))  # Прозрачный цвет внутри
+                    self.addItem(self.selection_rect)  # Добавляем прямоугольник на сцену, который служит для выделения объектов на сцене
+
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if not self.is_dragging:  # Обновляем прямоугольник выделения только если не перетаскиваем
+            if self.selection_rect and self.start_pos:
+                rect = QtCore.QRectF(self.start_pos, event.scenePos()).normalized()
+                self.selection_rect.setRect(rect)  # Обновляем прямоугольник
+        super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if self.selection_rect:
+            selected_items = self.items(self.selection_rect.rect())  # Находим все элементы внутри прямоугольника
+            for item in selected_items:
+                item.setSelected(True)  # Выделяем элементы
+
+            self.removeItem(self.selection_rect)  # Убираем прямоугольник с экрана
+            self.selection_rect = None  # Очищаем ссылку на прямоугольник
+
+        self.is_dragging = False  # Снимаем флаг перетаскивания
+        super().mouseReleaseEvent(event)
+
+
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 #Тест, чтобы проверить видимость изображения
 png_ = "imgs/startstate.png" #Сюда вбиваете путь изображения, который хотите проверить
@@ -282,9 +336,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
 
-        # Настроим сцену для рисования
-        self.scene_ = QGraphicsScene(self)
-        self.graphicsView.setScene(self.scene_)
+        # Настроим кастомную сцену для рисования
+        self.scene_ = My_GraphicsScene(self)  # Используем кастомную сцену
+        self.graphicsView.setScene(self.scene_)  # Устанавливаем сцену в QGraphicsView
 
         # Кнопки тулбара
         self.button.clicked.connect(self.draw_diamond)
@@ -292,6 +346,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.button_3.clicked.connect(self.draw_circle_2)
         self.button_9.clicked.connect(self.draw_rounded_rectangle)
         self.button_5.clicked.connect(self.draw_pentagon_signal)
+        self.button_6.clicked.connect(self.draw_pentagon_reverse)
 
         #Проверка превышение количества объектов на сцене
         self.button.clicked.connect(self.message_overcrowed_objectS)
@@ -428,7 +483,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     def draw_pentagon_signal(self):
         # Координаты центра, ширина, высота и радиус закругления
         x, y, size = 200, 200, 100  # Пример координат, размера и радиуса
-        pentagon = SignalSending(x, y, 50, 170)
+        pentagon = SignalSending(x, y, 60, 150)
         pentagon.setFlags(QtWidgets.QGraphicsItem.ItemIsMovable | QtWidgets.QGraphicsItem.ItemIsSelectable)
         self.scene_.addItem(pentagon)  # Добавляем закругленный прямоугольник на сцену
 
@@ -438,6 +493,26 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.count_objectS.emit(len(self.objectS_))
 
         self.user_.add_action("Добавлен объект 'Signal sending'", self.get_current_Realtime())
+        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
+
+        # Обновляем стрелки, если это необходимо
+        for arrow in self.objectS_:
+            if isinstance(arrow, Arrow):
+                arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
+
+    def draw_pentagon_reverse(self):
+        # Координаты центра, ширина, высота и радиус закругления
+        x, y, size = 200, 200, 100  # Пример координат, размера и радиуса
+        pentagon = SignalReceipt(x, y, 60, 150)
+        pentagon.setFlags(QtWidgets.QGraphicsItem.ItemIsMovable | QtWidgets.QGraphicsItem.ItemIsSelectable)
+        self.scene_.addItem(pentagon)  # Добавляем закругленный прямоугольник на сцену
+
+        self.objectS_.append(pentagon)
+
+        print("Количество объектов на сцене - ", len(self.objectS_))
+        self.count_objectS.emit(len(self.objectS_))
+
+        self.user_.add_action("Добавлен объект 'Signal receipt'", self.get_current_Realtime())
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
 
         # Обновляем стрелки, если это необходимо
@@ -534,6 +609,17 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                             self.scene_.removeItem(arrow)
                 self.scene_.removeItem(item)  # Удаляем сам круг
                 self.user_.add_action("Удален объект 'Sending signal'", self.get_current_Realtime())
+                self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
+
+            if isinstance(item, SignalReceipt):  # Проверяем, является ли элемент кругом
+                # Удаляем все стрелки, связанные с кругом, если они есть
+                self.objectS_.remove(item)
+                if hasattr(item, 'arrows') and item.arrows:
+                    for arrow in item.arrows:
+                        if arrow.scene():  # Проверяем, что стрелка все еще в сцене
+                            self.scene_.removeItem(arrow)
+                self.scene_.removeItem(item)  # Удаляем сам круг
+                self.user_.add_action("Удален объект 'Sending receipt'", self.get_current_Realtime())
                 self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
 
         self.count_objectS.emit(len(self.objectS_))

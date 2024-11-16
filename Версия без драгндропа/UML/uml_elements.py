@@ -559,7 +559,7 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
             QtCore.QPointF(x - width / 2, y),          # Середина слева
             QtCore.QPointF(x + width / 2, y),          # Середина справа
             QtCore.QPointF(x + width / 2, y + height / 2),  # Нижний правый угол
-            QtCore.QPointF(x, y + height),             # Середина внизу
+            QtCore.QPointF(x, y + 100),             # Середина внизу
             QtCore.QPointF(x - width / 2, y + height / 2)   # Нижний левый угол
         ]
 
@@ -640,3 +640,108 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
     def add_arrow(self, arrow):
         self.arrows.append(arrow)
 
+
+
+class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
+    def __init__(self, x, y, width, height):
+        super().__init__()
+        self.width = width
+        self.height = height
+        self.center_x = x
+        self.center_y = y
+
+        # Создаем пентагон
+        self.setPolygon(self.create_pentagon(self.center_x, self.center_y, self.width, self.height))
+
+        self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
+        self.setAcceptHoverEvents(True)
+
+        self.is_resizing = False # Флаг, указывающий, идет ли изменение размера
+        self.resize_side = None # Определяем, с какой стороны идет изменение размера
+        self.resize_margin = 10 # Чувствительная область для изменения размера
+
+        self.arrows = []
+
+    def create_pentagon(self, x, y, width, height):
+        # Создает прямоугольный пятиугольник с заданным центром (x, y) и размером.
+        points = [
+            QtCore.QPointF(x - width / 2, y),          # Середина слева
+            QtCore.QPointF(x + width / 2, y),          # Середина справа
+            QtCore.QPointF(x + width / 2, y + height / 2),  # Нижний правый угол
+            QtCore.QPointF(x, y + 50),             # Середина внизу
+            QtCore.QPointF(x - width / 2, y + height / 2)   # Нижний левый угол
+        ]
+
+        polygon = QtGui.QPolygonF(points)
+
+        transform = QtGui.QTransform()
+        transform.translate(self.center_x, self.center_y)
+        transform.scale(-1, 1)  # Отражение по оси X
+        transform.rotate(-90)   # Поворот на 90 градусов влево
+        transform.translate(-self.center_x, -self.center_y)
+
+        reflected_rotated_polygon = QtGui.QPolygonF([transform.map(point) for point in polygon])
+
+        return reflected_rotated_polygon
+
+
+
+
+    def hoverMoveEvent(self, event):
+        rect = self.boundingRect()
+        x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
+
+        if abs(event.pos().x() - x) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))
+            self.resize_side = 'left'
+        elif abs(event.pos().x() - (x + w)) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))
+            self.resize_side = 'right'
+        elif abs(event.pos().y() - y) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))
+            self.resize_side = 'top'
+        elif abs(event.pos().y() - (y + h)) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))
+            self.resize_side = 'bottom'
+        else:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+            self.resize_side = None
+        super().hoverMoveEvent(event)
+
+    def mousePressEvent(self, event):
+        self.is_resizing = bool(self.resize_side)
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        for arrow in self.arrows:
+            arrow.update_arrow()
+        if self.is_resizing:
+            delta_x = abs(event.pos().x() - self.center_x)
+            delta_y = abs(event.pos().y() - self.center_y)
+
+            if self.resize_side in ['left', 'right']:
+                new_width = max(10, delta_x * 2)
+                self.width = new_width
+            if self.resize_side in ['top', 'bottom']:
+                new_height = max(10, delta_y * 2)
+                self.height = new_height
+
+            new_polygon = self.create_pentagon(self.center_x, self.center_y, self.width, self.height)
+            self.setPolygon(new_polygon)
+        else:
+            super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        self.is_resizing = False
+        super().mouseReleaseEvent(event)
+
+    def itemChange(self, change, value):
+        if change == QtWidgets.QGraphicsItem.ItemPositionChange:
+            for arrow in self.arrows:
+                arrow.update_arrow()
+        return super().itemChange(change, value)
+
+    def add_arrow(self, arrow):
+        self.arrows.append(arrow)
