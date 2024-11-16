@@ -324,6 +324,20 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         self.start()
 
+        #Второй таймер для остановки основного таймера если пользователь бездействует
+        self.Time_inaction = QtWidgets.QLineEdit(self.centralwidget)
+        self.Time_inaction.setGeometry(QtCore.QRect(200, 200, 200, 50))  # Устанавливаем размер и позицию
+        self.Time_inaction.setAlignment(QtCore.Qt.AlignCenter)  # Центрируем текст
+        self.Time_inaction.setText("00:00:00")  # Устанавливаем начальное значение времени
+        self.Time_inaction.setReadOnly(True)
+        self.Time_inaction.setVisible(False) #По умолчанию всегда невиден
+
+        self.running_inaction = False
+        self.elapsed_Time_inaction = QTime(0, 0)
+
+        self.timer_inaction = QTimer()
+        self.timer_inaction.timeout.connect(self.update_time)
+
 
         #self.Start_Time.textChanged.connect(self.update_time)
 
@@ -380,6 +394,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
     def message_overcrowed_objectS(self):
         if len(self.objectS_) == 11:
+            self.reset_inaction() #Сбрасыем второй таймер
             self.count_objectS.emit(len(self.objectS_) - 1)
             self.scene_.removeItem(self.objectS_[len(self.objectS_) - 1])
             self.objectS_.pop()
@@ -400,6 +415,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     #     self.scene_.addItem(text_item)  # Добавляем текстовое поле на сцену
 
     def draw_diamond(self):
+        self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра и размер ромба
         x, y, size = 200, 200, 50  # Пример координат и размера
         diamond = Diamond(x, y, size)
@@ -422,6 +438,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     def draw_circle(self):
         # Вставляем круг на сцену
         # Координаты центра и радиус круга
+        self.reset_inaction() #Сбрасыем второй таймер
         x, y, radius = 200, 200, 30  # Пример: рисуем круг в центре с радиусом 50
         circle = Circle(x, y, radius)
         circle.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
@@ -440,6 +457,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
 
     def draw_circle_2(self):
+        self.reset_inaction() #Сбрасыем второй таймер
         # Вставляем круг на сцену
         # Координаты центра и радиус круга
         x, y, radius, into_radius = 200, 200, 30, 0.5  # Пример: рисуем круг в центре с радиусом 50
@@ -460,6 +478,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
 
     def draw_rounded_rectangle(self):
+        self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
         x, y, width, height, radius = 200, 200, 100, 60, 15  # Пример координат, размера и радиуса
         rounded_rect = RoundedRectangle(x, y, width, height, radius)
@@ -481,6 +500,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
 
     def draw_pentagon_signal(self):
+        self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
         x, y, size = 200, 200, 100  # Пример координат, размера и радиуса
         pentagon = SignalSending(x, y, 60, 150)
@@ -501,6 +521,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
 
     def draw_pentagon_reverse(self):
+        self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
         x, y, size = 200, 200, 100  # Пример координат, размера и радиуса
         pentagon = SignalReceipt(x, y, 60, 150)
@@ -522,6 +543,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
 
     def add_edge(self):
+        self.reset_inaction() #Сбрасыем второй таймер
         selected_nodes = [object_ for object_ in self.objectS_ if object_.isSelected()]
 
         if len(selected_nodes) == 2:
@@ -546,12 +568,14 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
     
     def select_all_item(self):
+        self.reset_inaction()
         for item in self.scene_.items():
             # Проверяем может ли элемент выделяться
             if isinstance(item, QtWidgets.QGraphicsItem):
                 item.setSelected(True)
 
     def delete_selected_item(self):
+        self.reset_inaction() #Сбрасыем второй таймер
         # Получаем текущие выделенные элементы в сцене
         selected_items = self.scene_.selectedItems()
 
@@ -645,6 +669,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             self.timer_2.stop()
             self.last_time = self.Start_Time.text()  # Сохраняем текущее значение времени перед остановкой
 
+            self.running_inaction = False
+            self.timer_inaction.stop()
+
             n_datetime = QDateTime.fromString(self.change_end_time(), "dd.MM.yyyy HH:mm:ss").date().toString("dd.MM.yyyy")
             n_time = QDateTime.fromString(self.change_end_time(), "dd.MM.yyyy HH:mm:ss").time().toString("HH:mm:ss")
             print("Day is ", n_datetime, " and time is ", n_time)
@@ -661,8 +688,34 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     def update_time(self):
         self.elapsed_time = self.elapsed_time.addSecs(1)  # Увеличиваем время на 1 секунду
         time_str = self.elapsed_time.toString("hh:mm:ss")  # Преобразуем время в строку
+        self.elapsed_Time_inaction = self.elapsed_Time_inaction.addSecs(1)
+        time_str2 = self.elapsed_Time_inaction.toString("hh:mm:ss")
         self.Start_Time.setText(time_str)  # Обновляем отображение времени
         self.last_time = time_str  # Сохраняем последнее значение времени
+        self.Time_inaction.setText(time_str2)
+
+        if self.Time_inaction.text() == "00:00:30":
+            self.stop()
+
+    def reset_inaction(self):
+        self.elapsed_Time_inaction = QTime(0, 0)  # Сбрасываем время
+        # self.Time_inaction.setText("00:00:00")
+        self.start()
+        #self.lineEdit_timework.setText(self.elapsed_time.toString("hh:mm:ss"))  # Отображаем сброшенное время
+
+    # def stop_inaction(self):
+    #     if self.running_inaction:  # Останавливаем таймер
+    #         self.running = False
+    #         self.running_inaction = False
+    #         self.timer_inaction.stop()
+    #         self.timer_2.stop()
+    #         self.last_time = self.Start_Time.text()  # Сохраняем текущее значение времени перед остановкой
+
+    #         print("Таймер был остановлен из-за бездействий пользователя")
+
+    #         self.time_updated.emit(self.today, self.last_time, self.time_now)  # Отправляем сигнал с зафиксированным временем
+            # changed_time = QDateTime.fromString(self.last_time, "HH:mm:ss")
+            # print(changed_time)
 
         # self.last_time = QDateTime.fromString(self.last_time, "HH:mm:ss").addMSecs(new_time).toString("HH:mm:ss")
 
