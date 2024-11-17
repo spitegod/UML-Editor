@@ -51,7 +51,7 @@ class Ui_StaticWidget(QtWidgets.QWidget):
         StaticWidget.setObjectName("StaticWidget")
         StaticWidget.setWindowModality(QtCore.Qt.NonModal)
         StaticWidget.resize(316, 157)
-        StaticWidget.setFixedSize(750, 250)  # Фиксируем размер окна
+        StaticWidget.setFixedSize(850, 300)  # Фиксируем размер окна
         # StaticWidget.setStyleSheet("background-color: rgb(233, 233, 233);")
         
         self.gridLayout = QtWidgets.QGridLayout(StaticWidget)  # Основной layout для StaticWidget
@@ -80,6 +80,7 @@ class Ui_StaticWidget(QtWidgets.QWidget):
         
         self.listWidget_Users = QtWidgets.QListWidget(StaticWidget)
         self.listWidget_Users.setObjectName("listWidget_Users")
+        self.listWidget_Users.setFixedWidth(100)
         for username in ["User1"]:
             item = QtWidgets.QListWidgetItem(username)
             item.setTextAlignment(QtCore.Qt.AlignCenter)
@@ -290,6 +291,7 @@ QLineEdit {
     #Функция для обновления информации на статистике
     def uptade_static(self, username: str, user_id: int, start_work: str, end_work: str, action: str, time_action: str):
         row_position = self.tableWidget.rowCount()
+        print(username, user_id, action)
         
         # Добавляем новую строку
         self.tableWidget.insertRow(row_position)

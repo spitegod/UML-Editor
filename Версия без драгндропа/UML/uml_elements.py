@@ -559,7 +559,7 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
             QtCore.QPointF(x - width / 2, y),          # Середина слева
             QtCore.QPointF(x + width / 2, y),          # Середина справа
             QtCore.QPointF(x + width / 2, y + height / 2),  # Нижний правый угол
-            QtCore.QPointF(x, y + 100),             # Середина внизу
+            QtCore.QPointF(x, y - ((height/500) - height * 0.7)),             # Середина внизу
             QtCore.QPointF(x - width / 2, y + height / 2)   # Нижний левый угол
         ]
 
@@ -670,7 +670,7 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
             QtCore.QPointF(x - width / 2, y),          # Середина слева
             QtCore.QPointF(x + width / 2, y),          # Середина справа
             QtCore.QPointF(x + width / 2, y + height / 2),  # Нижний правый угол
-            QtCore.QPointF(x, y + 50),             # Середина внизу
+            QtCore.QPointF(x, y - (height / 200) + height/3),             # Середина внизу
             QtCore.QPointF(x - width / 2, y + height / 2)   # Нижний левый угол
         ]
 

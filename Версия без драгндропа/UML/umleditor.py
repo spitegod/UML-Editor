@@ -13,11 +13,13 @@ from PyQt5.QtGui import QPen, QBrush, QPainterPath, QKeySequence
 from PyQt5 import QtWidgets, QtGui, QtCore
 
 class My_GraphicsScene(QtWidgets.QGraphicsScene):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, reset_time, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.selection_rect = None  # Прямоугольник для выделения
         self.start_pos = None  # Начальная позиция для выделения
         self.is_dragging = False  # Флаг, указывающий, что элемент перетаскивается
+        # self.clicks = []  # Список для хранения информации о кликах
+        self.reset_time = reset_time
 
     def drawBackground(self, painter, rect):
         # Включаем сглаживание
@@ -27,6 +29,8 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
         super().drawBackground(painter, rect)
 
     def mousePressEvent(self, event):
+        self.reset_time.reset_inaction()
+        # self.clicks.append(event.scenePos())
         # Проверяем, перетаскивается ли какой-то элемент
         if self.itemAt(event.scenePos(), QtGui.QTransform()) is not None:
             self.is_dragging = True  # Если элемент найден, устанавливаем флаг перетаскивания
@@ -62,6 +66,9 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
 
         self.is_dragging = False  # Снимаем флаг перетаскивания
         super().mouseReleaseEvent(event)
+
+    # def has_clicks(self):
+    #     return len(self.clicks) > 0
 
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -148,67 +155,103 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # Создание QLabel и добавление в gridLayout
         self.button = QtWidgets.QPushButton(self.ToolBarBox)
         self.button.setIcon(QtGui.QIcon("imgs/decison.png"))
-        self.button.setIconSize(QtCore.QSize(64, 64))  # Установка размера иконки (при необходимости)
+        self.button.setIconSize(QtCore.QSize(100, 100))  # Установка размера иконки (при необходимости)
         self.button.setObjectName("button")
         self.gridLayout.addWidget(self.button, 0, 0, 1, 1)
+        self.button.setStyleSheet("""
+        QPushButton {
+            border:none;                      }
+""")
 
         # startstate.png
         self.button_2 = QtWidgets.QPushButton(self.ToolBarBox)
         self.button_2.setIcon(QtGui.QIcon("imgs/startstate.png"))
-        self.button_2.setIconSize(QtCore.QSize(64, 64))
+        self.button_2.setIconSize(QtCore.QSize(100, 100))
         self.button_2.setObjectName("button_2")
         self.gridLayout.addWidget(self.button_2, 0, 1, 1, 1)
+        self.button_2.setStyleSheet("""
+        QPushButton {
+            border:none;                      }
+""")
 
         # finalstate.png
         self.button_3 = QtWidgets.QPushButton(self.ToolBarBox)
         self.button_3.setIcon(QtGui.QIcon("imgs/finalstate.png"))
-        self.button_3.setIconSize(QtCore.QSize(64, 64))
+        self.button_3.setIconSize(QtCore.QSize(100, 100))
         self.button_3.setObjectName("button_3")
         self.gridLayout.addWidget(self.button_3, 0, 2, 1, 1)
+        self.button_3.setStyleSheet("""
+        QPushButton {
+            border:none;                      }
+""")
 
         # merge.png
         self.button_4 = QtWidgets.QPushButton(self.ToolBarBox)
         self.button_4.setIcon(QtGui.QIcon("imgs/merge.png"))
-        self.button_4.setIconSize(QtCore.QSize(64, 64))
+        self.button_4.setIconSize(QtCore.QSize(100, 100))
         self.button_4.setObjectName("button_4")
         self.gridLayout.addWidget(self.button_4, 1, 1, 1, 1)
+        self.button_4.setStyleSheet("""
+        QPushButton {
+            border:none;                      }
+""")
 
         # Signal-sending.png
         self.button_5 = QtWidgets.QPushButton(self.ToolBarBox)
         self.button_5.setIcon(QtGui.QIcon("imgs/Signal-sending.png"))
-        self.button_5.setIconSize(QtCore.QSize(64, 64))
+        self.button_5.setIconSize(QtCore.QSize(100, 100))
         self.button_5.setObjectName("button_5")
         self.gridLayout.addWidget(self.button_5, 2, 0, 1, 1)
+        self.button_5.setStyleSheet("""
+        QPushButton {
+            border:none;                      }
+""")
 
         # Signal-receipt.png
         self.button_6 = QtWidgets.QPushButton(self.ToolBarBox)
         self.button_6.setIcon(QtGui.QIcon("imgs/Signal-receipt.png"))
-        self.button_6.setIconSize(QtCore.QSize(64, 64))
+        self.button_6.setIconSize(QtCore.QSize(100, 100))
         self.button_6.setObjectName("button_6")
         self.gridLayout.addWidget(self.button_6, 2, 1, 1, 1)
+        self.button_6.setStyleSheet("""
+        QPushButton {
+            border:none;                      }
+""")
 
 
         # arrowsolid.png
         self.button_7 = QtWidgets.QPushButton(self.ToolBarBox)
         self.button_7.setIcon(QtGui.QIcon("imgs/arrowsolid.png"))
-        self.button_7.setIconSize(QtCore.QSize(64, 64))
+        self.button_7.setIconSize(QtCore.QSize(100, 100))
         self.button_7.setObjectName("button_7")
         self.gridLayout.addWidget(self.button_7, 2, 2, 1, 1)
+        self.button_7.setStyleSheet("""
+        QPushButton {
+            border:none;                      }
+""")
 
         # synchronize.png
         self.button_8 = QtWidgets.QPushButton(self.ToolBarBox)
         self.button_8.setIcon(QtGui.QIcon("imgs/synchronize.png"))
-        self.button_8.setIconSize(QtCore.QSize(64, 64))
+        self.button_8.setIconSize(QtCore.QSize(100, 100))
         self.button_8.setObjectName("button_8")
         self.gridLayout.addWidget(self.button_8, 1, 0, 1, 1)
+        self.button_8.setStyleSheet("""
+        QPushButton {
+            border:none;                      }
+""")
 
 
         # ativestate.png
         self.button_9 = QtWidgets.QPushButton(self.ToolBarBox)
         self.button_9.setIcon(QtGui.QIcon("imgs/activestate.png"))
-        self.button_9.setIconSize(QtCore.QSize(64, 64))
+        self.button_9.setIconSize(QtCore.QSize(100, 100))
         self.button_9.setObjectName("button_9")
         self.gridLayout.addWidget(self.button_9, 1, 2, 1, 1)
+        self.button_9.setStyleSheet("""
+        QPushButton {
+            border:none;                      }
+""")
 
         self.gridLayout_5.addLayout(self.gridLayout, 0, 0, 1, 1)
         self.horizontalLayout.addWidget(self.ToolBarBox)
@@ -353,6 +396,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # Настроим кастомную сцену для рисования
         self.scene_ = My_GraphicsScene(self)  # Используем кастомную сцену
         self.graphicsView.setScene(self.scene_)  # Устанавливаем сцену в QGraphicsView
+        # if self.scene_.has_clicks: self.reset_inaction()
 
         # Кнопки тулбара
         self.button.clicked.connect(self.draw_diamond)
@@ -390,6 +434,12 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.user_ = User("User1", 0, self.time_now, self.get_time_for_user(self.last_time))
         self.user_.add_action("Создана диаграмма UML", self.get_current_Realtime())
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
+
+        # # self.static_widget = QtWidgets.QWidget()
+        # self.static_ui = Ui_StaticWidget()  # Создаем экземпляр Ui_StaticWidget
+
+        # self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
+        # self.user_actions.connect(self.static_ui.uptade_static)
 
 
     def message_overcrowed_objectS(self):
@@ -524,7 +574,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
         x, y, size = 200, 200, 100  # Пример координат, размера и радиуса
-        pentagon = SignalReceipt(x, y, 60, 150)
+        pentagon = SignalReceipt(x, y, 60, 200)
         pentagon.setFlags(QtWidgets.QGraphicsItem.ItemIsMovable | QtWidgets.QGraphicsItem.ItemIsSelectable)
         self.scene_.addItem(pentagon)  # Добавляем закругленный прямоугольник на сцену
 
@@ -764,8 +814,13 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     def show_static_widget(self):
 
 
+
         self.static_widget = QtWidgets.QWidget()  # Создаем новое окно
         self.static_ui = Ui_StaticWidget()  # Создаем экземпляр Ui_StaticWidget
+
+        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
+        self.user_actions.connect(self.static_ui.uptade_static)
+
         #self.static_ui = Ui_StaticWidget(self.get_last_time())   # Передаем last_time в Ui_StaticWidget
         # Подключаем слот StaticWidget к сигналу time_updated
         self.time_updated.connect(self.static_ui.update_timeworkSW)
@@ -778,13 +833,10 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         self.count_objectS.connect(self.static_ui.get_count_objectS)
         self.count_objectS.emit(len(self.objectS_))
-
-        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
-        self.user_actions.connect(self.static_ui.uptade_static)
         
         self.static_ui.setupUi(self.static_widget)  # Настраиваем новый виджет
         self.static_widget.setWindowTitle("Статистика")  # Заголовок нового окна
-        self.static_widget.resize(800, 600)  # Размер нового окна
+        # self.static_widget.resize(800, 600)  # Размер нового окна
         self.static_widget.show()  # Отображаем новый виджет
 
     def retranslateUi(self, MainWindow):
