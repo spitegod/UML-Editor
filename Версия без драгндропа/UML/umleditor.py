@@ -427,6 +427,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.connect_objectS = QShortcut(QKeySequence("Ctrl+A"), self.graphicsView)
         self.connect_objectS.activated.connect(self.select_all_item)
 
+        # self.connect_objectS = QShortcut(QKeySequence("T"), self.graphicsView)
+        # self.connect_objectS.activated.connect(self.disconnect_nodes)
+
          # Обновляем сцену после инициализации
         self.scene_.update()  # Перерисовываем сцену
 
@@ -607,16 +610,17 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         if len(selected_nodes) == 2:
             node1, node2 = selected_nodes
 
-             # Проверяем, существует ли уже стрелка между node1 и node2
+            # Проверяем, существует ли уже стрелка между node1 и node2
             for arrow in node1.arrows:
                 if (arrow.node1 == node1 and arrow.node2 == node2) or (arrow.node1 == node2 and arrow.node2 == node1):
-                    msgBox = QMessageBox()
-                    msgBox.setIcon(QMessageBox.Information)
-                    msgBox.setText("Стрелка уже существует между выбранными элементами")
-                    msgBox.setWindowTitle("Предупреждение")
-                    msgBox.setStandardButtons(QMessageBox.Ok)
-                    returnValue = msgBox.exec()
-                    # self.message_arrow()
+                    disconnect = QMessageBox.question(
+                        None,
+                        "Предупреждение",
+                        "Стрелка уже существует между выбранными элементами. Вы хотите удалить её?",
+                        QMessageBox.Yes | QMessageBox.No
+                    )
+                    if disconnect == QMessageBox.Yes:
+                        self.disconnect_nodes(node1, node2)
                     return
 
             # Создаем стрелку и привязываем её к выбранным узлам
@@ -644,6 +648,21 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             if isinstance(item, QtWidgets.QGraphicsItem):
                 item.setSelected(True)
 
+    def disconnect_nodes(self, node1, node2):
+        if hasattr(node1, 'arrows') and hasattr(node2, 'arrows'):
+            arrows_to_remove = []
+            
+            # Ищем стрелки, связывающие node1 и node2
+            for arrow in node1.arrows:
+                if arrow.node1 == node2 or arrow.node2 == node2:
+                    arrows_to_remove.append(arrow)
+            
+            # Удаляем стрелки из сцены и из списков узлов
+            for arrow in arrows_to_remove:
+                if arrow.scene():
+                    self.scene_.removeItem(arrow)
+                node1.arrows.remove(arrow)
+                node2.arrows.remove(arrow)
     def delete_selected_item(self):
         self.reset_inaction()  # Сбрасываем второй таймер
         selected_items = self.scene_.selectedItems()
