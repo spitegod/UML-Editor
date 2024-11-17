@@ -457,6 +457,14 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
             returnValue = msgBox.exec()
 
+    # def message_arrow(self):
+    #     msgBox = QMessageBox()
+    #     msgBox.setIcon(QMessageBox.Information)
+    #     msgBox.setText("Стрелка уже существует между выбранными элементами")
+    #     msgBox.setWindowTitle("Предупреждение")
+    #     msgBox.setStandardButtons(QMessageBox.Ok )
+
+
     # def add_text_edit(self, x, y, width, height, text="Введите текст"):
     #     text_item = Text_Edit(x, y, width, height, text)
     #
@@ -468,7 +476,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра и размер ромба
         x, y, size = 200, 200, 50  # Пример координат и размера
-        diamond = Diamond(x, y, size)
+        diamond = Decision(x, y, size)
         diamond.setFlags(QtWidgets.QGraphicsItem.ItemIsMovable | QtWidgets.QGraphicsItem.ItemIsSelectable)
         self.scene_.addItem(diamond)  # Добавляем ромб на сцену
 
@@ -477,7 +485,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         print("Количество объектов на сцене - ", len(self.objectS_))
         self.count_objectS.emit(len(self.objectS_))
 
-        self.user_.add_action("Добавлен объект 'Решение'", self.get_current_Realtime())
+        self.user_.add_action(f"Добавлен элемент '{diamond.__class__.__name__}'", self.get_current_Realtime())
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
         # Обновляем стрелки, если это необходимо
         for arrow in self.objectS_:
@@ -490,7 +498,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # Координаты центра и радиус круга
         self.reset_inaction() #Сбрасыем второй таймер
         x, y, radius = 200, 200, 30  # Пример: рисуем круг в центре с радиусом 50
-        circle = Circle(x, y, radius)
+        circle = StartEvent(x, y, radius)
         circle.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.scene_.addItem(circle)  # Добавляем круг на сцену
 
@@ -499,7 +507,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         print("Количество объектов на сцене - ", len(self.objectS_))
         self.count_objectS.emit(len(self.objectS_))
 
-        self.user_.add_action("Добавлен объект 'Старт'", self.get_current_Realtime())
+        self.user_.add_action(f"Добавлен элемент '{circle.__class__.__name__}'", self.get_current_Realtime())
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
         # Обновляем стрелки, если это необходимо
         for arrow in self.objectS_:
@@ -511,7 +519,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # Вставляем круг на сцену
         # Координаты центра и радиус круга
         x, y, radius, into_radius = 200, 200, 30, 0.5  # Пример: рисуем круг в центре с радиусом 50
-        circle = Circle_2(x,y,radius, into_radius)
+        circle = EndEvent(x,y,radius, into_radius)
         circle.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.scene_.addItem(circle)  # Добавляем круг на сцену
 
@@ -520,7 +528,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         print("Количество объектов на сцене - ", len(self.objectS_))
         self.count_objectS.emit(len(self.objectS_))
 
-        self.user_.add_action("Добавлен объект 'Конец'", self.get_current_Realtime())
+        self.user_.add_action(f"Добавлен элемент '{circle.__class__.__name__}'", self.get_current_Realtime())
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
         # Обновляем стрелки, если это необходимо
         for arrow in self.objectS_:
@@ -531,7 +539,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
         x, y, width, height, radius = 200, 200, 100, 60, 15  # Пример координат, размера и радиуса
-        rounded_rect = RoundedRectangle(x, y, width, height, radius)
+        rounded_rect = ActiveState(x, y, width, height, radius)
         rounded_rect.setFlags(QtWidgets.QGraphicsItem.ItemIsMovable | QtWidgets.QGraphicsItem.ItemIsSelectable)
         self.scene_.addItem(rounded_rect)  # Добавляем закругленный прямоугольник на сцену
 
@@ -540,7 +548,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         print("Количество объектов на сцене - ", len(self.objectS_))
         self.count_objectS.emit(len(self.objectS_))
 
-        self.user_.add_action("Добавлен объект 'Активное состояние'", self.get_current_Realtime())
+        self.user_.add_action(f"Добавлен элемент '{rounded_rect.__class__.__name__}'", self.get_current_Realtime())
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
 
         # Обновляем стрелки, если это необходимо
@@ -562,7 +570,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         print("Количество объектов на сцене - ", len(self.objectS_))
         self.count_objectS.emit(len(self.objectS_))
 
-        self.user_.add_action("Добавлен объект 'Signal sending'", self.get_current_Realtime())
+        self.user_.add_action(f"Добавлен элемент '{pentagon.__class__.__name__}'", self.get_current_Realtime())
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
 
         # Обновляем стрелки, если это необходимо
@@ -583,7 +591,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         print("Количество объектов на сцене - ", len(self.objectS_))
         self.count_objectS.emit(len(self.objectS_))
 
-        self.user_.add_action("Добавлен объект 'Signal receipt'", self.get_current_Realtime())
+        self.user_.add_action(f"Добавлен элемент '{pentagon.__class__.__name__}'", self.get_current_Realtime())
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
 
         # Обновляем стрелки, если это необходимо
@@ -599,11 +607,23 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         if len(selected_nodes) == 2:
             node1, node2 = selected_nodes
 
+             # Проверяем, существует ли уже стрелка между node1 и node2
+            for arrow in node1.arrows:
+                if (arrow.node1 == node1 and arrow.node2 == node2) or (arrow.node1 == node2 and arrow.node2 == node1):
+                    msgBox = QMessageBox()
+                    msgBox.setIcon(QMessageBox.Information)
+                    msgBox.setText("Стрелка уже существует между выбранными элементами")
+                    msgBox.setWindowTitle("Предупреждение")
+                    msgBox.setStandardButtons(QMessageBox.Ok)
+                    returnValue = msgBox.exec()
+                    # self.message_arrow()
+                    return
+
             # Создаем стрелку и привязываем её к выбранным узлам
             arrow = Arrow(node1, node2)
             self.scene_.addItem(arrow)  # Добавляем стрелку на сцену
 
-            # Привязываем стрелку к обоим кругам
+            # Привязываем стрелку к обоим узлам
             node1.add_arrow(arrow)
             node2.add_arrow(arrow)
 
@@ -625,79 +645,33 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 item.setSelected(True)
 
     def delete_selected_item(self):
-        self.reset_inaction() #Сбрасыем второй таймер
-        # Получаем текущие выделенные элементы в сцене
+        self.reset_inaction()  # Сбрасываем второй таймер
         selected_items = self.scene_.selectedItems()
 
-        # Удаляем каждый выделенный элемент
         for item in selected_items:
-            if isinstance(item, Circle):  # Проверяем, является ли элемент кругом
-                # Удаляем все стрелки, связанные с кругом, если они есть
+            if isinstance(item, (StartEvent, Decision, EndEvent, ActiveState, SignalSending, SignalReceipt)):
                 self.objectS_.remove(item)
                 if hasattr(item, 'arrows') and item.arrows:
-                    for arrow in item.arrows:
+                    arrows_to_remove = list(item.arrows)  # Копируем список стрелок, чтобы избежать изменений во время итерации
+                    for arrow in arrows_to_remove:
                         if arrow.scene():  # Проверяем, что стрелка все еще в сцене
                             self.scene_.removeItem(arrow)
-                self.scene_.removeItem(item)  # Удаляем сам круг
-                self.user_.add_action("Удален объект 'Старт'", self.get_current_Realtime())
-                self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
-
-            if isinstance(item, Diamond):  # Проверяем, является ли элемент ромбом
-                self.objectS_.remove(item)
-                if hasattr(item, 'arrows') and item.arrows:
-                    for arrow in item.arrows:
-                        if arrow.scene():  # Проверяем, что стрелка все еще в сцене
-                            self.scene_.removeItem(arrow)
-                self.user_.add_action("Удален объект 'Решение'", self.get_current_Realtime())
-                self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
-                self.scene_.removeItem(item) 
-
-            if isinstance(item, Circle_2):  # Проверяем, является ли элемент кругом
-                # Удаляем все стрелки, связанные с кругом, если они есть
-                self.objectS_.remove(item)
-                if hasattr(item, 'arrows') and item.arrows:
-                    for arrow in item.arrows:
-                        if arrow.scene():  # Проверяем, что стрелка все еще в сцене
-                            self.scene_.removeItem(arrow)
-                self.user_.add_action("Удален объект 'Конец'", self.get_current_Realtime())
-                self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
-                self.scene_.removeItem(item)  # Удаляем сам круг
-
-            if isinstance(item, RoundedRectangle):  # Проверяем, является ли элемент кругом
-                # Удаляем все стрелки, связанные с кругом, если они есть
-                self.objectS_.remove(item)
-                if hasattr(item, 'arrows') and item.arrows:
-                    for arrow in item.arrows:
-                        if arrow.scene():  # Проверяем, что стрелка все еще в сцене
-                            self.scene_.removeItem(arrow)
-                self.user_.add_action("Удален объект 'Активное состояние'", self.get_current_Realtime())
-                self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
-                self.scene_.removeItem(item)  # Удаляем сам круг
-
-            if isinstance(item, SignalSending):  # Проверяем, является ли элемент кругом
-                # Удаляем все стрелки, связанные с кругом, если они есть
-                self.objectS_.remove(item)
-                if hasattr(item, 'arrows') and item.arrows:
-                    for arrow in item.arrows:
-                        if arrow.scene():  # Проверяем, что стрелка все еще в сцене
-                            self.scene_.removeItem(arrow)
-                self.scene_.removeItem(item)  # Удаляем сам круг
-                self.user_.add_action("Удален объект 'Sending signal'", self.get_current_Realtime())
-                self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
-
-            if isinstance(item, SignalReceipt):  # Проверяем, является ли элемент кругом
-                # Удаляем все стрелки, связанные с кругом, если они есть
-                self.objectS_.remove(item)
-                if hasattr(item, 'arrows') and item.arrows:
-                    for arrow in item.arrows:
-                        if arrow.scene():  # Проверяем, что стрелка все еще в сцене
-                            self.scene_.removeItem(arrow)
-                self.scene_.removeItem(item)  # Удаляем сам круг
-                self.user_.add_action("Удален объект 'Sending receipt'", self.get_current_Realtime())
-                self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
+                            # Удаляем стрелку из списка стрелок узла
+                            item.arrows.remove(arrow)
+                # Удаляем сам элемент из сцены
+                self.scene_.removeItem(item)
+                # Добавляем действие пользователя
+                self.user_.add_action(f"Удален элемент '{item.__class__.__name__}'", self.get_current_Realtime())
+                self.user_actions.emit(
+                    self.user_.nickname, self.user_.user_id,
+                    self.user_.start_work, self.user_.end_work,
+                    next(reversed(self.user_.action_history)),
+                    next(reversed(self.user_.action_history.values()))
+                )
 
         self.count_objectS.emit(len(self.objectS_))
         self.scene_.update()  # Перерисовываем сцену
+
 
     # def count_objectS(self):
     #     return len(self.objectS_)

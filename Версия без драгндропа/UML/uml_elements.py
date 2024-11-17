@@ -148,7 +148,7 @@ class Arrow(QGraphicsItem):
         self.update()  # Обновляем отображение стрелки
 
 
-class Diamond(QtWidgets.QGraphicsPolygonItem):
+class Decision(QtWidgets.QGraphicsPolygonItem):
     def __init__(self, x, y, size):
         super().__init__()
         self.size = size
@@ -237,7 +237,7 @@ class Diamond(QtWidgets.QGraphicsPolygonItem):
             self.arrows.append(arrow)
 
 
-class Circle(QtWidgets.QGraphicsEllipseItem):
+class StartEvent(QtWidgets.QGraphicsEllipseItem):
     def __init__(self, x, y, radius):
         super().__init__(x - radius, y - radius, 2 * radius, 2 * radius)
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
@@ -321,7 +321,7 @@ class Circle(QtWidgets.QGraphicsEllipseItem):
             self.arrows.append(arrow)
             
 
-class Circle_2(QtWidgets.QGraphicsEllipseItem):
+class EndEvent(QtWidgets.QGraphicsEllipseItem):
     def __init__(self, x, y, radius, inner_radius_ratio=0.5):
         super().__init__(x - radius, y - radius, 2 * radius, 2 * radius)
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))  # Основной круг
@@ -418,7 +418,7 @@ class Circle_2(QtWidgets.QGraphicsEllipseItem):
         if arrow not in self.arrows:
             self.arrows.append(arrow)
 
-class RoundedRectangle(QtWidgets.QGraphicsRectItem):
+class ActiveState(QtWidgets.QGraphicsRectItem):
     def __init__(self, x, y, width, height, radius):
         super().__init__(x, y, width, height)
         self.width = width
