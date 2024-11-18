@@ -4,13 +4,30 @@ from math import *
 from PyQt5 import QtCore, QtGui, QtWidgets
 from Static import Ui_StaticWidget  # Импортируем класс Ui_StaticWidget
 from uml_elements import *
-from PyQt5.QtWidgets import QGraphicsScene, QGraphicsItem, QGraphicsLineItem, QShortcut, QMessageBox
+from PyQt5.QtWidgets import QGraphicsScene, QGraphicsItem, QGraphicsLineItem, QShortcut, QMessageBox, QUndoCommand, QUndoStack
 from PyQt5.QtCore import QTimer, QTime, QDateTime
 from PyQt5.QtCore import pyqtSignal  # Импортируем pyqtSignal
 from PyQt5.QtCore import Qt, QPointF, QLineF
 from PyQt5.QtGui import QPen, QBrush, QPainterPath, QKeySequence
 
 from PyQt5 import QtWidgets, QtGui, QtCore
+
+# class Hot_keys(QUndoCommand):
+#     def __init__(self, scene, shape, shape_type, parent=None):
+#         super().__init__(parent)
+#         self.scene = scene
+#         self.shape = shape
+#         self.shape_type = shape_type
+
+#     def undo(self): # Ctrl+Z
+#         self.scene.removeItem(self.shape)  # Удаляем фигуру со сцены
+#         self.scene.objectS_.remove(self.shape)  # Удаляем из списка объектов
+#         # print(f"{self.shape_type} удален, объектов на сцене:", len(self.scene.objectS_))
+
+#     def redo(self): # Ctrk+Y
+#         self.scene.addItem(self.shape)  # Добавляем фигуру обратно на сцену
+#         self.scene.objectS_.append(self.shape)  # Добавляем в список объектов
+#         # print(f"{self.shape_type} добавлен, объектов на сцене:", len(self.scene.objectS_))
 
 class My_GraphicsScene(QtWidgets.QGraphicsScene):
     def __init__(self, reset_time, *args, **kwargs):
@@ -20,6 +37,8 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
         self.is_dragging = False  # Флаг, указывающий, что элемент перетаскивается
         # self.clicks = []  # Список для хранения информации о кликах
         self.reset_time = reset_time
+        # self.selected_order = []
+        # self.undo_stack = QUndoStack()
 
     def drawBackground(self, painter, rect):
         # Включаем сглаживание
@@ -29,6 +48,7 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
         super().drawBackground(painter, rect)
 
     def mousePressEvent(self, event):
+
         self.reset_time.reset_inaction()
         # self.clicks.append(event.scenePos())
         # Проверяем, перетаскивается ли какой-то элемент
@@ -66,6 +86,20 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
 
         self.is_dragging = False  # Снимаем флаг перетаскивания
         super().mouseReleaseEvent(event)
+
+    # def addShape(self, shape):
+    #     # Создаем команду для добавления фигуры
+    #     add_command = Hot_keys(self, shape)
+    #     self.undo_stack.push(add_command)  # Добавляем команду в стек отмены
+
+    # def keyPressEvent(self, event):
+    #     # Реализуем действие для Ctrl+Z
+    #     if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Z:
+    #         self.undo_stack.undo()  # Отменяем последнее действие
+    #     elif event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Y:
+    #         self.undo_stack.redo()  # Повторяем отмененное действие
+    #     else:
+    #         super().keyPressEvent(event)
 
     # def has_clicks(self):
     #     return len(self.clicks) > 0
@@ -350,6 +384,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.today = self.get_current_Date()
         self.time_now = self.get_current_Realtime()
 
+
         # Настраиваем второй таймер для обновления времени каждую секунду
         self.timer_2 = QTimer(self)
         self.timer_2.timeout.connect(self.increment_time)  # Соединяем таймер с функцией обновления времени
@@ -438,6 +473,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.user_.add_action("Создана диаграмма UML", self.get_current_Realtime())
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
 
+
         # # self.static_widget = QtWidgets.QWidget()
         # self.static_ui = Ui_StaticWidget()  # Создаем экземпляр Ui_StaticWidget
 
@@ -482,6 +518,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         diamond = Decision(x, y, size)
         diamond.setFlags(QtWidgets.QGraphicsItem.ItemIsMovable | QtWidgets.QGraphicsItem.ItemIsSelectable)
         self.scene_.addItem(diamond)  # Добавляем ромб на сцену
+
 
         self.objectS_.append(diamond)
 
@@ -640,6 +677,18 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             arrow.update_arrow()  # Обновляем стрелку вручную, если нужно
             self.scene_.update()  # Перерисовываем сцену
 
+
+
+    # def handle_selection(self, selected_item):
+    #     # Добавляем логику для отслеживания выбора
+    #     if selected_item not in self.selected_order:
+    #         self.selected_order.append(selected_item)
+    #     else:
+    #         # Перемещаем выбранный элемент в конец списка
+    #         self.selected_order.remove(selected_item)
+    #         self.selected_order.append(selected_item)
+
+
     
     def select_all_item(self):
         self.reset_inaction()
@@ -663,6 +712,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                     self.scene_.removeItem(arrow)
                 node1.arrows.remove(arrow)
                 node2.arrows.remove(arrow)
+                
     def delete_selected_item(self):
         self.reset_inaction()  # Сбрасываем второй таймер
         selected_items = self.scene_.selectedItems()
@@ -704,6 +754,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             self.running = True
             self.timer.start(1000)  # Интервал 1000 мс (1 секунда)
             self.timer_2.start(1000)  # Запускаем таймер с интервалом в 1 секунду
+
 
     def stop(self):
         if self.running:  # Останавливаем таймер
@@ -804,12 +855,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
 
     #Отображение окна статистики
-    def show_static_widget(self):
+    def show_static_widget(self):       
 
-
-
-        self.static_widget = QtWidgets.QWidget()  # Создаем новое окно
-        self.static_ui = Ui_StaticWidget()  # Создаем экземпляр Ui_StaticWidget
 
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
         self.user_actions.connect(self.static_ui.uptade_static)
@@ -818,9 +865,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # Подключаем слот StaticWidget к сигналу time_updated
         self.time_updated.connect(self.static_ui.update_timeworkSW)
         self.update_last_timeSW.connect(self.static_ui.update_last_timeSW)
-        self.static_ui.update_timeworkSW(self.today, self.Start_Time.text(), self.time_now)
+        self.static_ui.update_timeworkSW(self.today_2, self.Start_Time.text(), self.time_now_2)
         self.static_ui.accept_today(self.today, self.time_now, self.last_time)
-        self.update_last_timeSW.emit(self.today, self.last_time, self.time_now)  # Отправляем значение при открытии
+        self.update_last_timeSW.emit(self.today_2, self.last_time, self.time_now_2)  # Отправляем значение при открытии
         # self.static_ui.update_timeworkSW(self.last_time)
         # self.timeStop_ChangedSignal.connect(self.static_ui.receive_text)
 

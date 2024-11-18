@@ -242,6 +242,11 @@ QLineEdit {
         """Слот для приема нового времени и обновления lineEdit_timework."""
         self.lineEdit_timework.setText(new_time)
 
+        from datetime import datetime
+        # time_now = datetime.now().strftime("%d.%m.%Y")
+        # time_now = datetime.now().strftime("%H:%M:%S")
+        # today = datetime.now().strftime("%d.%m.%Y")
+
         # time_now = QDateTime.fromString(time_now, "HH:mm:ss").time().second()
         # new_time = QDateTime.fromString(new_time, "HH:mm:ss").addMSecs(time_now).toString("HH:mm:ss")
 
@@ -256,7 +261,7 @@ QLineEdit {
         sum_seconds_time1 = time1.hour() * 3600 + time1.minute() * 60 + time1.second()
         time2 = time2.addSecs(sum_seconds_time1)
 
-        from datetime import datetime
+        # from datetime import datetime
         date_today = QDateTime.fromString(today, "dd.MM.yyyy").addDays(10).toString("dd.MM.yyyy")
 
         self.dateTimeEdit_End.setText(f"{date_today} {time2.toString('hh:mm:ss')}")
@@ -268,13 +273,17 @@ QLineEdit {
         # time_now = QDateTime.fromString(time_now, "HH:mm:ss").time().second()
         # last_time = QDateTime.fromString(last_time, "HH:mm:ss").addMSecs(time_now).toString("HH:mm:ss")
 
+        from datetime import datetime
+        # time_now = datetime.now().strftime("%d.%m.%Y")
+        time_now = datetime.now().strftime("%H:%M:%S")
+
         time1 = QDateTime.fromString(time_now, "hh:mm:ss").time()
         time2 = QDateTime.fromString(last_time, "hh:mm:ss").time()
 
         sum_seconds_time1 = time1.hour() * 3600 + time1.minute() * 60 + time1.second()
         time2 = time2.addSecs(sum_seconds_time1)
 
-        from datetime import datetime
+        # from datetime import datetime
         date_today = datetime.now().strftime("%d.%m.%Y")
 
         self.dateTimeEdit_End.setText(f"{date_today} {time2.toString('hh:mm:ss')}")

@@ -1,23 +1,13 @@
-
-# -*- coding: utf-8 -*-
-
 from PyQt5 import QtCore, QtGui, QtWidgets
-
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(139, 136)
+        Dialog.resize(340, 136)
+        Dialog.setFixedSize(340, 150)
         self.gridLayout_2 = QtWidgets.QGridLayout(Dialog)
         self.gridLayout_2.setObjectName("gridLayout_2")
         self.gridLayout = QtWidgets.QGridLayout()
         self.gridLayout.setObjectName("gridLayout")
-        self.label_4 = QtWidgets.QLabel(Dialog)
-        self.label_4.setObjectName("label_4")
-        self.gridLayout.addWidget(self.label_4, 0, 0, 1, 1)
         self.formLayout = QtWidgets.QFormLayout()
         self.formLayout.setObjectName("formLayout")
         self.label = QtWidgets.QLabel(Dialog)
@@ -42,12 +32,12 @@ class Ui_Dialog(object):
         self.pushButton_delete.setStyleSheet("color: rgb(255, 0, 0);")
         self.pushButton_delete.setObjectName("pushButton_delete")
         self.horizontalLayout_2.addWidget(self.pushButton_delete)
-        self.line = QtWidgets.QFrame(Dialog)
-        self.line.setStyleSheet("background-color: rgb(117, 117, 117);")
-        self.line.setFrameShape(QtWidgets.QFrame.VLine)
-        self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
-        self.line.setObjectName("line")
-        self.horizontalLayout_2.addWidget(self.line)
+        # self.line = QtWidgets.QFrame(Dialog)
+        # self.line.setStyleSheet("background-color: rgb(117, 117, 117);")
+        # self.line.setFrameShape(QtWidgets.QFrame.VLine)
+        # self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
+        # self.line.setObjectName("line")
+        # self.horizontalLayout_2.addWidget(self.line)
         self.pushButton_copy = QtWidgets.QPushButton(Dialog)
         self.pushButton_copy.setObjectName("pushButton_copy")
         self.horizontalLayout_2.addWidget(self.pushButton_copy)
@@ -69,8 +59,7 @@ class Ui_Dialog(object):
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Управление"))
-        self.label_4.setText(_translate("Dialog", "Управление"))
+        Dialog.setWindowTitle(_translate("Dialog", "Редактирование"))
         self.label.setText(_translate("Dialog", "Цвет"))
         self.label_2.setText(_translate("Dialog", "Tекст"))
         self.pushButton_delete.setText(_translate("Dialog", "Удалить"))

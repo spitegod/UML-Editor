@@ -233,6 +233,7 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
         return super().itemChange(change, value)
 
     def add_arrow(self, arrow):
+        
         if arrow not in self.arrows:
             self.arrows.append(arrow)
 
@@ -316,6 +317,7 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
         return super().itemChange(change, value)
 
     def add_arrow(self, arrow):
+        # self.arrows.append(arrow)
         # Добавляем стрелку в список стрелок, привязанных к этому кругу
         if arrow not in self.arrows:
             self.arrows.append(arrow)
