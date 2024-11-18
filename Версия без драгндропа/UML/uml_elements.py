@@ -110,9 +110,20 @@ class Arrow(QGraphicsItem):
         self.update_arrow()
 
     def boundingRect(self):
-        return self.path.boundingRect()
+        extra_margin = 100  # Добавочная область вокруг стрелки
+        rect = self.path.boundingRect()
+        return rect.adjusted(-extra_margin, -extra_margin, extra_margin, extra_margin)
 
     def paint(self, painter, option, widget=None):
+
+        extra_margin = 100  # Размер очищающей области
+        clearing_rect = self.path.boundingRect().adjusted(-extra_margin, -extra_margin, extra_margin, extra_margin)
+        
+        # Рисуем прозрачный фон
+        painter.setBrush(Qt.NoBrush)
+        painter.setPen(Qt.NoPen)
+        painter.drawRect(clearing_rect)
+
         painter.setPen(QPen(Qt.darkRed, 3))
         painter.setBrush(Qt.darkRed)
         painter.drawPath(self.path)
@@ -226,6 +237,11 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
         self.is_resizing = False
         super().mouseReleaseEvent(event)
 
+    # # Сглаживание отрисовки объекта
+    def paint(self, painter, option, widget=None):
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        super().paint(painter, option, widget)
+
     def itemChange(self, change, value):
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
             for arrow in self.arrows:
@@ -308,6 +324,11 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
     def mouseReleaseEvent(self, event):
         self.is_resizing = False
         super().mouseReleaseEvent(event)
+
+    # Сглаживание отрисовки объекта
+    def paint(self, painter, option, widget=None):
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        super().paint(painter, option, widget)
 
     def itemChange(self, change, value):
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
@@ -410,6 +431,12 @@ class EndEvent(QtWidgets.QGraphicsEllipseItem):
         self.is_resizing = False
         super().mouseReleaseEvent(event)
 
+    # Сглаживание отрисовки объекта
+    def paint(self, painter, option, widget=None):
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        super().paint(painter, option, widget)
+
+
     def itemChange(self, change, value):
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
             for arrow in self.arrows:
@@ -444,6 +471,7 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
         self.text_item.setPos(x + width / 4, y + height / 4)  # Устанавливаем начальную позицию текста
 
     def paint(self, painter, option, widget=None):
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)  # Включение сглаживания
         # Устанавливаем цвет заливки
         painter.setBrush(self.brush())
 
@@ -454,6 +482,9 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
             painter.setPen(self.pen())  # Обычная линия
 
         painter.drawRoundedRect(self.rect(), self.radius, self.radius)
+
+        # painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        # super().paint(painter, option, widget)
 
     def hoverMoveEvent(self, event):
         rect = self.rect()
@@ -633,6 +664,11 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
         self.is_resizing = False
         super().mouseReleaseEvent(event)
 
+    #Сглаживаине отрисовки объекта
+    def paint(self, painter, option, widget=None):
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        super().paint(painter, option, widget)
+
     def itemChange(self, change, value):
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
             for arrow in self.arrows:
@@ -738,6 +774,11 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
     def mouseReleaseEvent(self, event):
         self.is_resizing = False
         super().mouseReleaseEvent(event)
+
+    # #Сглаживаине отрисовки объекта
+    def paint(self, painter, option, widget=None):
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        super().paint(painter, option, widget)
 
     def itemChange(self, change, value):
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:

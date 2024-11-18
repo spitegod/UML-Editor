@@ -575,6 +575,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             if isinstance(arrow, Arrow):
                 arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
 
+
     def draw_rounded_rectangle(self):
         self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
@@ -663,6 +664,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             # Создаем стрелку и привязываем её к выбранным узлам
             arrow = Arrow(node1, node2)
             self.scene_.addItem(arrow)  # Добавляем стрелку на сцену
+
 
             # Привязываем стрелку к обоим узлам
             node1.add_arrow(arrow)
@@ -857,6 +859,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     #Отображение окна статистики
     def show_static_widget(self):       
 
+        self.static_widget = QtWidgets.QWidget()  # Создаем новое окно
+        self.static_ui = Ui_StaticWidget()  # Создаем экземпляр Ui_StaticWidget
 
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
         self.user_actions.connect(self.static_ui.uptade_static)
@@ -865,9 +869,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # Подключаем слот StaticWidget к сигналу time_updated
         self.time_updated.connect(self.static_ui.update_timeworkSW)
         self.update_last_timeSW.connect(self.static_ui.update_last_timeSW)
-        self.static_ui.update_timeworkSW(self.today_2, self.Start_Time.text(), self.time_now_2)
+        self.static_ui.update_timeworkSW(self.today, self.Start_Time.text(), self.time_now)
         self.static_ui.accept_today(self.today, self.time_now, self.last_time)
-        self.update_last_timeSW.emit(self.today_2, self.last_time, self.time_now_2)  # Отправляем значение при открытии
+        self.update_last_timeSW.emit(self.today_2, self.last_time, self.time_now)  # Отправляем значение при открытии
         # self.static_ui.update_timeworkSW(self.last_time)
         # self.timeStop_ChangedSignal.connect(self.static_ui.receive_text)
 
