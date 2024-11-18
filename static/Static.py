@@ -28,19 +28,19 @@ class User:
         self.action_timestamps.append(time)
 
 #Класс в котором хранится массив с информацией о пользователях
-class UserManager:
-    def __init__(self):
-        self.users = []  # Список пользователей
+# class UserManager:
+#     def __init__(self):
+#         self.users = []  # Список пользователей
 
-    def add_user(self, user: User) -> None:
-        """Добавляет пользователя в список."""
-        self.users.append(user)
+#     def add_user(self, user: User) -> None:
+#         """Добавляет пользователя в список."""
+#         self.users.append(user)
     
-    def get_user(self, _id):
-        for user in self.users:
-            if user.user_id == _id:
-                return user
-        raise ValueError(f"Пользователя с id: {_id} нет!")
+#     def get_user(self, _id):
+#         for user in self.users:
+#             if user.user_id == _id:
+#                 return user
+#         raise ValueError(f"Пользователя с id: {_id} нет!")
 
 class Ui_StaticWindow(object):
 
@@ -141,6 +141,8 @@ class Ui_StaticWindow(object):
 
         self.listWidget_Users.itemClicked.connect(self.user_list)
 
+        self.start()
+
 
 
     def retranslateUi(self, StaticWindow):
@@ -182,29 +184,29 @@ class Ui_StaticWindow(object):
 
 
     def user_list(self, item):
-            
-            self.tableWidget.clearContents()
-            userRow = self.listWidget_Users.row(item)
-            #Массив данных о пользователях
-            user_manager = UserManager()
-            user_manager.add_user(User(nickname="User1", user_id=0, start_work="27.04.2024 09:33", end_work="28.04.2024 01:22"))
-            user_manager.users[0].add_action("Создана диаграма 'Оплата заказа'", "27.04.2024 09:33")
-            user_manager.users[0].add_action("Добавил объект 'Активное состояние'", "27.04.2024 12:45")
-            if userRow == 0:
-                self.tableWidget.setRowCount(0)
-                self.reset()
-                #self.dateTimeEdit_Start.setDisplayFormat("12.12.2023 23:12:05")
-                self.start()
-                row_count = len(user_manager.users[0].action_history)
-                self.tableWidget.insertRow(row_count)
-                for i in range(row_count):
-                    self.tableWidget.insertRow(i)
+            pass
+            # self.tableWidget.clearContents()
+            # userRow = self.listWidget_Users.row(item)
+            # #Массив данных о пользователях
+            # user_manager = UserManager()
+            # user_manager.add_user(User(nickname="User1", user_id=0, start_work="27.04.2024 09:33", end_work="28.04.2024 01:22"))
+            # user_manager.users[0].add_action("Создана диаграма 'Оплата заказа'", "27.04.2024 09:33")
+            # user_manager.users[0].add_action("Добавил объект 'Активное состояние'", "27.04.2024 12:45")
+            # if userRow == 0:
+            #     self.tableWidget.setRowCount(0)
+            #     self.reset()
+            #     #self.dateTimeEdit_Start.setDisplayFormat("12.12.2023 23:12:05")
+            #     self.start()
+            #     row_count = len(user_manager.users[0].action_history)
+            #     self.tableWidget.insertRow(row_count)
+            #     for i in range(row_count):
+            #         self.tableWidget.insertRow(i)
 
-            #self.tableWidget.setItem(0,0, QTableWidgetItem(str(user_manager.users[0].action_timestamps[0])))
-                self.tableWidget.setItem(0,0, QTableWidgetItem(user_manager.users[0].action_timestamps[0]))
-                self.tableWidget.setItem(0,1, QTableWidgetItem(user_manager.users[0].action_history[0]))
-                self.tableWidget.setItem(1,0, QTableWidgetItem(user_manager.users[0].action_timestamps[1]))
-                self.tableWidget.setItem(1,1, QTableWidgetItem(user_manager.users[0].action_history[1]))
+            # #self.tableWidget.setItem(0,0, QTableWidgetItem(str(user_manager.users[0].action_timestamps[0])))
+            #     self.tableWidget.setItem(0,0, QTableWidgetItem(user_manager.users[0].action_timestamps[0]))
+            #     self.tableWidget.setItem(0,1, QTableWidgetItem(user_manager.users[0].action_history[0]))
+            #     self.tableWidget.setItem(1,0, QTableWidgetItem(user_manager.users[0].action_timestamps[1]))
+            #     self.tableWidget.setItem(1,1, QTableWidgetItem(user_manager.users[0].action_history[1]))
             
 
 
