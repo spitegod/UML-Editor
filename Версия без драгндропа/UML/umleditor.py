@@ -571,6 +571,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             rect = item.rect()
             base_data["width"] = rect.width()
             base_data["height"] = rect.height()
+            base_data["radius"] = rect.width() / 16
             base_data["text"] = item.text_item.toPlainText() if hasattr(item, "text_item") else None
 
         elif isinstance(item, SignalSending):  # Пентагон (сигнал отправки)
@@ -599,52 +600,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         return base_data
 
 
-    def load_from_data(self, data):
-        """Загрузка данных в сцену."""
-        """Загрузка данных в сцену."""
-        self.scene_.clear()  # Очищаем сцену перед загрузкой новых данных
-        for item_data in data["items"]:
-            item_type = item_data["type"]
-            position = item_data["position"]
-
-            if item_type == "Decision":  # Ромб
-                item = Decision(position[0], position[1], item_data["size"])
-
-            elif item_type == "StartEvent":  # Круг (начало)
-                item = StartEvent(position[0], position[1], item_data["radius"])
-
-            elif item_type == "EndEvent":  # Круг с внутренним кругом (конец)
-                item = EndEvent(
-                    position[0], position[1], item_data["radius"], item_data["inner_radius_ratio"]
-                )
-
-            elif item_type == "ActiveState":  # Прямоугольник с закругленными углами
-                item = ActiveState(
-                    position[0], position[1], item_data["width"], item_data["height"], item_data["radius"]
-                )
-                item.text_item.setPlainText(item_data.get("text", ""))  # Устанавливаем текст, если есть
-
-            elif item_type == "SignalSending":  # Пентагон (сигнал отправки)
-                item = SignalSending(position[0], position[1], item_data["width"], item_data["height"])
-
-            elif item_type == "SignalReceipt":  # Пентагон (сигнал получения)
-                item = SignalReceipt(position[0], position[1], item_data["width"], item_data["height"])
-
-            elif item_type == "Arrow":  # Стрелка
-                start_node = QPointF(*item_data["start_node"])
-                end_node = QPointF(*item_data["end_node"])
-                item = Arrow(start_node, end_node)
-
-            elif item_type == "QGraphicsEllipseItem":  # Простой круг
-                item = QtWidgets.QGraphicsEllipseItem(-30, -30, 60, 60)  # Примерный размер
-                item.setPos(position[0], position[1])
-
-            else:
-                print(f"Неизвестный тип элемента: {item_type}, пропускаем.")
-                continue  # Если тип неизвестен, пропускаем элемент
-
-            self.scene_.addItem(item)  # Добавляем элемент на сцену
-            # Добавьте остальные типы элементов
+    
 
     def close_application(self):
         """Обработка выхода из приложения через пункт меню."""
@@ -1045,18 +1001,71 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
 
     def load_from_data(self, data):
-        self.scene_.clear()
+        self.scene_.clear()  # Очищаем сцену перед загрузкой новых данных
+
         for item_data in data["items"]:
             item_type = item_data["type"]
             position = item_data["position"]
-            radius = item_data["radius"]
-        
+
+            # Создание объектов в зависимости от типа
             if item_type == "Decision":
-                item = Decision(*position, 50)  # Пример создания элемента
+                size = item_data.get("size", 50)  # Достаём "size" с умолчанием
+                item = Decision(*position, size)
                 self.scene_.addItem(item)
 
-            if item_type == "StartEvent":
+            elif item_type == "StartEvent":
+                radius = item_data.get("radius", 30)  # Достаём "radius" с умолчанием
                 item = StartEvent(*position, radius)
+                self.scene_.addItem(item)
+
+            elif item_type == "EndEvent":
+                radius = item_data.get("radius", 30)
+                inner_radius_ratio = item_data.get("inner_radius_ratio", 0.5)
+                item = EndEvent(*position, radius, inner_radius_ratio)
+                self.scene_.addItem(item)
+
+            elif item_type == "ActiveState":
+                width = item_data.get("width", 100)
+                height = item_data.get("height", 50)
+                radius = item_data.get("radius", 10)
+                text = item_data.get("text", "")
+                item = ActiveState(*position, width, height, radius)
+                item.text_item.setPlainText(text)
+                self.scene_.addItem(item)
+
+            elif item_type == "SignalSending":
+                width = item_data.get("width", 60)
+                height = item_data.get("height", 40)
+                item = SignalSending(*position, width, height)
+                self.scene_.addItem(item)
+
+            elif item_type == "SignalReceipt":
+                width = item_data.get("width", 60)
+                height = item_data.get("height", 40)
+                item = SignalReceipt(*position, width, height)
+                self.scene_.addItem(item)
+
+            elif item_type == "Arrow":
+                start_node = item_data.get("start_node", (0, 0))
+                end_node = item_data.get("end_node", (0, 0))
+                color = item_data.get("color", "#000000")
+                line_width = item_data.get("line_width", 1)
+
+                # Создаём стрелку и настраиваем её стиль
+                item = Arrow(QPointF(*start_node), QPointF(*end_node))
+                pen = item.pen()
+                pen.setColor(QtGui.QColor(color))
+                pen.setWidth(line_width)
+                item.setPen(pen)
+
+                self.scene_.addItem(item)
+
+            elif item_type == "QtWidgets.QGraphicsEllipseItem":
+                width = item_data.get("width", 60)
+                height = item_data.get("height", 60)
+                rect = QRectF(-width / 2, -height / 2, width, height)
+                item = QtWidgets.QGraphicsEllipseItem(rect)
+                item.setPos(*position)
                 self.scene_.addItem(item)
 
 

@@ -6,32 +6,23 @@
                 0.0,
                 0.0
             ]
-	    
         },
         {
-            "type": "StartEvent",
+            "type": "EndEvent",
             "position": [
-                0.0,
-                0.0
-            ],
-	    "radius": 50.0
-        },
-        {
-            "type": "Decision",
-            "position": [
-                0.0,
-                0.0
+                -152.0,
+                76.0
             ]
         },
         {
-            "type": "Decision",
+            "type": "QGraphicsTextItem",
             "position": [
-                5.0,
-                0.0
+                225.0,
+                215.0
             ]
         },
         {
-            "type": "Decision",
+            "type": "ActiveState",
             "position": [
                 0.0,
                 0.0

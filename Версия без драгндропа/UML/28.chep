@@ -1,0 +1,18 @@
+{
+    "items": [
+        {
+            "type": "QGraphicsTextItem",
+            "position": [
+                225.0,
+                215.0
+            ]
+        },
+        {
+            "type": "ActiveState",
+            "position": [
+                0.0,
+                0.0
+            ]
+        }
+    ]
+}
