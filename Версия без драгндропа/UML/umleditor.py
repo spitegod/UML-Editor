@@ -8,7 +8,7 @@ from uml_elements import *
 from PyQt5.QtWidgets import QGraphicsScene, QGraphicsItem, QGraphicsLineItem, QShortcut, QMessageBox, QUndoCommand, QUndoStack, QMenu, QMenuBar
 from PyQt5.QtCore import QTimer, QTime, QDateTime
 from PyQt5.QtCore import pyqtSignal  # Импортируем pyqtSignal
-from PyQt5.QtCore import Qt, QPointF, QLineF
+from PyQt5.QtCore import Qt, QPointF, QLineF, QRectF
 from PyQt5.QtGui import QPen, QBrush, QPainterPath, QKeySequence
 
 from PyQt5 import QtWidgets, QtGui, QtCore
@@ -111,13 +111,6 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
     #     return len(self.clicks) > 0
 
 
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-#Тест, чтобы проверить видимость изображения
-png_ = "imgs/startstate.png" #Сюда вбиваете путь изображения, который хотите проверить
-if not os.path.exists(png_):
-    print(f"Файл не найден по указанному пути: {png_}")
-else:
-    print("Файл найден!")
 
 #Класс с информацией об одном Пользователе
 class User:
@@ -152,7 +145,7 @@ class UserManager:
 
 
 
-
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 class Ui_MainWindow(QtWidgets.QMainWindow):
     time_updated = pyqtSignal(str, str, str)  # Создаем сигнал с параметром типа str для передачи запущенного времени
@@ -849,7 +842,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                         node1.arrows.remove(arrow)
                     if arrow in node2.arrows:
                         node2.arrows.remove(arrow)
-                    del arrow
+                    del arrow.node1, arrow.node2, arrow
 
 
 
@@ -885,6 +878,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         self.count_objectS.emit(len(self.objectS_))
         self.scene_.update()  # Перерисовываем сцену
+        del selected_items
 
 
     # def count_objectS(self):
@@ -1077,6 +1071,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     #Отображение окна статистики
     def show_static_widget(self):
         
+        self.static_widget = QtWidgets.QWidget()  # Создаем новое окно
+        self.static_ui = Ui_StaticWidget()  # Создаем экземпляр Ui_StaticWidget
 
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
         self.user_actions.connect(self.static_ui.uptade_static)
