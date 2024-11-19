@@ -644,7 +644,16 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             # Добавьте остальные типы элементов
 
     def close_application(self):
-        QtWidgets.QApplication.quit()
+        reply = QtWidgets.QMessageBox.question(
+            self,
+            "Выход",
+            "Вы уверены, что хотите выйти? Изменения не будут сохранены.",
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+            QtWidgets.QMessageBox.No,
+        )
+
+        if reply == QtWidgets.QMessageBox.Yes:
+            QtWidgets.QApplication.quit()
     
     def message_overcrowed_objectS(self):
         if len(self.objectS_) == 11:
