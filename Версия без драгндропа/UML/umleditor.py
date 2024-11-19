@@ -538,63 +538,66 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось открыть файл: {e}")
 
     def serialize_item(self, item):
+        print('Вызвано')
         base_data = {
-        "type": type(item).__name__,
-        "position": (item.x(), item.y()),
-    }
+            "type": type(item).__name__,      # Тип элемента
+            "position": (item.x(), item.y()), # Позиция элемента
+            "size": None,                    # Размер (например, для Decision)
+            "radius": None,                  # Радиус (например, для StartEvent и EndEvent)
+            "inner_radius_ratio": None,      # Соотношение радиусов (EndEvent)
+            "width": None,                   # Ширина (например, для ActiveState)
+            "height": None,                  # Высота (например, для ActiveState)
+            "text": None,                    # Текст (например, для ActiveState)
+            "start_node": None,              # Начальная точка (для Arrow)
+            "end_node": None,                # Конечная точка (для Arrow)
+            "color": None,                   # Цвет линии (для Arrow)
+            "line_width": None               # Толщина линии (для Arrow)
+        }
 
-    # Сериализация по типу элемента
+        # Заполняем структуру в зависимости от типа элемента
         if isinstance(item, Decision):  # Ромб
-            base_data.update({"size": item.size})
+            base_data["size"] = item.size
 
         elif isinstance(item, StartEvent):  # Круг (начало)
             rect = item.rect()
-            base_data.update({"radius": rect.width() / 2})
+            base_data["radius"] = rect.width() / 2
 
         elif isinstance(item, EndEvent):  # Круг с внутренним кругом (конец)
             rect = item.rect()
-            base_data.update({
-                "radius": rect.width() / 2,
-                "inner_radius_ratio": item.inner_radius_ratio
-            })
+            base_data["radius"] = rect.width() / 2
+            base_data["inner_radius_ratio"] = item.inner_radius_ratio
 
         elif isinstance(item, ActiveState):  # Прямоугольник с закругленными углами
             rect = item.rect()
-            base_data.update({
-                "width": rect.width(),
-                "height": rect.height(),
-                "radius": item.radius,
-                "text": item.text_item.toPlainText() if hasattr(item, "text_item") else ""
-            })
+            base_data["width"] = rect.width()
+            base_data["height"] = rect.height()
+            base_data["text"] = item.text_item.toPlainText() if hasattr(item, "text_item") else None
 
         elif isinstance(item, SignalSending):  # Пентагон (сигнал отправки)
             rect = item.boundingRect()
-            base_data.update({
-                "width": rect.width(),
-                "height": rect.height()
-            })
+            base_data["width"] = rect.width()
+            base_data["height"] = rect.height()
 
         elif isinstance(item, SignalReceipt):  # Пентагон (сигнал получения)
             rect = item.boundingRect()
-            base_data.update({
-                "width": rect.width(),
-                "height": rect.height()
-            })
+            base_data["width"] = rect.width()
+            base_data["height"] = rect.height()
 
         elif isinstance(item, Arrow):  # Стрелка
-            base_data.update({
-                "start_node": (item.node1.x(), item.node1.y()),
-                "end_node": (item.node2.x(), item.node2.y())
-            })
+            base_data["start_node"] = (item.node1.x(), item.node1.y())
+            base_data["end_node"] = (item.node2.x(), item.node2.y())
+            pen = item.pen()
+            base_data["color"] = pen.color().name()
+            base_data["line_width"] = pen.width()
 
         elif isinstance(item, QtWidgets.QGraphicsEllipseItem):  # Простой круг
             rect = item.rect()
-            base_data.update({
-                "width": rect.width(),
-                "height": rect.height()
-            })
+            base_data["width"] = rect.width()
+            base_data["height"] = rect.height()
 
+        # Возвращаем структуру со всеми ключами
         return base_data
+
 
     def load_from_data(self, data):
         """Загрузка данных в сцену."""
@@ -1039,22 +1042,21 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
     
 
-    def serialize_item(self, item):
 
-        return {
-            "type": type(item).__name__,
-            "position": (item.x(), item.y()),
-            # Добавить сюда свойства элемента, которые нужно сохранить
-        }
 
     def load_from_data(self, data):
         self.scene_.clear()
         for item_data in data["items"]:
             item_type = item_data["type"]
             position = item_data["position"]
+            radius = item_data["radius"]
         
             if item_type == "Decision":
                 item = Decision(*position, 50)  # Пример создания элемента
+                self.scene_.addItem(item)
+
+            if item_type == "StartEvent":
+                item = StartEvent(*position, radius)
                 self.scene_.addItem(item)
 
 
