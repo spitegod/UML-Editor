@@ -1,0 +1,41 @@
+{
+    "items": [
+        {
+            "type": "QGraphicsEllipseItem",
+            "position": [
+                0.0,
+                0.0
+            ]
+	    
+        },
+        {
+            "type": "StartEvent",
+            "position": [
+                0.0,
+                0.0
+            ],
+	    "radius": 50.0
+        },
+        {
+            "type": "Decision",
+            "position": [
+                0.0,
+                0.0
+            ]
+        },
+        {
+            "type": "Decision",
+            "position": [
+                5.0,
+                0.0
+            ]
+        },
+        {
+            "type": "Decision",
+            "position": [
+                0.0,
+                0.0
+            ]
+        }
+    ]
+}
