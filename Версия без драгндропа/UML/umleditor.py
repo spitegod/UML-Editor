@@ -69,6 +69,7 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
         super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
+        self.reset_time.reset_inaction()
         if not self.is_dragging:  # Обновляем прямоугольник выделения только если не перетаскиваем
             if self.selection_rect and self.start_pos:
                 rect = QtCore.QRectF(self.start_pos, event.scenePos()).normalized()
@@ -486,7 +487,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             self.reset_inaction() #Сбрасыем второй таймер
             self.count_objectS.emit(len(self.objectS_) - 1)
             self.scene_.removeItem(self.objectS_[len(self.objectS_) - 1])
-            self.objectS_.pop()
+            del self.objectS_[len(self.objectS_) - 1]
             msgBox = QMessageBox()
             msgBox.setIcon(QMessageBox.Information)
             msgBox.setText("Превышено максимальное значение элементов")
@@ -516,7 +517,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # Координаты центра и размер ромба
         x, y, size = 200, 200, 50  # Пример координат и размера
         diamond = Decision(x, y, size)
-        diamond.setFlags(QtWidgets.QGraphicsItem.ItemIsMovable | QtWidgets.QGraphicsItem.ItemIsSelectable)
         self.scene_.addItem(diamond)  # Добавляем ромб на сцену
 
 
@@ -528,9 +528,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.user_.add_action(f"Добавлен элемент '{diamond.__class__.__name__}'", self.get_current_Realtime())
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
         # Обновляем стрелки, если это необходимо
-        for arrow in self.objectS_:
-            if isinstance(arrow, Arrow):
-                arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
+        # for arrow in self.objectS_:
+        #     if isinstance(arrow, Arrow):
+        #         arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
 
 
     def draw_circle(self):
@@ -539,7 +539,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.reset_inaction() #Сбрасыем второй таймер
         x, y, radius = 200, 200, 30  # Пример: рисуем круг в центре с радиусом 50
         circle = StartEvent(x, y, radius)
-        circle.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.scene_.addItem(circle)  # Добавляем круг на сцену
 
         self.objectS_.append(circle)
@@ -550,9 +549,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.user_.add_action(f"Добавлен элемент '{circle.__class__.__name__}'", self.get_current_Realtime())
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
         # Обновляем стрелки, если это необходимо
-        for arrow in self.objectS_:
-            if isinstance(arrow, Arrow):
-                arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
+        # for arrow in self.objectS_:
+        #     if isinstance(arrow, Arrow):
+        #         arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
 
     def draw_circle_2(self):
         self.reset_inaction() #Сбрасыем второй таймер
@@ -560,7 +559,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # Координаты центра и радиус круга
         x, y, radius, into_radius = 200, 200, 30, 0.5  # Пример: рисуем круг в центре с радиусом 50
         circle = EndEvent(x,y,radius, into_radius)
-        circle.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.scene_.addItem(circle)  # Добавляем круг на сцену
 
         self.objectS_.append(circle)
@@ -571,9 +569,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.user_.add_action(f"Добавлен элемент '{circle.__class__.__name__}'", self.get_current_Realtime())
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
         # Обновляем стрелки, если это необходимо
-        for arrow in self.objectS_:
-            if isinstance(arrow, Arrow):
-                arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
+        # for arrow in self.objectS_:
+        #     if isinstance(arrow, Arrow):
+        #         arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
 
 
     def draw_rounded_rectangle(self):
@@ -581,7 +579,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # Координаты центра, ширина, высота и радиус закругления
         x, y, width, height, radius = 200, 200, 100, 60, 15  # Пример координат, размера и радиуса
         rounded_rect = ActiveState(x, y, width, height, radius)
-        rounded_rect.setFlags(QtWidgets.QGraphicsItem.ItemIsMovable | QtWidgets.QGraphicsItem.ItemIsSelectable)
         self.scene_.addItem(rounded_rect)  # Добавляем закругленный прямоугольник на сцену
 
         self.objectS_.append(rounded_rect)
@@ -593,9 +590,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
 
         # Обновляем стрелки, если это необходимо
-        for arrow in self.objectS_:
-            if isinstance(arrow, Arrow):
-                arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
+        # for arrow in self.objectS_:
+        #     if isinstance(arrow, Arrow):
+        #         arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
 
 
     def draw_pentagon_signal(self):
@@ -603,7 +600,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # Координаты центра, ширина, высота и радиус закругления
         x, y, size = 200, 200, 100  # Пример координат, размера и радиуса
         pentagon = SignalSending(x, y, 60, 150)
-        pentagon.setFlags(QtWidgets.QGraphicsItem.ItemIsMovable | QtWidgets.QGraphicsItem.ItemIsSelectable)
         self.scene_.addItem(pentagon)  # Добавляем закругленный прямоугольник на сцену
 
         self.objectS_.append(pentagon)
@@ -614,10 +610,10 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.user_.add_action(f"Добавлен элемент '{pentagon.__class__.__name__}'", self.get_current_Realtime())
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
 
-        # Обновляем стрелки, если это необходимо
-        for arrow in self.objectS_:
-            if isinstance(arrow, Arrow):
-                arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
+        # # Обновляем стрелки, если это необходимо
+        # for arrow in self.objectS_:
+        #     if isinstance(arrow, Arrow):
+        #         arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
 
     def draw_pentagon_reverse(self):
         self.reset_inaction() #Сбрасыем второй таймер
@@ -635,10 +631,10 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.user_.add_action(f"Добавлен элемент '{pentagon.__class__.__name__}'", self.get_current_Realtime())
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
 
-        # Обновляем стрелки, если это необходимо
-        for arrow in self.objectS_:
-            if isinstance(arrow, Arrow):
-                arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
+        # # Обновляем стрелки, если это необходимо
+        # for arrow in self.objectS_:
+        #     if isinstance(arrow, Arrow):
+        #         arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
 
 
     def add_edge(self):
@@ -701,19 +697,20 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
     def disconnect_nodes(self, node1, node2):
         if hasattr(node1, 'arrows') and hasattr(node2, 'arrows'):
-            arrows_to_remove = []
-            
-            # Ищем стрелки, связывающие node1 и node2
-            for arrow in node1.arrows:
-                if arrow.node1 == node2 or arrow.node2 == node2:
-                    arrows_to_remove.append(arrow)
-            
-            # Удаляем стрелки из сцены и из списков узлов
-            for arrow in arrows_to_remove:
-                if arrow.scene():
-                    self.scene_.removeItem(arrow)
-                node1.arrows.remove(arrow)
-                node2.arrows.remove(arrow)
+            for arrow in node1.arrows[:]:
+                if (arrow.node1 == node2 or arrow.node2 == node2) and arrow in node2.arrows:
+                    if arrow.scene():  # Удаляем из сцены, если стрелка добавлена
+                        self.scene_.removeItem(arrow)
+                    
+                    # Удаляем стрелку из списков arrows для узлов
+                    if arrow in node1.arrows:
+                        node1.arrows.remove(arrow)
+                    if arrow in node2.arrows:
+                        node2.arrows.remove(arrow)
+                    del arrow
+
+
+
                 
     def delete_selected_item(self):
         self.reset_inaction()  # Сбрасываем второй таймер
@@ -729,10 +726,14 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                             self.scene_.removeItem(arrow)
                             # Удаляем стрелку из списка стрелок узла
                             item.arrows.remove(arrow)
+                            del arrow
+                    del arrows_to_remove
+
                 # Удаляем сам элемент из сцены
                 self.scene_.removeItem(item)
                 # Добавляем действие пользователя
                 self.user_.add_action(f"Удален элемент '{item.__class__.__name__}'", self.get_current_Realtime())
+                del item
                 self.user_actions.emit(
                     self.user_.nickname, self.user_.user_id,
                     self.user_.start_work, self.user_.end_work,
@@ -871,7 +872,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.update_last_timeSW.connect(self.static_ui.update_last_timeSW)
         self.static_ui.update_timeworkSW(self.today, self.Start_Time.text(), self.time_now)
         self.static_ui.accept_today(self.today, self.time_now, self.last_time)
-        self.update_last_timeSW.emit(self.today_2, self.last_time, self.time_now)  # Отправляем значение при открытии
+        self.update_last_timeSW.emit(self.today, self.last_time, self.time_now)  # Отправляем значение при открытии
         # self.static_ui.update_timeworkSW(self.last_time)
         # self.timeStop_ChangedSignal.connect(self.static_ui.receive_text)
 
