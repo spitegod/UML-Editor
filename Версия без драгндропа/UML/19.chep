@@ -1,0 +1,12 @@
+{
+    "items": [
+        {
+            "type": "StartEvent",
+            "position": [
+                0.0,
+                0.0
+            ],
+	    "radius": 20.0
+        }
+    ]
+}

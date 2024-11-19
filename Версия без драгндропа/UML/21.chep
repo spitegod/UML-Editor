@@ -1,0 +1,18 @@
+{
+    "items": [
+        {
+            "type": "StartEvent",
+            "position": [
+                70.0,
+                78.0
+            ]
+        },
+        {
+            "type": "Decision",
+            "position": [
+                0.0,
+                0.0
+            ]
+        }
+    ]
+}

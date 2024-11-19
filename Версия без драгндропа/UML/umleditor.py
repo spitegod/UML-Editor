@@ -1,10 +1,11 @@
 import os
 import sys
+import json
 from math import *
 from PyQt5 import QtCore, QtGui, QtWidgets
 from Static import Ui_StaticWidget  # Импортируем класс Ui_StaticWidget
 from uml_elements import *
-from PyQt5.QtWidgets import QGraphicsScene, QGraphicsItem, QGraphicsLineItem, QShortcut, QMessageBox, QUndoCommand, QUndoStack
+from PyQt5.QtWidgets import QGraphicsScene, QGraphicsItem, QGraphicsLineItem, QShortcut, QMessageBox, QUndoCommand, QUndoStack, QMenu, QMenuBar
 from PyQt5.QtCore import QTimer, QTime, QDateTime
 from PyQt5.QtCore import pyqtSignal  # Импортируем pyqtSignal
 from PyQt5.QtCore import Qt, QPointF, QLineF
@@ -40,6 +41,10 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
         # self.selected_order = []
         # self.undo_stack = QUndoStack()
 
+        
+
+    
+    
     def drawBackground(self, painter, rect):
         # Включаем сглаживание
         painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
@@ -332,6 +337,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.action_PNG.setObjectName("action_PNG")
         self.action_4 = QtWidgets.QAction(MainWindow)
         self.action_4.setObjectName("action_4")
+        self.action_exit = QtWidgets.QAction(MainWindow)
+        self.action_exit.setObjectName("action_exit")
         self.action_Statystics = QtWidgets.QAction(MainWindow)
         self.action_Statystics.setObjectName("action_Statystics")
 
@@ -354,10 +361,17 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.menu.addAction(self.action_3)
         self.menu.addSeparator()
         self.menu.addAction(self.action_PNG)
+        self.menu.addSeparator()
+        self.menu.addAction(self.action_exit)
         self.menu_2.addAction(self.action_Statystics)
         self.menubar.addAction(self.menu.menuAction())
         self.menubar.addAction(self.menu_2.menuAction())
         self.menubar.addAction(self.menu_3.menuAction()) #Тестовое меню таймера
+
+        self.action_2.triggered.connect(lambda: self.save_to_file(filepath="diagram.chep"))
+        self.action_3.triggered.connect(self.save_as)
+        self.action.triggered.connect(self.open_file)
+        self.action_exit.triggered.connect(self.close_application)
 
         self.menu_3.addAction(self.action_time_start) #Добавление вкладок на тестовое меню для таймера
         self.menu_3.addAction(self.action_time_stop)
@@ -481,7 +495,135 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
         # self.user_actions.connect(self.static_ui.uptade_static)
 
+    def save_to_file(self, filepath=None):
+        """Сохранение текущей диаграммы в файл формата chep."""
+        if not filepath:  # Если путь не задан, запрашиваем его у пользователя
+            options = QtWidgets.QFileDialog.Options()
+            filepath, _ = QtWidgets.QFileDialog.getSaveFileName(
+                self, "Сохранить файл", "", "CHEP Files (*.chep);;All Files (*)", options=options
+            )
+            if not filepath:
+                return
 
+        data = {"items": []}
+        for item in self.scene_.items():
+            if isinstance(item, QtWidgets.QGraphicsItem):
+                data["items"].append(self.serialize_item(item))
+
+        try:
+            with open(filepath, "w") as file:
+                json.dump(data, file, indent=4)
+            print("Файл сохранён:", filepath)
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось сохранить файл: {e}")
+
+    def save_as(self):
+        """Сохранить как. Всегда предлагает выбрать путь для сохранения."""
+        self.save_to_file()  # Просто вызываем save_to_file без пути
+
+    def open_file(self):
+        """Открытие файла формата chep."""
+        options = QtWidgets.QFileDialog.Options()
+        filepath, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self, "Открыть файл", "", "CHEP Files (*.chep);;All Files (*)", options=options
+        )
+        if not filepath:
+            return
+
+        try:
+            with open(filepath, "r") as file:
+                data = json.load(file)
+            self.load_from_data(data)
+            print("Файл открыт:", filepath)
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось открыть файл: {e}")
+
+    def serialize_item(self, item):
+        print('Вызвано')
+        base_data = {
+            "type": type(item).__name__,      # Тип элемента
+            "position": (item.x(), item.y()), # Позиция элемента
+            "size": None,                    # Размер (например, для Decision)
+            "radius": None,                  # Радиус (например, для StartEvent и EndEvent)
+            "inner_radius_ratio": None,      # Соотношение радиусов (EndEvent)
+            "width": None,                   # Ширина (например, для ActiveState)
+            "height": None,                  # Высота (например, для ActiveState)
+            "text": None,                    # Текст (например, для ActiveState)
+            "start_node": None,              # Начальная точка (для Arrow)
+            "end_node": None,                # Конечная точка (для Arrow)
+            "color": None,                   # Цвет линии (для Arrow)
+            "line_width": None               # Толщина линии (для Arrow)
+        }
+
+        # Заполняем структуру в зависимости от типа элемента
+        if isinstance(item, Decision):  # Ромб
+            base_data["size"] = item.size
+
+        elif isinstance(item, StartEvent):  # Круг (начало)
+            rect = item.rect()
+            base_data["radius"] = rect.width() / 2
+
+        elif isinstance(item, EndEvent):  # Круг с внутренним кругом (конец)
+            rect = item.rect()
+            base_data["radius"] = rect.width() / 2
+            base_data["inner_radius_ratio"] = item.inner_radius_ratio
+
+        elif isinstance(item, ActiveState):  # Прямоугольник с закругленными углами
+            rect = item.rect()
+            base_data["width"] = rect.width()
+            base_data["height"] = rect.height()
+            base_data["radius"] = rect.width() / 16
+            base_data["text"] = item.text_item.toPlainText() if hasattr(item, "text_item") else None
+
+        elif isinstance(item, SignalSending):  # Пентагон (сигнал отправки)
+            rect = item.boundingRect()
+            base_data["width"] = rect.width()
+            base_data["height"] = rect.height()
+
+        elif isinstance(item, SignalReceipt):  # Пентагон (сигнал получения)
+            rect = item.boundingRect()
+            base_data["width"] = rect.width()
+            base_data["height"] = rect.height()
+
+        elif isinstance(item, Arrow):  # Стрелка
+            base_data["start_node"] = (item.node1.x(), item.node1.y())
+            base_data["end_node"] = (item.node2.x(), item.node2.y())
+            pen = item.pen()
+            base_data["color"] = pen.color().name()
+            base_data["line_width"] = pen.width()
+
+        elif isinstance(item, QtWidgets.QGraphicsEllipseItem):  # Простой круг
+            rect = item.rect()
+            base_data["width"] = rect.width()
+            base_data["height"] = rect.height()
+
+        # Возвращаем структуру со всеми ключами
+        return base_data
+
+
+    
+
+    def close_application(self):
+        """Обработка выхода из приложения через пункт меню."""
+        self.close()
+
+
+    def closeEvent(self, event):
+        print('Вызвано')
+        reply = QtWidgets.QMessageBox.question(
+            self,
+            "Выход",
+            "Вы уверены, что хотите выйти? Изменения не будут сохранены.",
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+            QtWidgets.QMessageBox.No,
+        )
+
+        if reply == QtWidgets.QMessageBox.Yes:
+            print('egre')
+            QtWidgets.QApplication.quit()
+        else:
+            event.ignore()
+    
     def message_overcrowed_objectS(self):
         if len(self.objectS_) == 11:
             self.reset_inaction() #Сбрасыем второй таймер
@@ -857,15 +999,87 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         return last_time
 
 
-    #Отображение окна статистики
-    def show_static_widget(self):       
+    
 
         self.static_widget = QtWidgets.QWidget()  # Создаем новое окно
         self.static_ui = Ui_StaticWidget()  # Создаем экземпляр Ui_StaticWidget
 
+
+    def load_from_data(self, data):
+        self.scene_.clear()  # Очищаем сцену перед загрузкой новых данных
+
+        for item_data in data["items"]:
+            item_type = item_data["type"]
+            position = item_data["position"]
+
+            # Создание объектов в зависимости от типа
+            if item_type == "Decision":
+                size = item_data.get("size", 50)  # Достаём "size" с умолчанием
+                item = Decision(*position, size)
+                self.scene_.addItem(item)
+
+            elif item_type == "StartEvent":
+                radius = item_data.get("radius", 30)  # Достаём "radius" с умолчанием
+                item = StartEvent(*position, radius)
+                self.scene_.addItem(item)
+
+            elif item_type == "EndEvent":
+                radius = item_data.get("radius", 30)
+                inner_radius_ratio = item_data.get("inner_radius_ratio", 0.5)
+                item = EndEvent(*position, radius, inner_radius_ratio)
+                self.scene_.addItem(item)
+
+            elif item_type == "ActiveState":
+                width = item_data.get("width", 100)
+                height = item_data.get("height", 50)
+                radius = item_data.get("radius", 10)
+                text = item_data.get("text", "")
+                item = ActiveState(*position, width, height, radius)
+                item.text_item.setPlainText(text)
+                self.scene_.addItem(item)
+
+            elif item_type == "SignalSending":
+                width = item_data.get("width", 60)
+                height = item_data.get("height", 40)
+                item = SignalSending(*position, width, height)
+                self.scene_.addItem(item)
+
+            elif item_type == "SignalReceipt":
+                width = item_data.get("width", 60)
+                height = item_data.get("height", 40)
+                item = SignalReceipt(*position, width, height)
+                self.scene_.addItem(item)
+
+            elif item_type == "Arrow":
+                start_node = item_data.get("start_node", (0, 0))
+                end_node = item_data.get("end_node", (0, 0))
+                color = item_data.get("color", "#000000")
+                line_width = item_data.get("line_width", 1)
+
+                # Создаём стрелку и настраиваем её стиль
+                item = Arrow(QPointF(*start_node), QPointF(*end_node))
+                pen = item.pen()
+                pen.setColor(QtGui.QColor(color))
+                pen.setWidth(line_width)
+                item.setPen(pen)
+
+                self.scene_.addItem(item)
+
+            elif item_type == "QtWidgets.QGraphicsEllipseItem":
+                width = item_data.get("width", 60)
+                height = item_data.get("height", 60)
+                rect = QRectF(-width / 2, -height / 2, width, height)
+                item = QtWidgets.QGraphicsEllipseItem(rect)
+                item.setPos(*position)
+                self.scene_.addItem(item)
+
+
+    #Отображение окна статистики
+    def show_static_widget(self):
+        
+
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
         self.user_actions.connect(self.static_ui.uptade_static)
-
         #self.static_ui = Ui_StaticWidget(self.get_last_time())   # Передаем last_time в Ui_StaticWidget
         # Подключаем слот StaticWidget к сигналу time_updated
         self.time_updated.connect(self.static_ui.update_timeworkSW)
@@ -875,7 +1089,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.update_last_timeSW.emit(self.today, self.last_time, self.time_now)  # Отправляем значение при открытии
         # self.static_ui.update_timeworkSW(self.last_time)
         # self.timeStop_ChangedSignal.connect(self.static_ui.receive_text)
-
         self.count_objectS.connect(self.static_ui.get_count_objectS)
         self.count_objectS.emit(len(self.objectS_))
         
@@ -892,12 +1105,16 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.menu_2.setTitle(_translate("MainWindow", "Статистика"))
 
         self.menu_3.setTitle(_translate("MainWindow", "Тест таймера"))
+        
+
+        
 
         self.action.setText(_translate("MainWindow", "Открыть"))
         self.action_2.setText(_translate("MainWindow", "Сохранить"))
         self.action_3.setText(_translate("MainWindow", "Сохранить как"))
         self.action_PNG.setText(_translate("MainWindow", "Экспорт в PNG"))
         self.action_4.setText(_translate("MainWindow", "Создать"))
+        self.action_exit.setText(_translate("MainWindow", "Выход"))
         self.action_Statystics.setText(_translate("MainWindow", "Запустить статистику"))
 
         self.action_time_start.setText(_translate("MainWindow", "Запустить таймер"))
