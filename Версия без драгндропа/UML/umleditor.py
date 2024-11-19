@@ -644,6 +644,12 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             # Добавьте остальные типы элементов
 
     def close_application(self):
+        """Обработка выхода из приложения через пункт меню."""
+        self.close()
+
+
+    def closeEvent(self, event):
+        print('Вызвано')
         reply = QtWidgets.QMessageBox.question(
             self,
             "Выход",
@@ -653,7 +659,10 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         )
 
         if reply == QtWidgets.QMessageBox.Yes:
+            print('egre')
             QtWidgets.QApplication.quit()
+        else:
+            event.ignore()
     
     def message_overcrowed_objectS(self):
         if len(self.objectS_) == 11:
@@ -1050,11 +1059,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
 
     #Отображение окна статистики
-    def show_static_widget(self):       
-
+    def show_static_widget(self):    
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
         self.user_actions.connect(self.static_ui.uptade_static)
-
         #self.static_ui = Ui_StaticWidget(self.get_last_time())   # Передаем last_time в Ui_StaticWidget
         # Подключаем слот StaticWidget к сигналу time_updated
         self.time_updated.connect(self.static_ui.update_timeworkSW)
@@ -1064,7 +1071,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.update_last_timeSW.emit(self.today_2, self.last_time, self.time_now_2)  # Отправляем значение при открытии
         # self.static_ui.update_timeworkSW(self.last_time)
         # self.timeStop_ChangedSignal.connect(self.static_ui.receive_text)
-
         self.count_objectS.connect(self.static_ui.get_count_objectS)
         self.count_objectS.emit(len(self.objectS_))
         
