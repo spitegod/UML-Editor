@@ -1,6 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QPen, QPainterPath, QColor
-from PyQt5.QtCore import QPointF, Qt
+from PyQt5.QtGui import QPen, QPainterPath, QColor, QPolygonF
+from PyQt5.QtCore import QPointF, Qt, QLineF
 from PyQt5.QtWidgets import QGraphicsItem, QGraphicsEllipseItem, QGraphicsRectItem, QGraphicsPolygonItem
 
 from math import *
@@ -133,30 +133,57 @@ class Arrow(QGraphicsItem):
         start_center = self.node1.sceneBoundingRect().center()
         end_center = self.node2.sceneBoundingRect().center()
 
-        # Вычисляем направление и координаты стрелки
-        dx = end_center.x() - start_center.x()
-        dy = end_center.y() - start_center.y()
-        arrow_size = 15.0
-        angle = atan2(dy, dx)
+        # Получаем границы узлов
+        node1_rect = self.node1.sceneBoundingRect()
+        node2_rect = self.node2.sceneBoundingRect()
 
-        # Координаты вершин стрелки
-        arrow_p1 = QPointF(end_center.x() - arrow_size * cos(angle - pi / 6),
-                           end_center.y() - arrow_size * sin(angle - pi / 6))
-        arrow_p2 = QPointF(end_center.x() - arrow_size * cos(angle + pi / 6),
-                           end_center.y() - arrow_size * sin(angle + pi / 6))
+        # Вычисляем линии пересечения для начала и конца
+        start_point = self.get_edge_intersection(node1_rect, start_center, end_center)
+        end_point = self.get_edge_intersection(node2_rect, end_center, start_center)
+
+        # Вычисление направления и координаты наконечника стрелки
+        dx = end_point.x() - start_point.x()
+        dy = end_point.y() - start_point.y()
+        angle = atan2(dy, dx)
+        arrow_size = 15.0
+
+        # Координаты наконечников стрелки
+        arrow_p1 = QPointF(end_point.x() - arrow_size * cos(angle - pi / 6),
+                        end_point.y() - arrow_size * sin(angle - pi / 6))
+        arrow_p2 = QPointF(end_point.x() - arrow_size * cos(angle + pi / 6),
+                        end_point.y() - arrow_size * sin(angle + pi / 6))
 
         # Создаем путь стрелки
         path = QPainterPath()
-        path.moveTo(start_center)  # Начало линии от центра node1
-        path.lineTo(end_center)    # Добавляем линию к центру node2
-        path.moveTo(end_center)    # Перемещаем "ручку" для рисования к концу линии
-        path.lineTo(arrow_p1)      # Линии для рисования наконечника стрелки
-        path.moveTo(end_center)
+        path.moveTo(start_point)  # Начало линии
+        path.lineTo(end_point)    # Линия до конца
+        path.moveTo(end_point)
+        path.lineTo(arrow_p1)
+        path.moveTo(end_point)
         path.lineTo(arrow_p2)
 
-        # Обновляем путь стрелки
         self.path = path
-        self.update()  # Обновляем отображение стрелки
+        self.update()
+
+    def get_edge_intersection(self, rect, start, end):
+        # находим пересечение линии от start к end с границей rect
+        line = QLineF(start, end)
+
+        # получаем стороны выделения
+        top_edge = QLineF(rect.topLeft(), rect.topRight())
+        bottom_edge = QLineF(rect.bottomLeft(), rect.bottomRight())
+        left_edge = QLineF(rect.topLeft(), rect.bottomLeft())
+        right_edge = QLineF(rect.topRight(), rect.bottomRight())
+
+        edges = [top_edge, bottom_edge, left_edge, right_edge]
+
+        intersection_point = QPointF()
+        for edge in edges:
+            if line.intersect(edge, intersection_point) == QLineF.BoundedIntersection:
+                return intersection_point
+        return start  # возвращаем начальную точку если нет пересечений
+
+
 
 
 class Decision(QtWidgets.QGraphicsPolygonItem):

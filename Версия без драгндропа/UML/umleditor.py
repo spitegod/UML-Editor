@@ -648,7 +648,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     #     self.scene_.addItem(text_item)  # Добавляем текстовое поле на сцену
 
     def draw_diamond(self):
-        self.reset_inaction() #Сбрасыем второй таймер
+        # self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра и размер ромба
         x, y, size = 200, 200, 50  # Пример координат и размера
         diamond = Decision(x, y, size)
@@ -666,12 +666,13 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # for arrow in self.objectS_:
         #     if isinstance(arrow, Arrow):
         #         arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
+        del diamond
 
 
     def draw_circle(self):
         # Вставляем круг на сцену
         # Координаты центра и радиус круга
-        self.reset_inaction() #Сбрасыем второй таймер
+        # self.reset_inaction() #Сбрасыем второй таймер
         x, y, radius = 200, 200, 30  # Пример: рисуем круг в центре с радиусом 50
         circle = StartEvent(x, y, radius)
         self.scene_.addItem(circle)  # Добавляем круг на сцену
@@ -687,9 +688,10 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # for arrow in self.objectS_:
         #     if isinstance(arrow, Arrow):
         #         arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
+        del circle
 
     def draw_circle_2(self):
-        self.reset_inaction() #Сбрасыем второй таймер
+        # self.reset_inaction() #Сбрасыем второй таймер
         # Вставляем круг на сцену
         # Координаты центра и радиус круга
         x, y, radius, into_radius = 200, 200, 30, 0.5  # Пример: рисуем круг в центре с радиусом 50
@@ -707,10 +709,11 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # for arrow in self.objectS_:
         #     if isinstance(arrow, Arrow):
         #         arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
+        del circle
 
 
     def draw_rounded_rectangle(self):
-        self.reset_inaction() #Сбрасыем второй таймер
+        # self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
         x, y, width, height, radius = 200, 200, 100, 60, 15  # Пример координат, размера и радиуса
         rounded_rect = ActiveState(x, y, width, height, radius)
@@ -728,10 +731,11 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # for arrow in self.objectS_:
         #     if isinstance(arrow, Arrow):
         #         arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
+        del rounded_rect
 
 
     def draw_pentagon_signal(self):
-        self.reset_inaction() #Сбрасыем второй таймер
+        # self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
         x, y, size = 200, 200, 100  # Пример координат, размера и радиуса
         pentagon = SignalSending(x, y, 60, 150)
@@ -749,9 +753,10 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # for arrow in self.objectS_:
         #     if isinstance(arrow, Arrow):
         #         arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
+        del pentagon
 
     def draw_pentagon_reverse(self):
-        self.reset_inaction() #Сбрасыем второй таймер
+        # self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
         x, y, size = 200, 200, 100  # Пример координат, размера и радиуса
         pentagon = SignalReceipt(x, y, 60, 200)
@@ -770,10 +775,11 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # for arrow in self.objectS_:
         #     if isinstance(arrow, Arrow):
         #         arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
+        del pentagon
 
 
     def add_edge(self):
-        self.reset_inaction() #Сбрасыем второй таймер
+        # self.reset_inaction() #Сбрасыем второй таймер
         selected_nodes = [object_ for object_ in self.objectS_ if object_.isSelected()]
 
         if len(selected_nodes) == 2:
@@ -824,7 +830,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
     
     def select_all_item(self):
-        self.reset_inaction()
+        # self.reset_inaction()
         for item in self.scene_.items():
             # Проверяем может ли элемент выделяться
             if isinstance(item, QtWidgets.QGraphicsItem):
@@ -842,13 +848,13 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                         node1.arrows.remove(arrow)
                     if arrow in node2.arrows:
                         node2.arrows.remove(arrow)
-                    del arrow.node1, arrow.node2, arrow
+            del arrow.node1, arrow.node2, arrow
 
 
 
                 
     def delete_selected_item(self):
-        self.reset_inaction()  # Сбрасываем второй таймер
+        # self.reset_inaction()  # Сбрасываем второй таймер
         selected_items = self.scene_.selectedItems()
 
         for item in selected_items:
