@@ -336,6 +336,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.action_PNG.setObjectName("action_PNG")
         self.action_4 = QtWidgets.QAction(MainWindow)
         self.action_4.setObjectName("action_4")
+        self.action_exit = QtWidgets.QAction(MainWindow)
+        self.action_exit.setObjectName("action_exit")
         self.action_Statystics = QtWidgets.QAction(MainWindow)
         self.action_Statystics.setObjectName("action_Statystics")
 
@@ -358,6 +360,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.menu.addAction(self.action_3)
         self.menu.addSeparator()
         self.menu.addAction(self.action_PNG)
+        self.menu.addSeparator()
+        self.menu.addAction(self.action_exit)
         self.menu_2.addAction(self.action_Statystics)
         self.menubar.addAction(self.menu.menuAction())
         self.menubar.addAction(self.menu_2.menuAction())
@@ -366,6 +370,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.action_2.triggered.connect(lambda: self.save_to_file(filepath="diagram.chep"))
         self.action_3.triggered.connect(self.save_as)
         self.action.triggered.connect(self.open_file)
+        self.action_exit.triggered.connect(self.close_application)
 
         self.menu_3.addAction(self.action_time_start) #Добавление вкладок на тестовое меню для таймера
         self.menu_3.addAction(self.action_time_stop)
@@ -637,6 +642,10 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
             self.scene_.addItem(item)  # Добавляем элемент на сцену
             # Добавьте остальные типы элементов
+
+    def close_application(self):
+        QtWidgets.QApplication.quit()
+    
     def message_overcrowed_objectS(self):
         if len(self.objectS_) == 11:
             self.reset_inaction() #Сбрасыем второй таймер
@@ -1063,6 +1072,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.menu_2.setTitle(_translate("MainWindow", "Статистика"))
 
         self.menu_3.setTitle(_translate("MainWindow", "Тест таймера"))
+        
 
         
 
@@ -1071,6 +1081,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.action_3.setText(_translate("MainWindow", "Сохранить как"))
         self.action_PNG.setText(_translate("MainWindow", "Экспорт в PNG"))
         self.action_4.setText(_translate("MainWindow", "Создать"))
+        self.action_exit.setText(_translate("MainWindow", "Выход"))
         self.action_Statystics.setText(_translate("MainWindow", "Запустить статистику"))
 
         self.action_time_start.setText(_translate("MainWindow", "Запустить таймер"))
