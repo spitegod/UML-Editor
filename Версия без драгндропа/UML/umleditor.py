@@ -1059,7 +1059,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
 
     #Отображение окна статистики
-    def show_static_widget(self):    
+    def show_static_widget(self):
+        
+
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
         self.user_actions.connect(self.static_ui.uptade_static)
         #self.static_ui = Ui_StaticWidget(self.get_last_time())   # Передаем last_time в Ui_StaticWidget
