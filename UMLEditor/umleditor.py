@@ -597,6 +597,20 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         self.menu_3.setTitle(_translate("MainWindow", "Тест таймера"))
 
+        menu_bar = QMenuBar(self)
+
+        file_menu = QMenu("Файл", self)
+        file_menu.addAction("Открыть", self.load_file)
+        file_menu.addSeparator()
+        file_menu.addAction("Сохранить", self.save)
+        file_menu.addAction("Сохранить как", self.save_as)
+        file_menu.addSeparator()
+        exit_action = file_menu.addAction("Выход")
+        exit_action.triggered.connect(self.close)
+
+        menu_bar.addMenu(file_menu)
+        self.setMenuBar(menu_bar)
+
         self.action.setText(_translate("MainWindow", "Открыть"))
         self.action_2.setText(_translate("MainWindow", "Сохранить"))
         self.action_3.setText(_translate("MainWindow", "Сохранить как"))

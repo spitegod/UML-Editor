@@ -1,10 +1,11 @@
 import os
 import sys
+import json
 from math import *
 from PyQt5 import QtCore, QtGui, QtWidgets
 from Static import Ui_StaticWidget  # Импортируем класс Ui_StaticWidget
 from uml_elements import *
-from PyQt5.QtWidgets import QGraphicsScene, QGraphicsItem, QGraphicsLineItem, QShortcut, QMessageBox, QUndoCommand, QUndoStack
+from PyQt5.QtWidgets import QGraphicsScene, QGraphicsItem, QGraphicsLineItem, QShortcut, QMessageBox, QUndoCommand, QUndoStack, QMenu, QMenuBar
 from PyQt5.QtCore import QTimer, QTime, QDateTime
 from PyQt5.QtCore import pyqtSignal  # Импортируем pyqtSignal
 from PyQt5.QtCore import Qt, QPointF, QLineF
@@ -40,6 +41,10 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
         # self.selected_order = []
         # self.undo_stack = QUndoStack()
 
+        
+
+    
+    
     def drawBackground(self, painter, rect):
         # Включаем сглаживание
         painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
@@ -358,6 +363,10 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.menubar.addAction(self.menu_2.menuAction())
         self.menubar.addAction(self.menu_3.menuAction()) #Тестовое меню таймера
 
+        self.action_2.triggered.connect(lambda: self.save_to_file(filepath="diagram.chep"))
+        self.action_3.triggered.connect(self.save_as)
+        self.action.triggered.connect(self.open_file)
+
         self.menu_3.addAction(self.action_time_start) #Добавление вкладок на тестовое меню для таймера
         self.menu_3.addAction(self.action_time_stop)
         self.menu_3.addAction(self.action_time_reset)
@@ -480,7 +489,154 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
         # self.user_actions.connect(self.static_ui.uptade_static)
 
+    def save_to_file(self, filepath=None):
+        """Сохранение текущей диаграммы в файл формата chep."""
+        if not filepath:  # Если путь не задан, запрашиваем его у пользователя
+            options = QtWidgets.QFileDialog.Options()
+            filepath, _ = QtWidgets.QFileDialog.getSaveFileName(
+                self, "Сохранить файл", "", "CHEP Files (*.chep);;All Files (*)", options=options
+            )
+            if not filepath:
+                return
 
+        data = {"items": []}
+        for item in self.scene_.items():
+            if isinstance(item, QtWidgets.QGraphicsItem):
+                data["items"].append(self.serialize_item(item))
+
+        try:
+            with open(filepath, "w") as file:
+                json.dump(data, file, indent=4)
+            print("Файл сохранён:", filepath)
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось сохранить файл: {e}")
+
+    def save_as(self):
+        """Сохранить как. Всегда предлагает выбрать путь для сохранения."""
+        self.save_to_file()  # Просто вызываем save_to_file без пути
+
+    def open_file(self):
+        """Открытие файла формата chep."""
+        options = QtWidgets.QFileDialog.Options()
+        filepath, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self, "Открыть файл", "", "CHEP Files (*.chep);;All Files (*)", options=options
+        )
+        if not filepath:
+            return
+
+        try:
+            with open(filepath, "r") as file:
+                data = json.load(file)
+            self.load_from_data(data)
+            print("Файл открыт:", filepath)
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось открыть файл: {e}")
+
+    def serialize_item(self, item):
+        base_data = {
+        "type": type(item).__name__,
+        "position": (item.x(), item.y()),
+    }
+
+    # Сериализация по типу элемента
+        if isinstance(item, Decision):  # Ромб
+            base_data.update({"size": item.size})
+
+        elif isinstance(item, StartEvent):  # Круг (начало)
+            rect = item.rect()
+            base_data.update({"radius": rect.width() / 2})
+
+        elif isinstance(item, EndEvent):  # Круг с внутренним кругом (конец)
+            rect = item.rect()
+            base_data.update({
+                "radius": rect.width() / 2,
+                "inner_radius_ratio": item.inner_radius_ratio
+            })
+
+        elif isinstance(item, ActiveState):  # Прямоугольник с закругленными углами
+            rect = item.rect()
+            base_data.update({
+                "width": rect.width(),
+                "height": rect.height(),
+                "radius": item.radius,
+                "text": item.text_item.toPlainText() if hasattr(item, "text_item") else ""
+            })
+
+        elif isinstance(item, SignalSending):  # Пентагон (сигнал отправки)
+            rect = item.boundingRect()
+            base_data.update({
+                "width": rect.width(),
+                "height": rect.height()
+            })
+
+        elif isinstance(item, SignalReceipt):  # Пентагон (сигнал получения)
+            rect = item.boundingRect()
+            base_data.update({
+                "width": rect.width(),
+                "height": rect.height()
+            })
+
+        elif isinstance(item, Arrow):  # Стрелка
+            base_data.update({
+                "start_node": (item.node1.x(), item.node1.y()),
+                "end_node": (item.node2.x(), item.node2.y())
+            })
+
+        elif isinstance(item, QtWidgets.QGraphicsEllipseItem):  # Простой круг
+            rect = item.rect()
+            base_data.update({
+                "width": rect.width(),
+                "height": rect.height()
+            })
+
+        return base_data
+
+    def load_from_data(self, data):
+        """Загрузка данных в сцену."""
+        """Загрузка данных в сцену."""
+        self.scene_.clear()  # Очищаем сцену перед загрузкой новых данных
+        for item_data in data["items"]:
+            item_type = item_data["type"]
+            position = item_data["position"]
+
+            if item_type == "Decision":  # Ромб
+                item = Decision(position[0], position[1], item_data["size"])
+
+            elif item_type == "StartEvent":  # Круг (начало)
+                item = StartEvent(position[0], position[1], item_data["radius"])
+
+            elif item_type == "EndEvent":  # Круг с внутренним кругом (конец)
+                item = EndEvent(
+                    position[0], position[1], item_data["radius"], item_data["inner_radius_ratio"]
+                )
+
+            elif item_type == "ActiveState":  # Прямоугольник с закругленными углами
+                item = ActiveState(
+                    position[0], position[1], item_data["width"], item_data["height"], item_data["radius"]
+                )
+                item.text_item.setPlainText(item_data.get("text", ""))  # Устанавливаем текст, если есть
+
+            elif item_type == "SignalSending":  # Пентагон (сигнал отправки)
+                item = SignalSending(position[0], position[1], item_data["width"], item_data["height"])
+
+            elif item_type == "SignalReceipt":  # Пентагон (сигнал получения)
+                item = SignalReceipt(position[0], position[1], item_data["width"], item_data["height"])
+
+            elif item_type == "Arrow":  # Стрелка
+                start_node = QPointF(*item_data["start_node"])
+                end_node = QPointF(*item_data["end_node"])
+                item = Arrow(start_node, end_node)
+
+            elif item_type == "QGraphicsEllipseItem":  # Простой круг
+                item = QtWidgets.QGraphicsEllipseItem(-30, -30, 60, 60)  # Примерный размер
+                item.setPos(position[0], position[1])
+
+            else:
+                print(f"Неизвестный тип элемента: {item_type}, пропускаем.")
+                continue  # Если тип неизвестен, пропускаем элемент
+
+            self.scene_.addItem(item)  # Добавляем элемент на сцену
+            # Добавьте остальные типы элементов
     def message_overcrowed_objectS(self):
         if len(self.objectS_) == 11:
             self.reset_inaction() #Сбрасыем второй таймер
@@ -854,9 +1010,29 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         return last_time
 
 
+    
+
+    def serialize_item(self, item):
+
+        return {
+            "type": type(item).__name__,
+            "position": (item.x(), item.y()),
+            # Добавить сюда свойства элемента, которые нужно сохранить
+        }
+
+    def load_from_data(self, data):
+        self.scene_.clear()
+        for item_data in data["items"]:
+            item_type = item_data["type"]
+            position = item_data["position"]
+        
+            if item_type == "Decision":
+                item = Decision(*position, 50)  # Пример создания элемента
+                self.scene_.addItem(item)
+
+
     #Отображение окна статистики
     def show_static_widget(self):       
-
 
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
         self.user_actions.connect(self.static_ui.uptade_static)
@@ -887,6 +1063,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.menu_2.setTitle(_translate("MainWindow", "Статистика"))
 
         self.menu_3.setTitle(_translate("MainWindow", "Тест таймера"))
+
+        
 
         self.action.setText(_translate("MainWindow", "Открыть"))
         self.action_2.setText(_translate("MainWindow", "Сохранить"))
