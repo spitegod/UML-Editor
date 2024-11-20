@@ -571,6 +571,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.button.customContextMenuRequested.connect(self.open_dialog)
 
     def open_dialog(self):
+        print('')
         # Создаем и отображаем диалоговое окно
         dialog = DialogWindow()
         dialog.exec_()
