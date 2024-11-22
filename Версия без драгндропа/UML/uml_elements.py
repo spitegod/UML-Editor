@@ -619,30 +619,21 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
         points = [
             QtCore.QPointF(x - width / 2, y),          # Середина слева
             QtCore.QPointF(x + width / 2, y),          # Середина справа
-            QtCore.QPointF(x + width / 2, y + height / 2),  # Нижний правый угол
-            QtCore.QPointF(x, y - ((height/500) - height * 0.7)),             # Середина внизу
-            QtCore.QPointF(x - width / 2, y + height / 2)   # Нижний левый угол
+            QtCore.QPointF(x + width*0.7, y - height / 2),             # Середина внизу
+            QtCore.QPointF(x + width / 2, y - height),   # Нижний левый угол
+            QtCore.QPointF(x - width / 2, y - height)          # Середина слева
         ]
 
         polygon = QtGui.QPolygonF(points)
 
-        # Применяем отражение по горизонтали и поворот на 90 градусов при создании полигона
-        # Поскольку полигон по умолчаю создается так, что острый угол у него находится внизу, а сторона
-        # с прямыми углами в верху, то мы его переворачиваем
-        transform = QtGui.QTransform()
-        transform.translate(self.center_x, self.center_y)
-        transform.scale(-1, 1)  # Отражение по оси X
-        transform.rotate(90) 
-        transform.translate(-self.center_x, -self.center_y)
-        reflected_rotated_polygon = QtGui.QPolygonF([transform.map(point) for point in polygon])
+        # # # Создаем текстовое поле внутри полигона
+        # # self.text_item = QtWidgets.QGraphicsTextItem(self)
+        # # self.text_item.setPlainText("Signal Sending")
+        # # # self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+        # # self.text_item.setPos(x + width/150, y + width/50)
 
-        # # Создаем текстовое поле внутри полигона
-        # self.text_item = QtWidgets.QGraphicsTextItem(self)
-        # self.text_item.setPlainText("Signal Sending")
-        # # self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
-        # self.text_item.setPos(x + width/150, y + width/50)
-
-        return reflected_rotated_polygon
+        # return reflected_rotated_polygon
+        return polygon
 
     def hoverMoveEvent(self, event):
         rect = self.boundingRect()
@@ -733,24 +724,17 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
     def create_pentagon(self, x, y, width, height):
         # Создает прямоугольный пятиугольник с заданным центром (x, y) и размером.
         points = [
-            QtCore.QPointF(x - width / 2, y),          # Середина слева
-            QtCore.QPointF(x + width / 2, y),          # Середина справа
-            QtCore.QPointF(x + width / 2, y + height / 2),  # Нижний правый угол
-            QtCore.QPointF(x, y - (height / 200) + height/3),             # Середина внизу
-            QtCore.QPointF(x - width / 2, y + height / 2)   # Нижний левый угол
+            QtCore.QPointF(x + width * (-0.325), y - height / 2), # Угол слева
+            QtCore.QPointF(x - width / 2, y),          # Первая точка
+            QtCore.QPointF(x + width / 2, y),          # Точка напротив неё
+            QtCore.QPointF(x + width / 2, y - height),   # Первая нижняя точка
+            QtCore.QPointF(x - width / 2, y - height)    # Точка напротив неё
         ]
 
         polygon = QtGui.QPolygonF(points)
 
-        transform = QtGui.QTransform()
-        transform.translate(self.center_x, self.center_y)
-        transform.scale(-1, 1)  # Отражение по оси X
-        transform.rotate(-90)   # Поворот на 90 градусов влево
-        transform.translate(-self.center_x, -self.center_y)
 
-        reflected_rotated_polygon = QtGui.QPolygonF([transform.map(point) for point in polygon])
-
-        return reflected_rotated_polygon
+        return polygon
 
 
 
@@ -795,6 +779,106 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
                 self.height = new_height
 
             new_polygon = self.create_pentagon(self.center_x, self.center_y, self.width, self.height)
+            self.setPolygon(new_polygon)
+        else:
+            super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        self.is_resizing = False
+        super().mouseReleaseEvent(event)
+
+    # #Сглаживаине отрисовки объекта
+    def paint(self, painter, option, widget=None):
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        super().paint(painter, option, widget)
+
+    def itemChange(self, change, value):
+        if change == QtWidgets.QGraphicsItem.ItemPositionChange:
+            for arrow in self.arrows:
+                arrow.update_arrow()
+        return super().itemChange(change, value)
+
+    def add_arrow(self, arrow):
+        self.arrows.append(arrow)
+
+class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
+    def __init__(self, x, y, width, height):
+        super().__init__()
+        self.width = width
+        self.height = height
+        self.center_x = x
+        self.center_y = y
+
+        self.setPolygon(self.create_SM(self.center_x, self.center_y, self.width, self.height))
+
+        self.setBrush(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
+        self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
+        self.setAcceptHoverEvents(True)
+
+        self.is_resizing = False # Флаг, указывающий, идет ли изменение размера
+        self.resize_side = None # Определяем, с какой стороны идет изменение размера
+        self.resize_margin = 10 # Чувствительная область для изменения размера
+
+        self.arrows = []
+
+    def create_SM(self, x, y, width, height):
+        # Создает прямоугольный пятиугольник с заданным центром (x, y) и размером.
+        points = [
+            QtCore.QPointF(x - width / 2, y),          # Первая точка
+            QtCore.QPointF(x + width / 2, y),          # Точка напротив неё
+            QtCore.QPointF(x + width / 2, y - height / 2),   # Первая нижняя точка
+            QtCore.QPointF(x - width / 2, y - height / 2)    # Точка напротив неё
+        ]
+
+        sm = QtGui.QPolygonF(points)
+
+
+        return sm
+
+
+
+
+    def hoverMoveEvent(self, event):
+        rect = self.boundingRect()
+        x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
+
+        if abs(event.pos().x() - x) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))
+            self.resize_side = 'left'
+        elif abs(event.pos().x() - (x + w)) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))
+            self.resize_side = 'right'
+        # elif abs(event.pos().y() - y) <= self.resize_margin:
+        #     self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))
+        #     self.resize_side = 'top'
+        # elif abs(event.pos().y() - (y + h)) <= self.resize_margin:
+        #     self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))
+        #     self.resize_side = 'bottom'
+        else:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+            self.resize_side = None
+        super().hoverMoveEvent(event)
+
+    def mousePressEvent(self, event):
+        self.is_resizing = bool(self.resize_side)
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        for arrow in self.arrows:
+            arrow.update_arrow()
+        if self.is_resizing:
+            delta_x = abs(event.pos().x() - self.center_x)
+            delta_y = abs(event.pos().y() - self.center_y)
+
+            if self.resize_side in ['left', 'right']:
+                new_width = max(10, delta_x * 2)
+                self.width = new_width
+            if self.resize_side in ['top', 'bottom']:
+                new_height = max(10, delta_y * 2)
+                self.height = new_height
+
+            new_polygon = self.create_SM(self.center_x, self.center_y, self.width, self.height)
             self.setPolygon(new_polygon)
         else:
             super().mouseMoveEvent(event)
