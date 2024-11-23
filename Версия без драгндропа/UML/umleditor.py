@@ -238,7 +238,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     time_updated = pyqtSignal(str, str, str)  # Создаем сигнал с параметром типа str для передачи запущенного времени
     update_last_timeSW = pyqtSignal(str, str, str)  # Создаем сигнал для передачи последнего значения времени
     count_objectS = pyqtSignal(int) # Создаем сигнал о подсчете количества объектов на сцене для отображения его в статистике
-    user_actions = pyqtSignal(str, int, str, str, str, str) # Создаем сигнал который учитывает дейсвтия пользователя на сцене для обновления информации на окне статистики
+    user_actions = pyqtSignal(str, int, str, str, str, str, dict) # Создаем сигнал который учитывает дейсвтия пользователя на сцене для обновления информации на окне статистики
 
 
     def __init__(self):
@@ -573,11 +573,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
          # Обновляем сцену после инициализации
         self.scene_.update()  # Перерисовываем сцену
 
-        # # Пользовательская информация
         self.user_ = User("User1", 0, self.time_now, self.get_time_for_user(self.last_time))
         self.user_.add_action("Создана диаграмма UML", self.get_current_Realtime())
-        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
-
         self.button.setContextMenuPolicy(Qt.CustomContextMenu)
         self.button.customContextMenuRequested.connect(self.open_dialog)
 
@@ -761,12 +758,11 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.count_objectS.emit(len(self.objectS_))
 
         self.user_.add_action(f"Добавлен элемент '{diamond.__class__.__name__}'", self.get_current_Realtime())
-        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
+        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())), self.user_.action_history)
         # Обновляем стрелки, если это необходимо
         # for arrow in self.objectS_:
         #     if isinstance(arrow, Arrow):
         #         arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
-        del diamond
 
 
     def draw_circle(self):
@@ -783,12 +779,11 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.count_objectS.emit(len(self.objectS_))
 
         self.user_.add_action(f"Добавлен элемент '{circle.__class__.__name__}'", self.get_current_Realtime())
-        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
+        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())), self.user_.action_history)
         # Обновляем стрелки, если это необходимо
         # for arrow in self.objectS_:
         #     if isinstance(arrow, Arrow):
         #         arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
-        del circle
 
     def draw_circle_2(self):
         # self.reset_inaction() #Сбрасыем второй таймер
@@ -804,8 +799,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.count_objectS.emit(len(self.objectS_))
 
         self.user_.add_action(f"Добавлен элемент '{circle.__class__.__name__}'", self.get_current_Realtime())
-        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
-        del circle
+        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())), self.user_.action_history)
 
 
     def draw_rounded_rectangle(self):
@@ -821,8 +815,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.count_objectS.emit(len(self.objectS_))
 
         self.user_.add_action(f"Добавлен элемент '{rounded_rect.__class__.__name__}'", self.get_current_Realtime())
-        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
-        del rounded_rect
+        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())), self.user_.action_history)
 
 
     def draw_pentagon_signal(self):
@@ -838,8 +831,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.count_objectS.emit(len(self.objectS_))
 
         self.user_.add_action(f"Добавлен элемент '{pentagon.__class__.__name__}'", self.get_current_Realtime())
-        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
-        del pentagon
+        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())), self.user_.action_history)
 
     def draw_pentagon_reverse(self):
         # self.reset_inaction() #Сбрасыем второй таймер
@@ -855,8 +847,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.count_objectS.emit(len(self.objectS_))
 
         self.user_.add_action(f"Добавлен элемент '{pentagon.__class__.__name__}'", self.get_current_Realtime())
-        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
-        del pentagon
+        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())), self.user_.action_history)
 
     def draw_splitter_merge(self):
         # self.reset_inaction() #Сбрасыем второй таймер
@@ -874,12 +865,12 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     def draw_spliter(self):
         self.draw_splitter_merge()
         self.user_.add_action(f"Добавлена конструкция Spliter'", self.get_current_Realtime())
-        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
+        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())), self.user_.action_history)
 
     def draw_merge(self):
         self.draw_splitter_merge()
         self.user_.add_action(f"Добавлена конструкция Merge'", self.get_current_Realtime())
-        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
+        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())), self.user_.action_history)
 
 
     def add_edge(self):
@@ -975,12 +966,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 # Добавляем действие пользователя
                 self.user_.add_action(f"Удален элемент '{item.__class__.__name__}'", self.get_current_Realtime())
                 del item
-                self.user_actions.emit(
-                    self.user_.nickname, self.user_.user_id,
-                    self.user_.start_work, self.user_.end_work,
-                    next(reversed(self.user_.action_history)),
-                    next(reversed(self.user_.action_history.values()))
-                )
+                self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())), self.user_.action_history)
 
         self.count_objectS.emit(len(self.objectS_))
         self.scene_.update()  # Перерисовываем сцену
@@ -1166,28 +1152,39 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
     #Отображение окна статистики
     def show_static_widget(self):
-        
-        self.static_widget = QtWidgets.QWidget()  # Создаем новое окно
-        self.static_ui = Ui_StaticWidget()  # Создаем экземпляр Ui_StaticWidget
+        # Создаем виджет статистики
+        self.static_widget = QtWidgets.QWidget()  
+        self.static_ui = Ui_StaticWidget()
 
-        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())))
+        self.static_ui.setupUi(self.static_widget)  
+
         self.user_actions.connect(self.static_ui.uptade_static)
-        #self.static_ui = Ui_StaticWidget(self.get_last_time())   # Передаем last_time в Ui_StaticWidget
-        # Подключаем слот StaticWidget к сигналу time_updated
+
+        self.static_ui.uptade_static(
+            self.user_.nickname,
+            self.user_.user_id,
+            self.user_.start_work,
+            self.user_.end_work,
+            next(reversed(self.user_.action_history)),
+            next(reversed(self.user_.action_history.values())),
+            self.user_.action_history
+        )
+
+        # Подключаем другие сигналы
         self.time_updated.connect(self.static_ui.update_timeworkSW)
         self.update_last_timeSW.connect(self.static_ui.update_last_timeSW)
-        self.static_ui.update_timeworkSW(self.today, self.Start_Time.text(), self.time_now)
-        self.static_ui.accept_today(self.today, self.time_now, self.last_time)
-        self.update_last_timeSW.emit(self.today, self.last_time, self.time_now)  # Отправляем значение при открытии
-        # self.static_ui.update_timeworkSW(self.last_time)
-        # self.timeStop_ChangedSignal.connect(self.static_ui.receive_text)
         self.count_objectS.connect(self.static_ui.get_count_objectS)
+
+        self.static_ui.accept_today(self.today, self.time_now, self.last_time)
+
+        # Обновляем интерфейс через сигналы
+        self.update_last_timeSW.emit(self.today, self.last_time, self.time_now)  
         self.count_objectS.emit(len(self.objectS_))
-        
-        self.static_ui.setupUi(self.static_widget)  # Настраиваем новый виджет
-        self.static_widget.setWindowTitle("Статистика")  # Заголовок нового окна
-        # self.static_widget.resize(800, 600)  # Размер нового окна
+
+        # Устанавливаем заголовок и показываем окно
+        self.static_widget.setWindowTitle("Статистика")  
         self.static_widget.show()  # Отображаем новый виджет
+
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate

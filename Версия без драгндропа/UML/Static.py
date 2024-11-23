@@ -39,6 +39,12 @@ class Ui_StaticWidget(QtWidgets.QWidget):
         self.tableWidget.setObjectName("tableWidget")
         self.tableWidget.setEditTriggers(QTableWidget.NoEditTriggers)
 
+        self.listWidget_Users = QtWidgets.QListWidget(self)
+        self.listWidget_Users.setObjectName("listWidget_Users")
+        self.listWidget_Users.setFixedWidth(100)
+
+
+
     
 
     def setupUi(self, StaticWidget):  # Используем StaticWidget вместо StaticWindow
@@ -78,10 +84,7 @@ class Ui_StaticWidget(QtWidgets.QWidget):
         self.label_2.setAlignment(QtCore.Qt.AlignCenter)
         self.verticalLayout_UserChoose.addWidget(self.label_2)
         
-        self.listWidget_Users = QtWidgets.QListWidget(StaticWidget)
-        self.listWidget_Users.setObjectName("listWidget_Users")
-        self.listWidget_Users.setFixedWidth(100)
-        for username in ["User1"]:
+        for username in ["User"]:
             item = QtWidgets.QListWidgetItem(username)
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.listWidget_Users.addItem(item)
@@ -215,17 +218,37 @@ QLineEdit {
         self.dateTimeEdit_End.setText(f"{today} {time_now}")
 
     #Функция для обновления информации на статистике
-    def uptade_static(self, username: str, user_id: int, start_work: str, end_work: str, action: str, time_action: str):
-        row_position = self.tableWidget.rowCount()
-        print(username, user_id, action)
+    def uptade_static(self, username: str, user_id: int, start_work: str, end_work: str, action: str, time_action: str, action_history):
         
-        # Добавляем новую строку
-        self.tableWidget.insertRow(row_position)
-        
-        
-        # Добавляем данные в ячейки
-        self.tableWidget.setItem(row_position, 0, QTableWidgetItem(action))
-        self.tableWidget.setItem(row_position, 1, QTableWidgetItem(time_action))
+
+        if self.listWidget_Users.item(user_id) is None:
+            new_item = QtWidgets.QListWidgetItem(username)
+            self.listWidget_Users.addItem(new_item)
+
+        self.tableWidget.setRowCount(0)
+
+        # Обновляем текст пользователя
+        item = self.listWidget_Users.item(user_id)
+        if item:
+            item.setText(username)
+
+        # Добавляем строки в таблицу по длине action_history
+        for _ in range(len(action_history)):
+            row_position = self.tableWidget.rowCount()
+            self.tableWidget.insertRow(row_position)
+
+        for row, (time, act) in enumerate(action_history.items()):
+            self.tableWidget.setItem(row, 0, QTableWidgetItem(act))  # Действие
+            self.tableWidget.setItem(row, 1, QTableWidgetItem(time))  # Время
+
+        # Обновляем виджеты
+        self.listWidget_Users.update()
+        self.tableWidget.update()
+
+        print(len(action_history))
+
+
+
 
     def retranslateUi(self, StaticWidget):
 
