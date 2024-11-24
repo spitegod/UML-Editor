@@ -460,6 +460,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.action.triggered.connect(self.open_file)
         self.action_exit.triggered.connect(self.close_application)
 
+        self.action_add_image.triggered.connect(self.insert_image)
+
 
         # Создаём невидимый QLabel для записи времени
         self.Start_Time = QtWidgets.QLineEdit(self.centralwidget)
@@ -1214,6 +1216,30 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             self.objectS_.clear()
             self.scene_.clear()
 
+    def insert_image(self):
+        
+        options = QtWidgets.QFileDialog.Options()
+        filepath, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self, "Выбрать изображение", "", "Изображения (*.png *.jpg *.bmp);;Все файлы (*)", options=options
+        )
+        if not filepath:
+            return  # Пользователь отменил выбор
+
+        # Загружаем изображение в QPixmap
+        pixmap = QtGui.QPixmap(filepath)
+        if pixmap.isNull():
+            QtWidgets.QMessageBox.warning(self, "Ошибка", "Не удалось загрузить изображение.")
+            return
+
+        # Создаём QGraphicsPixmapItem и добавляем его на сцену
+        image_item = QtWidgets.QGraphicsPixmapItem(pixmap)
+        image_item.setFlags(
+            QtWidgets.QGraphicsItem.ItemIsMovable |
+            QtWidgets.QGraphicsItem.ItemIsSelectable |
+            QtWidgets.QGraphicsItem.ItemIsFocusable
+        )
+        self.scene_.addItem(image_item)  # Добавляем изображение на сцену
+        image_item.setPos(self.scene_.width() / 2, self.scene_.height() / 2)  # Центрируем изображение
     #Отображение окна статистики
     def show_static_widget(self):
         # Создаем виджет статистики
