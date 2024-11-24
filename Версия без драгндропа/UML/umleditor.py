@@ -448,6 +448,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         self.action_2.triggered.connect(lambda: self.save_to_file(filepath="diagram.chep"))
         self.action_3.triggered.connect(self.save_as)
+        self.action_4.triggered.connect(self.create_new)
         self.action.triggered.connect(self.open_file)
         self.action_exit.triggered.connect(self.close_application)
 
@@ -885,6 +886,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         if len(selected_nodes) == 2:
             node1, node2 = selected_nodes
+            print(node1)
 
             # Проверяем, существует ли уже стрелка между node1 и node2
             for arrow in node1.arrows:
@@ -1088,6 +1090,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
 
     def load_from_data(self, data):
+        self.objectS_.clear()
         self.scene_.clear()  # Очищаем сцену перед загрузкой новых данных
         elements = {}  # Словарь для хранения элементов по их координатам
         for item_data in data["items"]:
@@ -1099,17 +1102,21 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 size = item_data.get("size", 50)  # Достаём "size" с умолчанием
                 item = Decision(*position, size)
                 self.scene_.addItem(item)
+                self.objectS_.append(item)
+                
 
             elif item_type == "StartEvent":
                 radius = item_data.get("radius", 30)  # Достаём "radius" с умолчанием
                 item = StartEvent(*position, radius)
                 self.scene_.addItem(item)
+                self.objectS_.append(item)
 
             elif item_type == "EndEvent":
                 radius = item_data.get("radius", 30)
                 inner_radius_ratio = item_data.get("inner_radius_ratio", 0.5)
                 item = EndEvent(*position, radius, inner_radius_ratio)
                 self.scene_.addItem(item)
+                self.objectS_.append(item)
 
             elif item_type == "ActiveState":
                 width = item_data.get("width", 100)
@@ -1119,18 +1126,21 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 item = ActiveState(*position, width, height, radius)
                 item.text_item.setPlainText(text)
                 self.scene_.addItem(item)
+                self.objectS_.append(item)
 
             elif item_type == "SignalSending":
                 width = item_data.get("width", 60)
                 height = item_data.get("height", 40)
                 item = SignalSending(*position, width, height)
                 self.scene_.addItem(item)
+                self.objectS_.append(item)
 
             elif item_type == "SignalReceipt":
                 width = item_data.get("width", 60)
                 height = item_data.get("height", 40)
                 item = SignalReceipt(*position, width, height)
                 self.scene_.addItem(item)
+                self.objectS_.append(item)
 
             
 
@@ -1141,28 +1151,60 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 item = QtWidgets.QGraphicsEllipseItem(rect)
                 item.setPos(*position)
                 self.scene_.addItem(item)
+                self.objectS_.append(item)
 
         for item_data in data["items"]:
             if item_data["type"] == "Arrow":  # Проверяем, является ли элемент стрелкой
-                start_node_coords = tuple(item_data["start_node"])
-                end_node_coords = tuple(item_data["end_node"])
+                start_node_coords = item_data.get("start_node")  # Преобразуем в кортеж
+                end_node_coords = item_data.get("end_node")  # Преобразуем в кортеж
 
                 # Получаем узлы по их координатам
                 start_node = elements.get(start_node_coords)
                 end_node = elements.get(end_node_coords)
 
+                if start_node is None or end_node is None:
+                    # Если точного совпадения нет, ищем узлы с близкими координатами
+                    for coords, node in elements.items():
+                        if start_node is None and all(abs(a - b) < 1e-5 for a, b in zip(coords, start_node_coords)):
+                            start_node = node
+                        if end_node is None and all(abs(a - b) < 1e-5 for a, b in zip(coords, end_node_coords)):
+                            end_node = node
+
                 if start_node and end_node:
-                    # Создаём стрелку и добавляем на сцену
-                    arrow = Arrow(start_node, end_node)
-                    self.scene_.addItem(arrow)
-                    start_node.add_arrow(arrow)
-                    end_node.add_arrow(arrow)
+                    # Выделяем узлы
+                    start_node.setSelected(True)
+                    end_node.setSelected(True)
+
+                    # Создаём стрелку через функцию add_edge
+                    self.add_edge()
+
+                    # Снимаем выделение
+                    start_node.setSelected(False)
+                    end_node.setSelected(False)
 
         # Добавляем элемент на сцену
         self.scene_.addItem(item)
         elements[position] = item  # Сохраняем элемент
 
+    def create_new(self):
+        if len(self.objectS_) != 0:
+            reply = QtWidgets.QMessageBox.question(
+                self,
+                "Создание новой диаграммы",
+                "Вы уверены, что хотите создать новую диаграмму? Изменения не будут сохранены.",
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                QtWidgets.QMessageBox.No,
+            )
 
+            if reply == QtWidgets.QMessageBox.Yes:
+                self.objectS_.clear()
+                self.scene_.clear()
+                self.user_.add_action("Создана диаграмма UML", self.get_current_Realtime())
+            else:
+                return
+        else:
+            self.objectS_.clear()
+            self.scene_.clear()
 
     #Отображение окна статистики
     def show_static_widget(self):
