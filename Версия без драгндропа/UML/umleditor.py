@@ -967,7 +967,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         selected_items = self.scene_.selectedItems()
 
         for item in selected_items:
-            if isinstance(item, (StartEvent, Decision, EndEvent, ActiveState, SignalSending, SignalReceipt, Splitter_Merge)):
+            if isinstance(item, (StartEvent, Decision, EndEvent, ActiveState, SignalSending, SignalReceipt, Splitter_Merge, ImageItem)):
                 self.objectS_.remove(item)
                 if hasattr(item, 'arrows') and item.arrows:
                     arrows_to_remove = list(item.arrows)  # Копируем список стрелок, чтобы избежать изменений во время итерации
