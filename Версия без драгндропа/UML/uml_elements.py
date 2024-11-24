@@ -952,7 +952,9 @@ class ImageItem(QtWidgets.QGraphicsPixmapItem):
             new_height = max(10, rect.height() + delta.y() * 2)  # Минимальная высота 10
 
             # Обновляем размер изображения
-            self.setPixmap(self.pixmap().scaled(new_width, new_height, QtCore.Qt.KeepAspectRatio))
+            self.setPixmap(
+                self.pixmap().scaled(int(new_width), int(new_height), QtCore.Qt.KeepAspectRatio)
+            )
         else:
             super().mouseMoveEvent(event)
 
