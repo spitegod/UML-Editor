@@ -900,3 +900,84 @@ class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
 
     def add_arrow(self, arrow):
         self.arrows.append(arrow)
+
+class ImageItem(QtWidgets.QGraphicsPixmapItem):
+    def __init__(self, pixmap, x, y):
+        super().__init__(pixmap)
+        self.setPos(x, y)  # Устанавливаем начальную позицию
+        self.setFlags(
+            QtWidgets.QGraphicsItem.ItemIsMovable |
+            QtWidgets.QGraphicsItem.ItemIsSelectable |
+            QtWidgets.QGraphicsItem.ItemSendsGeometryChanges
+        )
+        self.setAcceptHoverEvents(True)  # Разрешаем обработку событий наведения
+
+        self.is_resizing = False  # Флаг изменения размера
+        self.resize_margin = 10  # Зона, в которой можно начинать изменение размера
+        self.arrows = []  # Список стрелок, привязанных к изображению
+
+    def hoverMoveEvent(self, event):
+        rect = self.boundingRect()
+        x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
+
+        # Изменяем курсор при наведении на края изображения
+        if abs(event.pos().x() - x) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))
+            self.resize_side = 'left'
+        elif abs(event.pos().x() - (x + w)) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))
+            self.resize_side = 'right'
+        elif abs(event.pos().y() - y) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))
+            self.resize_side = 'top'
+        elif abs(event.pos().y() - (y + h)) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))
+            self.resize_side = 'bottom'
+        else:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+        super().hoverMoveEvent(event)
+
+    def mousePressEvent(self, event):
+        if self.cursor().shape() in [QtCore.Qt.SizeHorCursor, QtCore.Qt.SizeVerCursor]:
+            self.is_resizing = True
+        else:
+            self.is_resizing = False
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if self.is_resizing:
+            rect = self.boundingRect()
+            delta = event.pos() - rect.center()
+            new_width = max(10, rect.width() + delta.x() * 2)  # Минимальная ширина 10
+            new_height = max(10, rect.height() + delta.y() * 2)  # Минимальная высота 10
+
+            # Обновляем размер изображения
+            self.setPixmap(
+                self.pixmap().scaled(int(new_width), int(new_height), QtCore.Qt.KeepAspectRatio)
+            )
+        else:
+            super().mouseMoveEvent(event)
+
+        # Обновляем стрелки
+        for arrow in self.arrows:
+            arrow.update_arrow()
+
+    def mouseReleaseEvent(self, event):
+        self.is_resizing = False
+        super().mouseReleaseEvent(event)
+
+    def add_arrow(self, arrow):
+        """Добавляем стрелку к изображению."""
+        if arrow not in self.arrows:
+            self.arrows.append(arrow)
+
+    def itemChange(self, change, value):
+        if change == QtWidgets.QGraphicsItem.ItemPositionChange:
+            for arrow in self.arrows:
+                arrow.update_arrow()
+        return super().itemChange(change, value)
+
+    def paint(self, painter, option, widget=None):
+        """Сглаживание при отрисовке."""
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        super().paint(painter, option, widget)

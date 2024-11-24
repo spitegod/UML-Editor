@@ -393,12 +393,16 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.menubar.setObjectName("menubar")
         self.menu = QtWidgets.QMenu(self.menubar)
         self.menu.setObjectName("menu")
+        self.menu_insert = QtWidgets.QMenu(self.menubar)
+        self.menu_insert.setObjectName("menu_insert")
         self.menu_2 = QtWidgets.QMenu(self.menubar)
         self.menu_2.setObjectName("menu_2")
 
         #Тестовое меню для таймера
         self.menu_3 = QtWidgets.QMenu(self.menubar)
         self.menu_3.setObjectName("menu_3")
+
+        
 
 
         MainWindow.setMenuBar(self.menubar)
@@ -417,6 +421,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.action_4.setObjectName("action_4")
         self.action_exit = QtWidgets.QAction(MainWindow)
         self.action_exit.setObjectName("action_exit")
+        self.action_add_image = QtWidgets.QAction(MainWindow)
+        self.action_add_image.setObjectName("action_add_image")
         self.action_Statystics = QtWidgets.QAction(MainWindow)
         self.action_Statystics.setObjectName("action_Statystics")
 
@@ -441,8 +447,10 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.menu.addAction(self.action_PNG)
         self.menu.addSeparator()
         self.menu.addAction(self.action_exit)
+        self.menu_insert.addAction(self.action_add_image)
         self.menu_2.addAction(self.action_Statystics)
         self.menubar.addAction(self.menu.menuAction())
+        self.menubar.addAction(self.menu_insert.menuAction())
         self.menubar.addAction(self.menu_2.menuAction())
         # self.menubar.addAction(self.menu_3.menuAction()) #Тестовое меню таймера
 
@@ -451,6 +459,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.action_4.triggered.connect(self.create_new)
         self.action.triggered.connect(self.open_file)
         self.action_exit.triggered.connect(self.close_application)
+
+        self.action_add_image.triggered.connect(self.insert_image)
 
 
         # Создаём невидимый QLabel для записи времени
@@ -957,7 +967,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         selected_items = self.scene_.selectedItems()
 
         for item in selected_items:
-            if isinstance(item, (StartEvent, Decision, EndEvent, ActiveState, SignalSending, SignalReceipt, Splitter_Merge)):
+            if isinstance(item, (StartEvent, Decision, EndEvent, ActiveState, SignalSending, SignalReceipt, Splitter_Merge, ImageItem)):
                 self.objectS_.remove(item)
                 if hasattr(item, 'arrows') and item.arrows:
                     arrows_to_remove = list(item.arrows)  # Копируем список стрелок, чтобы избежать изменений во время итерации
@@ -1206,6 +1216,54 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             self.objectS_.clear()
             self.scene_.clear()
 
+    def insert_image(self):
+        
+        # Открываем диалог для выбора изображения
+        options = QtWidgets.QFileDialog.Options()
+        filepath, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self, "Выбрать изображение", "", "Изображения (*.png *.jpg *.bmp);;Все файлы (*)", options=options
+        )
+        if not filepath:
+            return  # Пользователь отменил выбор
+
+        # Загружаем изображение
+        pixmap = QtGui.QPixmap(filepath)
+        if pixmap.isNull():
+            QtWidgets.QMessageBox.warning(self, "Ошибка", "Не удалось загрузить изображение.")
+            return
+
+        # Проверяем размер изображения
+        if pixmap.width() > 200 or pixmap.height() > 200:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Ошибка",
+                f"Размер изображения превышает допустимый предел (200x200). Текущее: {pixmap.width()}x{pixmap.height()}."
+            )
+            return
+
+        # Создаём объект изображения
+        x, y = 200, 200  # Пример координат центра
+        image_item = ImageItem(pixmap, x, y)
+        self.scene_.addItem(image_item)  # Добавляем изображение на сцену
+
+        # Добавляем объект в список объектов сцены
+        self.objectS_.append(image_item)
+
+        # Логика обновления интерфейса и отправки событий
+        print("Количество объектов на сцене - ", len(self.objectS_))
+        self.count_objectS.emit(len(self.objectS_))
+
+        # Лог действий
+        self.user_.add_action(f"Добавлен элемент '{image_item.__class__.__name__}'", self.get_current_Realtime())
+        self.user_actions.emit(
+            self.user_.nickname,
+            self.user_.user_id,
+            self.user_.start_work,
+            self.user_.end_work,
+            next(reversed(self.user_.action_history)),
+            next(reversed(self.user_.action_history.values())),
+            self.user_.action_history
+        )
     #Отображение окна статистики
     def show_static_widget(self):
         # Создаем виджет статистики
@@ -1247,6 +1305,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         MainWindow.setWindowTitle(_translate("MainWindow", "UML editor"))
         self.ToolBarBox.setTitle(_translate("MainWindow", "Панель инструментов"))
         self.menu.setTitle(_translate("MainWindow", "Файл"))
+        self.menu_insert.setTitle(_translate("MainWindow", "Вставка"))
         self.menu_2.setTitle(_translate("MainWindow", "Статистика"))
 
         self.menu_3.setTitle(_translate("MainWindow", "Тест таймера"))
@@ -1260,6 +1319,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.action_PNG.setText(_translate("MainWindow", "Экспорт в PNG"))
         self.action_4.setText(_translate("MainWindow", "Создать"))
         self.action_exit.setText(_translate("MainWindow", "Выход"))
+
+        self.action_add_image.setText(_translate("MainWindow", "Изображение"))
         self.action_Statystics.setText(_translate("MainWindow", "Запустить статистику"))
 
         self.action_time_start.setText(_translate("MainWindow", "Запустить таймер"))
