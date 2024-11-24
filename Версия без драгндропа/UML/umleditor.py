@@ -1230,7 +1230,15 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         if pixmap.isNull():
             QtWidgets.QMessageBox.warning(self, "Ошибка", "Не удалось загрузить изображение.")
             return
-
+        
+        # Проверка размера изображения
+        if pixmap.width() > 200 or pixmap.height() > 200:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Ошибка",
+                f"Размер изображения превышает допустимый предел (200x200). Текущее: {pixmap.width()}x{pixmap.height()}."
+            )
+            return
         # Создаём QGraphicsPixmapItem и добавляем его на сцену
         image_item = QtWidgets.QGraphicsPixmapItem(pixmap)
         image_item.setFlags(
