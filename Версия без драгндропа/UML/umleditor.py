@@ -1247,7 +1247,10 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             QtWidgets.QGraphicsItem.ItemIsFocusable
         )
         self.scene_.addItem(image_item)  # Добавляем изображение на сцену
+        self.user_.add_action("Добавлено изображение", self.get_current_Realtime())
         image_item.setPos(self.scene_.width() / 2, self.scene_.height() / 2)  # Центрируем изображение
+
+        self.objectS_.append(image_item)
     #Отображение окна статистики
     def show_static_widget(self):
         # Создаем виджет статистики
