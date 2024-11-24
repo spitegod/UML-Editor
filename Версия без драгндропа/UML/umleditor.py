@@ -1218,6 +1218,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
     def insert_image(self):
         
+        # Открываем диалог для выбора изображения
         options = QtWidgets.QFileDialog.Options()
         filepath, _ = QtWidgets.QFileDialog.getOpenFileName(
             self, "Выбрать изображение", "", "Изображения (*.png *.jpg *.bmp);;Все файлы (*)", options=options
@@ -1225,13 +1226,13 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         if not filepath:
             return  # Пользователь отменил выбор
 
-        # Загружаем изображение в QPixmap
+        # Загружаем изображение
         pixmap = QtGui.QPixmap(filepath)
         if pixmap.isNull():
             QtWidgets.QMessageBox.warning(self, "Ошибка", "Не удалось загрузить изображение.")
             return
-        
-        # Проверка размера изображения
+
+        # Проверяем размер изображения
         if pixmap.width() > 200 or pixmap.height() > 200:
             QtWidgets.QMessageBox.warning(
                 self,
@@ -1239,18 +1240,30 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 f"Размер изображения превышает допустимый предел (200x200). Текущее: {pixmap.width()}x{pixmap.height()}."
             )
             return
-        # Создаём QGraphicsPixmapItem и добавляем его на сцену
-        image_item = QtWidgets.QGraphicsPixmapItem(pixmap)
-        image_item.setFlags(
-            QtWidgets.QGraphicsItem.ItemIsMovable |
-            QtWidgets.QGraphicsItem.ItemIsSelectable |
-            QtWidgets.QGraphicsItem.ItemIsFocusable
-        )
-        self.scene_.addItem(image_item)  # Добавляем изображение на сцену
-        self.user_.add_action("Добавлено изображение", self.get_current_Realtime())
-        image_item.setPos(self.scene_.width() / 2, self.scene_.height() / 2)  # Центрируем изображение
 
+        # Создаём объект изображения
+        x, y = 200, 200  # Пример координат центра
+        image_item = ImageItem(pixmap, x, y)
+        self.scene_.addItem(image_item)  # Добавляем изображение на сцену
+
+        # Добавляем объект в список объектов сцены
         self.objectS_.append(image_item)
+
+        # Логика обновления интерфейса и отправки событий
+        print("Количество объектов на сцене - ", len(self.objectS_))
+        self.count_objectS.emit(len(self.objectS_))
+
+        # Лог действий
+        self.user_.add_action(f"Добавлен элемент '{image_item.__class__.__name__}'", self.get_current_Realtime())
+        self.user_actions.emit(
+            self.user_.nickname,
+            self.user_.user_id,
+            self.user_.start_work,
+            self.user_.end_work,
+            next(reversed(self.user_.action_history)),
+            next(reversed(self.user_.action_history.values())),
+            self.user_.action_history
+        )
     #Отображение окна статистики
     def show_static_widget(self):
         # Создаем виджет статистики
