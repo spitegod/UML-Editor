@@ -421,6 +421,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.action_4.setObjectName("action_4")
         self.action_exit = QtWidgets.QAction(MainWindow)
         self.action_exit.setObjectName("action_exit")
+        self.action_add_image = QtWidgets.QAction(MainWindow)
+        self.action_add_image.setObjectName("action_add_image")
         self.action_Statystics = QtWidgets.QAction(MainWindow)
         self.action_Statystics.setObjectName("action_Statystics")
 
@@ -445,6 +447,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.menu.addAction(self.action_PNG)
         self.menu.addSeparator()
         self.menu.addAction(self.action_exit)
+        self.menu_insert.addAction(self.action_add_image)
         self.menu_2.addAction(self.action_Statystics)
         self.menubar.addAction(self.menu.menuAction())
         self.menubar.addAction(self.menu_insert.menuAction())
@@ -1266,6 +1269,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.action_PNG.setText(_translate("MainWindow", "Экспорт в PNG"))
         self.action_4.setText(_translate("MainWindow", "Создать"))
         self.action_exit.setText(_translate("MainWindow", "Выход"))
+
+        self.action_add_image.setText(_translate("MainWindow", "Изображение"))
         self.action_Statystics.setText(_translate("MainWindow", "Запустить статистику"))
 
         self.action_time_start.setText(_translate("MainWindow", "Запустить таймер"))
