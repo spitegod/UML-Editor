@@ -1199,6 +1199,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             if reply == QtWidgets.QMessageBox.Yes:
                 self.objectS_.clear()
                 self.scene_.clear()
+                self.user_.add_action("Создана диаграмма UML", self.get_current_Realtime())
             else:
                 return
         else:
