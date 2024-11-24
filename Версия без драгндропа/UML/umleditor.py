@@ -448,6 +448,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         self.action_2.triggered.connect(lambda: self.save_to_file(filepath="diagram.chep"))
         self.action_3.triggered.connect(self.save_as)
+        self.action_4.triggered.connect(self.create_new)
         self.action.triggered.connect(self.open_file)
         self.action_exit.triggered.connect(self.close_application)
 
@@ -1185,7 +1186,24 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.scene_.addItem(item)
         elements[position] = item  # Сохраняем элемент
 
+    def create_new(self):
+        if len(self.objectS_) != 0:
+            reply = QtWidgets.QMessageBox.question(
+                self,
+                "Создание новой диаграммы",
+                "Вы уверены, что хотите создать новую диаграмму? Изменения не будут сохранены.",
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                QtWidgets.QMessageBox.No,
+            )
 
+            if reply == QtWidgets.QMessageBox.Yes:
+                self.objectS_.clear()
+                self.scene_.clear()
+            else:
+                return
+        else:
+            self.objectS_.clear()
+            self.scene_.clear()
 
     #Отображение окна статистики
     def show_static_widget(self):
