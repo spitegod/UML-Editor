@@ -393,12 +393,16 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.menubar.setObjectName("menubar")
         self.menu = QtWidgets.QMenu(self.menubar)
         self.menu.setObjectName("menu")
+        self.menu_insert = QtWidgets.QMenu(self.menubar)
+        self.menu_insert.setObjectName("menu_insert")
         self.menu_2 = QtWidgets.QMenu(self.menubar)
         self.menu_2.setObjectName("menu_2")
 
         #Тестовое меню для таймера
         self.menu_3 = QtWidgets.QMenu(self.menubar)
         self.menu_3.setObjectName("menu_3")
+
+        
 
 
         MainWindow.setMenuBar(self.menubar)
@@ -443,6 +447,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.menu.addAction(self.action_exit)
         self.menu_2.addAction(self.action_Statystics)
         self.menubar.addAction(self.menu.menuAction())
+        self.menubar.addAction(self.menu_insert.menuAction())
         self.menubar.addAction(self.menu_2.menuAction())
         # self.menubar.addAction(self.menu_3.menuAction()) #Тестовое меню таймера
 
@@ -1247,6 +1252,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         MainWindow.setWindowTitle(_translate("MainWindow", "UML editor"))
         self.ToolBarBox.setTitle(_translate("MainWindow", "Панель инструментов"))
         self.menu.setTitle(_translate("MainWindow", "Файл"))
+        self.menu_insert.setTitle(_translate("MainWindow", "Вставка"))
         self.menu_2.setTitle(_translate("MainWindow", "Статистика"))
 
         self.menu_3.setTitle(_translate("MainWindow", "Тест таймера"))
