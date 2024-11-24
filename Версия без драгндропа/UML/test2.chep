@@ -1,0 +1,123 @@
+{
+    "items": [
+        {
+            "type": "QGraphicsEllipseItem",
+            "position": [
+                0.0,
+                0.0
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": 30.0,
+            "height": 30.0,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null
+        },
+        {
+            "type": "EndEvent",
+            "position": [
+                0.0,
+                0.0
+            ],
+            "size": null,
+            "radius": 30.0,
+            "inner_radius_ratio": 0.5,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null
+        },
+        {
+            "type": "QGraphicsEllipseItem",
+            "position": [
+                0.0,
+                0.0
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": 30.0,
+            "height": 30.0,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null
+        },
+        {
+            "type": "EndEvent",
+            "position": [
+                -253.0,
+                -242.0
+            ],
+            "size": null,
+            "radius": 30.0,
+            "inner_radius_ratio": 0.5,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null
+        },
+        {
+            "type": "QGraphicsEllipseItem",
+            "position": [
+                0.0,
+                0.0
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": 30.0,
+            "height": 30.0,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null
+        },
+        {
+            "type": "EndEvent",
+            "position": [
+                -153.0,
+                -31.0
+            ],
+            "size": null,
+            "radius": 30.0,
+            "inner_radius_ratio": 0.5,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null
+        },
+        {
+            "type": "Decision",
+            "position": [
+                -64.0,
+                -276.0
+            ],
+            "size": 50,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null
+        }
+    ]
+}

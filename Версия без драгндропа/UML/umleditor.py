@@ -642,9 +642,14 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             "start_node": None,              # Начальная точка (для Arrow)
             "end_node": None,                # Конечная точка (для Arrow)
             "color": None,                   # Цвет линии (для Arrow)
-            "line_width": None               # Толщина линии (для Arrow)
+            "line_width": None,               # Толщина линии (для Arrow)
+            "start_node": None,           # Начальная точка соединения (для Arrow)
+            "end_node": None,             # Конечная точка соединения (для Arrow)
+            "color": None,                # Цвет линии (для Arrow)
+            "line_width": None            # Толщина линии (для Arrow)
         }
 
+       
         # Заполняем структуру в зависимости от типа элемента
         if isinstance(item, Decision):  # Ромб
             base_data["size"] = item.size
@@ -675,17 +680,18 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             base_data["width"] = rect.width()
             base_data["height"] = rect.height()
 
-        elif isinstance(item, Arrow):  # Стрелка
-            base_data["start_node"] = (item.node1.x(), item.node1.y())
-            base_data["end_node"] = (item.node2.x(), item.node2.y())
-            pen = item.pen()
-            base_data["color"] = pen.color().name()
-            base_data["line_width"] = pen.width()
+        
 
         elif isinstance(item, QtWidgets.QGraphicsEllipseItem):  # Простой круг
             rect = item.rect()
             base_data["width"] = rect.width()
             base_data["height"] = rect.height()
+
+        elif hasattr(item, "node1") and hasattr(item, "node2"):  # Стрелка (Arrow)
+            base_data["start_node"] = (item.node1.x(), item.node1.y())
+            base_data["end_node"] = (item.node2.x(), item.node2.y())
+        # Если хотите указать цвет или ширину линии, добавьте сюда
+        
 
         # Возвращаем структуру со всеми ключами
         return base_data
@@ -1083,7 +1089,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
     def load_from_data(self, data):
         self.scene_.clear()  # Очищаем сцену перед загрузкой новых данных
-
+        elements = {}  # Словарь для хранения элементов по их координатам
         for item_data in data["items"]:
             item_type = item_data["type"]
             position = item_data["position"]
@@ -1126,20 +1132,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 item = SignalReceipt(*position, width, height)
                 self.scene_.addItem(item)
 
-            elif item_type == "Arrow":
-                start_node = item_data.get("start_node", (0, 0))
-                end_node = item_data.get("end_node", (0, 0))
-                color = item_data.get("color", "#000000")
-                line_width = item_data.get("line_width", 1)
-
-                # Создаём стрелку и настраиваем её стиль
-                item = Arrow(QPointF(*start_node), QPointF(*end_node))
-                pen = item.pen()
-                pen.setColor(QtGui.QColor(color))
-                pen.setWidth(line_width)
-                item.setPen(pen)
-
-                self.scene_.addItem(item)
+            
 
             elif item_type == "QtWidgets.QGraphicsEllipseItem":
                 width = item_data.get("width", 60)
@@ -1148,6 +1141,27 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 item = QtWidgets.QGraphicsEllipseItem(rect)
                 item.setPos(*position)
                 self.scene_.addItem(item)
+
+        for item_data in data["items"]:
+            if item_data["type"] == "Arrow":  # Проверяем, является ли элемент стрелкой
+                start_node_coords = tuple(item_data["start_node"])
+                end_node_coords = tuple(item_data["end_node"])
+
+                # Получаем узлы по их координатам
+                start_node = elements.get(start_node_coords)
+                end_node = elements.get(end_node_coords)
+
+                if start_node and end_node:
+                    # Создаём стрелку и добавляем на сцену
+                    arrow = Arrow(start_node, end_node)
+                    self.scene_.addItem(arrow)
+                    start_node.add_arrow(arrow)
+                    end_node.add_arrow(arrow)
+
+        # Добавляем элемент на сцену
+        self.scene_.addItem(item)
+        elements[position] = item  # Сохраняем элемент
+
 
 
     #Отображение окна статистики
