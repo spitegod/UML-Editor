@@ -1,16 +1,16 @@
 {
     "items": [
         {
-            "type": "QGraphicsTextItem",
+            "type": "QGraphicsEllipseItem",
             "position": [
-                225.0,
-                215.0
+                0.0,
+                0.0
             ],
             "size": null,
             "radius": null,
             "inner_radius_ratio": null,
-            "width": null,
-            "height": null,
+            "width": 30.0,
+            "height": 30.0,
             "text": null,
             "start_node": null,
             "end_node": null,
@@ -18,17 +18,17 @@
             "line_width": null
         },
         {
-            "type": "ActiveState",
+            "type": "EndEvent",
             "position": [
                 0.0,
                 0.0
             ],
             "size": null,
-            "radius": 15.0,
-            "inner_radius_ratio": null,
-            "width": 100.0,
-            "height": 60.0,
-            "text": "\u0422\u0435\u043a\u0441\u0442",
+            "radius": 30.0,
+            "inner_radius_ratio": 0.5,
+            "width": null,
+            "height": null,
+            "text": null,
             "start_node": null,
             "end_node": null,
             "color": null,

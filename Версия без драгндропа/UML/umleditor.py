@@ -2,6 +2,7 @@ import os
 import sys
 import json
 from math import *
+from datetime import datetime
 from PyQt5 import QtCore, QtGui, QtWidgets
 from Static import Ui_StaticWidget  # Импортируем класс Ui_StaticWidget
 from uml_elements import *
@@ -454,7 +455,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.menubar.addAction(self.menu_2.menuAction())
         # self.menubar.addAction(self.menu_3.menuAction()) #Тестовое меню таймера
 
-        self.action_2.triggered.connect(lambda: self.save_to_file(filepath="diagram.chep"))
+        self.action_2.triggered.connect(self.save_to_file)
         self.action_3.triggered.connect(self.save_as)
         self.action_4.triggered.connect(self.create_new)
         self.action.triggered.connect(self.open_file)
@@ -597,7 +598,34 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
 
     def save_to_file(self, filepath=None):
-        """Сохранение текущей диаграммы в файл формата chep."""
+        # Получаем директорию, где находится исполняемый файл
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        saves_dir = os.path.join(base_dir, "saves")
+
+        # Создаём папку "saves", если её нет
+        if not os.path.exists(saves_dir):
+            os.makedirs(saves_dir)
+
+        # Если путь не задан, создаём имя файла по умолчанию
+        if not filepath:
+            current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")  # Временная метка
+            filepath = os.path.join(saves_dir, f"diagram_{current_time}.chep")
+
+        data = {"items": []}
+        for item in self.scene_.items():
+            if isinstance(item, QtWidgets.QGraphicsItem):
+                data["items"].append(self.serialize_item(item))
+
+        try:
+            # Сохраняем данные в файл
+            with open(filepath, "w") as file:
+                json.dump(data, file, indent=4)
+            print("Файл сохранён:", filepath)
+            QtWidgets.QMessageBox.information(self, "Сохранение", f"Файл успешно сохранён в:\n{filepath}")
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось сохранить файл: {e}")
+
+    def save_as(self, filepath=None):
         if not filepath:  # Если путь не задан, запрашиваем его у пользователя
             options = QtWidgets.QFileDialog.Options()
             filepath, _ = QtWidgets.QFileDialog.getSaveFileName(
@@ -617,10 +645,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             print("Файл сохранён:", filepath)
         except Exception as e:
             QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось сохранить файл: {e}")
-
-    def save_as(self):
-        """Сохранить как. Всегда предлагает выбрать путь для сохранения."""
-        self.save_to_file()  # Просто вызываем save_to_file без пути
 
     def open_file(self):
         """Открытие файла формата chep."""
