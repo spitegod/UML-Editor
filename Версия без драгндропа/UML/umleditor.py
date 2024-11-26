@@ -202,6 +202,8 @@ class Ui_Dialog(object):
         self.gridLayout.addWidget(self.line_2, 3, 0, 1, 1)
         self.gridLayout_2.addLayout(self.gridLayout, 0, 0, 1, 1)
 
+        
+
         self.retranslateUi(Dialog)
         
         # Подключение сигнала нажатия кнопки к слоту
@@ -250,7 +252,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     def setupUi(self, MainWindow):
 
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(858, 540)
+        MainWindow.resize(1280, 720)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout_2 = QtWidgets.QGridLayout(self.centralwidget)
@@ -382,7 +384,24 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.graphicsView.setObjectName("graphicsView")
         self.gridLayout_6 = QtWidgets.QGridLayout()
         self.gridLayout_6.setObjectName("gridLayout_6")
-        self.gridLayout_6.addWidget(self.graphicsView, 0, 1, 1, 1)
+        self.gridLayout_6.addWidget(self.graphicsView, 0, 0, 1, 1)
+        # Добавление QLabel с изображением
+        self.logoLabel = QtWidgets.QLabel(self.centralwidget)
+        self.logoLabel.setObjectName("logoLabel")
+        self.logoLabel.setMinimumSize(QtCore.QSize(100, 100))  # Минимальный размер
+        self.logoLabel.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignHCenter)  # Центрирование изображения
+        
+        # Загрузка изображения
+        pixmap = QtGui.QPixmap("imgs/ctuaslogo.jpg")
+        if not pixmap.isNull():
+            self.logoLabel.setPixmap(pixmap.scaled(
+                150, 150, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+        else:
+            self.logoLabel.setText("Логотип\nне найден")
+        
+        self.gridLayout_6.addWidget(self.logoLabel, 0, 1, 1, 1)  # Логотип справа
+
+
         self.gridLayout_2.addLayout(self.gridLayout_6, 0, 1, 1, 1)
         #self.gridLayout_6.addWidget(self.frame, 0, 1, 1, 1)
         self.gridLayout_2.addLayout(self.gridLayout_6, 0, 1, 1, 1)
