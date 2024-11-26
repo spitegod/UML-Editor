@@ -1,0 +1,25 @@
+{
+    "items": [
+        {
+            "type": "QGraphicsEllipseItem",
+            "position": [
+                0.0,
+                0.0
+            ]
+        },
+        {
+            "type": "EndEvent",
+            "position": [
+                0.0,
+                0.0
+            ]
+        },
+        {
+            "type": "StartEvent",
+            "position": [
+                -268.0,
+                -263.0
+            ]
+        }
+    ]
+}

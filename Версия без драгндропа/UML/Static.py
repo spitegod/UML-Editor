@@ -39,6 +39,12 @@ class Ui_StaticWidget(QtWidgets.QWidget):
         self.tableWidget.setObjectName("tableWidget")
         self.tableWidget.setEditTriggers(QTableWidget.NoEditTriggers)
 
+        self.listWidget_Users = QtWidgets.QListWidget(self)
+        self.listWidget_Users.setObjectName("listWidget_Users")
+        self.listWidget_Users.setFixedWidth(100)
+
+
+
     
 
     def setupUi(self, StaticWidget):  # Используем StaticWidget вместо StaticWindow
@@ -51,7 +57,7 @@ class Ui_StaticWidget(QtWidgets.QWidget):
         StaticWidget.setObjectName("StaticWidget")
         StaticWidget.setWindowModality(QtCore.Qt.NonModal)
         StaticWidget.resize(316, 157)
-        StaticWidget.setFixedSize(850, 300)  # Фиксируем размер окна
+        StaticWidget.setFixedSize(950, 300)  # Фиксируем размер окна
         # StaticWidget.setStyleSheet("background-color: rgb(233, 233, 233);")
         
         self.gridLayout = QtWidgets.QGridLayout(StaticWidget)  # Основной layout для StaticWidget
@@ -78,10 +84,7 @@ class Ui_StaticWidget(QtWidgets.QWidget):
         self.label_2.setAlignment(QtCore.Qt.AlignCenter)
         self.verticalLayout_UserChoose.addWidget(self.label_2)
         
-        self.listWidget_Users = QtWidgets.QListWidget(StaticWidget)
-        self.listWidget_Users.setObjectName("listWidget_Users")
-        self.listWidget_Users.setFixedWidth(100)
-        for username in ["User1"]:
+        for username in ["User"]:
             item = QtWidgets.QListWidgetItem(username)
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.listWidget_Users.addItem(item)
@@ -163,7 +166,6 @@ QLineEdit {
     }
 """)
 
-        # self.label_count_el.setText(f"Количество добавленных элементов: ")
         
         self.tableWidget.setColumnCount(2)
         self.tableWidget.setRowCount(0)
@@ -192,48 +194,12 @@ QLineEdit {
         self.gridLayout_2.addLayout(self.horizontalLayout_workarea, 1, 0, 1, 1)
         self.gridLayout.addLayout(self.gridLayout_2, 0, 0, 1, 1)
 
-        # #self.lineEdit_timework.setText(self.last_time)
-        # self.lineEdit_timework.setText(main_window.get_last_time())  # Получаем время через экземпляр
-
-        # #Таймер
-
-        # # Соединение сигнала с функцией в StaticWidget
-        # main_window.time_stopped.connect(self.update_timeworkSW) 
-
-        # #Инициализируем переменные для секундомера
-        # self.running = False
-        # self.elapsed_time = QTime(0, 0)
-
-        # self.timer = QTimer()
-        # self.timer.timeout.connect(self.update_time)
-
-        #self.start()
 
 
 
         self.retranslateUi(StaticWidget)
         QtCore.QMetaObject.connectSlotsByName(StaticWidget)
 
-    #Ниже 4 функции - реализация работы таймера
-
-    # def start(self):
-    #     if not self.running:  # Запускаем таймер, только если он не запущен
-    #         self.running = True
-    #         self.timer.start(1000)  # Интервал 1000 мс (1 секунда)
-
-    # def stop(self):
-    #     if self.running:  # Останавливаем таймер
-    #         self.running = False
-    #         self.timer.stop()
-
-    # def reset(self):
-    #     self.elapsed_time = QTime(0, 0)  # Сбрасываем время
-    #     self.lineEdit_timework.setText(self.elapsed_time.toString("hh:mm:ss"))  # Отображаем сброшенное время
-
-    # def update_time(self):
-    #     self.elapsed_time = self.elapsed_time.addSecs(1)  # Увеличиваем время на 1 секунду
-    #     self.lineEdit_timework.setText(self.elapsed_time.toString("hh:mm:ss"))  # Обновляем отображение времени
-    #     self.dateTimeEdit_End.setText(self.elapsed_time.toString("00.00.0000 hh:mm:ss"))
 
     def get_count_objectS(self, int_):
         self.label_count_el.setText(f"Количество объектов на сцене: {int_}")
@@ -241,56 +207,10 @@ QLineEdit {
     def update_timeworkSW(self, today, new_time, time_now):
         """Слот для приема нового времени и обновления lineEdit_timework."""
         self.lineEdit_timework.setText(new_time)
-
-        from datetime import datetime
-        # time_now = datetime.now().strftime("%d.%m.%Y")
-        # time_now = datetime.now().strftime("%H:%M:%S")
-        # today = datetime.now().strftime("%d.%m.%Y")
-
-        # time_now = QDateTime.fromString(time_now, "HH:mm:ss").time().second()
-        # new_time = QDateTime.fromString(new_time, "HH:mm:ss").addMSecs(time_now).toString("HH:mm:ss")
-
-        # time = QTime.fromString(new_time, "hh:mm:ss")
-        # if time.isValid():
-        #     time = time.addSecs(time_now)
-        #     time = time.toString("hh:mm:ss")
-
-        time1 = QDateTime.fromString(time_now, "hh:mm:ss").time()
-        time2 = QDateTime.fromString(new_time, "hh:mm:ss").time()
-
-        sum_seconds_time1 = time1.hour() * 3600 + time1.minute() * 60 + time1.second()
-        time2 = time2.addSecs(sum_seconds_time1)
-
-        # from datetime import datetime
-        date_today = QDateTime.fromString(today, "dd.MM.yyyy").addDays(10).toString("dd.MM.yyyy")
-
-        self.dateTimeEdit_End.setText(f"{date_today} {time2.toString('hh:mm:ss')}")
-        print(f"Received : {new_time}")
+        self.dateTimeEdit_End.setText(f"{today} {time_now}")
 
     def update_last_timeSW(self, today, last_time, time_now):
-        self.lineEdit_timework.setText(last_time)
-
-        # time_now = QDateTime.fromString(time_now, "HH:mm:ss").time().second()
-        # last_time = QDateTime.fromString(last_time, "HH:mm:ss").addMSecs(time_now).toString("HH:mm:ss")
-
-        from datetime import datetime
-        # time_now = datetime.now().strftime("%d.%m.%Y")
-        time_now = datetime.now().strftime("%H:%M:%S")
-
-        time1 = QDateTime.fromString(time_now, "hh:mm:ss").time()
-        time2 = QDateTime.fromString(last_time, "hh:mm:ss").time()
-
-        sum_seconds_time1 = time1.hour() * 3600 + time1.minute() * 60 + time1.second()
-        time2 = time2.addSecs(sum_seconds_time1)
-
-        # from datetime import datetime
-        date_today = datetime.now().strftime("%d.%m.%Y")
-
-        self.dateTimeEdit_End.setText(f"{date_today} {time2.toString('hh:mm:ss')}")
-
-        # self.dateTimeEdit_End.setText(f"{today} {last_time}")
-        print(f"Received last_time: {last_time}")
-        # self.lineEdit_timework.setText(last_time)
+        pass
 
     def accept_today(self, today, time_now, last_time):
         self.dateTimeEdit_Start.setText(f"{today} {time_now}")
@@ -298,42 +218,50 @@ QLineEdit {
         self.dateTimeEdit_End.setText(f"{today} {time_now}")
 
     #Функция для обновления информации на статистике
-    def uptade_static(self, username: str, user_id: int, start_work: str, end_work: str, action: str, time_action: str):
-        row_position = self.tableWidget.rowCount()
-        print(username, user_id, action)
+    def uptade_static(self, username: str, user_id: int, start_work: str, end_work: str, action: str, time_action: str, action_history):
         
-        # Добавляем новую строку
-        self.tableWidget.insertRow(row_position)
-        
-        
-        # Добавляем данные в ячейки
-        self.tableWidget.setItem(row_position, 0, QTableWidgetItem(action))
-        self.tableWidget.setItem(row_position, 1, QTableWidgetItem(time_action))
+
+        if self.listWidget_Users.item(user_id) is None:
+            new_item = QtWidgets.QListWidgetItem(username)
+            self.listWidget_Users.addItem(new_item)
+
+        self.tableWidget.setRowCount(0)
+
+        # Обновляем текст пользователя
+        item = self.listWidget_Users.item(user_id)
+        if item:
+            item.setText(username)
+
+        # Добавляем строки в таблицу по длине action_history
+        for _ in range(len(action_history)):
+            row_position = self.tableWidget.rowCount()
+            self.tableWidget.insertRow(row_position)
+
+        for row, (time, act) in enumerate(action_history.items()):
+            self.tableWidget.setItem(row, 0, QTableWidgetItem(act))  # Действие
+            self.tableWidget.setItem(row, 1, QTableWidgetItem(time))  # Время
+
+        # Обновляем виджеты
+        self.listWidget_Users.update()
+        self.tableWidget.update()
+
+        print(len(action_history))
+
+
+
 
     def retranslateUi(self, StaticWidget):
 
-        # import umleditor
-        # from umleditor import last_time
-
-
-        # Создаём экземпляр MainWindow и вызываем get_last_time()
-        # main_window = umleditor.Ui_MainWindow()  # Создаём экземпляр класса Ui_MainWindow
 
 
         _translate = QtCore.QCoreApplication.translate
         StaticWidget.setWindowTitle(_translate("StaticWidget", "Статистика"))
-        # self.label.setText(_translate("StaticWidget", "Статистика"))
         self.label_2.setText(_translate("StaticWidget", "Пользователь"))
         self.label_3.setText(_translate("StaticWidget", "Начало работы"))
         self.label_4.setText(_translate("StaticWidget", "Время работы"))
         self.label_5.setText(_translate("StaticWidget", "Конец работы"))
         self.label_6.setText(_translate("StaticWidget", "История действий"))
         
-        # self.lineEdit_timework.setText("00:00:00")
-        # self.dateTimeEdit_Start.setInputMask(_translate("StaticWindow", "00.00.0000 00:00:00"))
-        # self.dateTimeEdit_Start.setText(_translate("StaticWindow", "00.00.0000 00:00:00"))
-        # self.dateTimeEdit_End.setInputMask(_translate("StaticWindow", "00.00.0000 00:00:00"))
-        # self.dateTimeEdit_End.setText(_translate("StaticWindow", "00.00.0000 00:00:00"))
 
     
 

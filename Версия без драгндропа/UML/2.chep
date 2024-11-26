@@ -1,0 +1,140 @@
+{
+    "items": [
+        {
+            "type": "SignalReceipt",
+            "position": [
+                -126.0,
+                -171.0
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": 101.20550813502032,
+            "height": 61.205508135020324,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null
+        },
+        {
+            "type": "SignalSending",
+            "position": [
+                -357.0,
+                -174.0
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": 105.55532555450509,
+            "height": 61.20709785346514,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null
+        },
+        {
+            "type": "QGraphicsTextItem",
+            "position": [
+                225.0,
+                216.5
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null
+        },
+        {
+            "type": "ActiveState",
+            "position": [
+                -354.0,
+                -279.0
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": 100.0,
+            "height": 63.0,
+            "text": "\u0422\u0435\u043a\u0441\u0442",
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null
+        },
+        {
+            "type": "QGraphicsEllipseItem",
+            "position": [
+                0.0,
+                0.0
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": 30.0,
+            "height": 30.0,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null
+        },
+        {
+            "type": "EndEvent",
+            "position": [
+                -164.0,
+                -327.0
+            ],
+            "size": null,
+            "radius": 30.0,
+            "inner_radius_ratio": 0.5,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null
+        },
+        {
+            "type": "StartEvent",
+            "position": [
+                -249.0,
+                -328.0
+            ],
+            "size": null,
+            "radius": 30.0,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null
+        },
+        {
+            "type": "Decision",
+            "position": [
+                -325.0,
+                -325.0
+            ],
+            "size": 50,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null
+        }
+    ]
+}
