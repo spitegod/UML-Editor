@@ -455,7 +455,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.menubar.addAction(self.menu_2.menuAction())
         # self.menubar.addAction(self.menu_3.menuAction()) #Тестовое меню таймера
 
-        self.action_2.triggered.connect(self.save_to_file())
+        self.action_2.triggered.connect(self.save_to_file)
         self.action_3.triggered.connect(self.save_as)
         self.action_4.triggered.connect(self.create_new)
         self.action.triggered.connect(self.open_file)
@@ -625,9 +625,26 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         except Exception as e:
             QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось сохранить файл: {e}")
 
-    def save_as(self):
-        """Сохранить как. Всегда предлагает выбрать путь для сохранения."""
-        self.save_to_file()  # Просто вызываем save_to_file без пути
+    def save_as(self, filepath=None):
+        if not filepath:  # Если путь не задан, запрашиваем его у пользователя
+            options = QtWidgets.QFileDialog.Options()
+            filepath, _ = QtWidgets.QFileDialog.getSaveFileName(
+                self, "Сохранить файл", "", "CHEP Files (*.chep);;All Files (*)", options=options
+            )
+            if not filepath:
+                return
+
+        data = {"items": []}
+        for item in self.scene_.items():
+            if isinstance(item, QtWidgets.QGraphicsItem):
+                data["items"].append(self.serialize_item(item))
+
+        try:
+            with open(filepath, "w") as file:
+                json.dump(data, file, indent=4)
+            print("Файл сохранён:", filepath)
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось сохранить файл: {e}")
 
     def open_file(self):
         """Открытие файла формата chep."""
