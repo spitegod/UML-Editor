@@ -389,7 +389,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.logoLabel = QtWidgets.QLabel(self.centralwidget)
         self.logoLabel.setObjectName("logoLabel")
         self.logoLabel.setMinimumSize(QtCore.QSize(100, 100))  # Минимальный размер
-        self.logoLabel.setAlignment(QtCore.Qt.AlignCenter)  # Центрирование изображения
+        self.logoLabel.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignHCenter)  # Центрирование изображения
         
         # Загрузка изображения
         pixmap = QtGui.QPixmap("imgs/ctuaslogo.jpg")
