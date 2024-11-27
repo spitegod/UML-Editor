@@ -993,6 +993,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         if hasattr(node1, 'arrows') and hasattr(node2, 'arrows'):
             for arrow in node1.arrows[:]:
                 if (arrow.node1 == node2 or arrow.node2 == node2) and arrow in node2.arrows:
+                    self.user_.add_action(f"Рассоединены '{node1.__class__.__name__}' и '{node2.__class__.__name__}'", self.get_current_Realtime())
                     if arrow.scene():  # Удаляем из сцены, если стрелка добавлена
                         self.scene_.removeItem(arrow)
                     
