@@ -31,14 +31,45 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 #         self.scene.objectS_.append(self.shape)  # Добавляем в список объектов
 #         # print(f"{self.shape_type} добавлен, объектов на сцене:", len(self.scene.objectS_))
 
+class DraggableButton(QtWidgets.QPushButton):
+    def __init__(self, element_type, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.element_type = element_type  # Тип элемента, который будет создаваться
+
+    def mouseMoveEvent(self, event):
+        if event.buttons() == Qt.LeftButton:
+            mime_data = QtCore.QMimeData()
+            mime_data.setText(self.element_type)
+
+            drag = QtGui.QDrag(self)
+            drag.setMimeData(mime_data)
+            drag.setHotSpot(event.pos() - self.rect().topLeft())
+
+            drag.exec_(Qt.MoveAction)
+
+
+class My_GraphicsView(QtWidgets.QGraphicsView):
+    def __init__(self, label, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.label = label  # QLabel для обновления координат
+
+    def leaveEvent(self, event):
+        self.label.setText("(0, 0)")
+        super().leaveEvent(event)
+
+
 class My_GraphicsScene(QtWidgets.QGraphicsScene):
-    def __init__(self, reset_time, *args, **kwargs):
+    def __init__(self, reset_time, objectS, user_, label, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.selection_rect = None  # Прямоугольник для выделения
         self.start_pos = None  # Начальная позиция для выделения
         self.is_dragging = False  # Флаг, указывающий, что элемент перетаскивается
         # self.clicks = []  # Список для хранения информации о кликах
         self.reset_time = reset_time
+        self.objectS = objectS
+        self.user_ = user_
+        self.label = label
+        # self.setAcceptDrops(True)
         # self.selected_order = []
         # self.undo_stack = QUndoStack()
 
@@ -57,12 +88,26 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
 
         self.reset_time.reset_inaction()
         # self.clicks.append(event.scenePos())
-        # Проверяем, перетаскивается ли какой-то элемент
-        if self.itemAt(event.scenePos(), QtGui.QTransform()) is not None:
-            self.is_dragging = True  # Если элемент найден, устанавливаем флаг перетаскивания
-            self.reset_time.reset_inaction()
+
+        selected_item = self.itemAt(event.scenePos(), QtGui.QTransform())  # Находим элемент под курсором
+
+        if selected_item:
+            self.is_dragging = True
+            # Устанавливаем текст в label_x_y с названием класса элемента
+            element_name = type(selected_item).__name__
+            mouse_pos = event.scenePos()
+            self.label.setText(f"Выбрано: {element_name} ({mouse_pos.x():.1f}, {mouse_pos.y():.1f})")
         else:
-            self.is_dragging = False  # Если нет — снимаем флаг
+            self.is_dragging = False
+            mouse_pos = event.scenePos()
+            self.label.setText(f"({mouse_pos.x():.1f}, {mouse_pos.y():.1f})")
+
+        # # Проверяем, перетаскивается ли какой-то элемент
+        # if self.itemAt(event.scenePos(), QtGui.QTransform()) is not None:
+        #     self.is_dragging = True  # Если элемент найден, устанавливаем флаг перетаскивания
+        #     self.reset_time.reset_inaction()
+        # else:
+        #     self.is_dragging = False  # Если нет — снимаем флаг
 
         if not self.is_dragging:  # Начинаем рисовать прямоугольник выделения is_dragging = True
             if event.button() == QtCore.Qt.LeftButton:
@@ -74,14 +119,17 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
                     self.addItem(self.selection_rect)  # Добавляем прямоугольник на сцену, который служит для выделения объектов на сцене
 
         super().mousePressEvent(event)
-
+        
     def mouseMoveEvent(self, event):
+        mouse_pos = event.scenePos()
+        self.label.setText(f"({mouse_pos.x():.1f}, {mouse_pos.y():.1f})")
         self.reset_time.reset_inaction()
         if not self.is_dragging:  # Обновляем прямоугольник выделения только если не перетаскиваем
             if self.selection_rect and self.start_pos:
                 rect = QtCore.QRectF(self.start_pos, event.scenePos()).normalized()
                 self.selection_rect.setRect(rect)  # Обновляем прямоугольник
         super().mouseMoveEvent(event)
+        
 
     def mouseReleaseEvent(self, event):
         if self.selection_rect:
@@ -94,6 +142,43 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
 
         self.is_dragging = False  # Снимаем флаг перетаскивания
         super().mouseReleaseEvent(event)
+    
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasText():
+            event.acceptProposedAction()
+
+    def dropEvent(self, event):
+        element_type = event.mimeData().text()
+        position = event.scenePos()
+
+        if element_type == "Decision":
+            item = Decision(position.x(), position.y(), 50)
+        elif element_type == "StartEvent":
+            item = StartEvent(position.x(), position.y(), 30)
+        elif element_type == "EndEvent":
+            item = EndEvent(position.x(), position.y(), 30, 0.5)
+        elif element_type == "ActiveState":
+            item = ActiveState(position.x(), position.y(), 100, 60, 15)
+        elif element_type == "SignalSending":
+            item = SignalSending(position.x(), position.y(), 100, 60)
+        elif element_type == "SignalReceipt":
+            item = SignalReceipt(position.x(), position.y(), 120, 60)
+        elif element_type == "Splitter_Merge":
+            item = Splitter_Merge(position.x(), position.y(), 120, 40)
+
+        self.addItem(item)
+        self.objectS.append(item)
+        self.user_.add_action(f"Добавлен элемент '{item.__class__.__name__}'", self.reset_time.get_current_Realtime())
+        self.reset_time.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work,
+                               next(reversed(self.user_.action_history)),
+                               next(reversed(self.user_.action_history.values())), self.user_.action_history)
+        event.acceptProposedAction()
+        if len(self.objectS) > 10:
+            self.reset_time.message_overcrowed_objectS()
+
+
+    def dragMoveEvent(self, event):
+        event.acceptProposedAction()
 
     # def addShape(self, shape):
     #     # Создаем команду для добавления фигуры
@@ -246,6 +331,12 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
     def __init__(self):
         super().__init__()
+        self.label_x_y = QtWidgets.QLabel(self)
+        self.label_x_y.setText("(0, 0)")
+        self.label_x_y.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.graphicsView = My_GraphicsView(self.label_x_y)
+        self.graphicsView.setMouseTracking(True)
         
 
 
@@ -274,7 +365,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.gridLayout.setObjectName("gridLayout")
         
         # Создание QLabel и добавление в gridLayout
-        self.button = QtWidgets.QPushButton(self.ToolBarBox)
+        self.button = DraggableButton("Decision", self.ToolBarBox)
         self.button.setIcon(QtGui.QIcon("imgs/decison.png"))
         self.button.setIconSize(QtCore.QSize(100, 100))  # Установка размера иконки (при необходимости)
         self.button.setObjectName("button")
@@ -285,7 +376,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 """)
 
         # startstate.png
-        self.button_2 = QtWidgets.QPushButton(self.ToolBarBox)
+        self.button_2 = DraggableButton("StartEvent", self.ToolBarBox)
         self.button_2.setIcon(QtGui.QIcon("imgs/startstate.png"))
         self.button_2.setIconSize(QtCore.QSize(100, 100))
         self.button_2.setObjectName("button_2")
@@ -296,7 +387,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 """)
 
         # finalstate.png
-        self.button_3 = QtWidgets.QPushButton(self.ToolBarBox)
+        self.button_3 = DraggableButton("EndEvent", self.ToolBarBox)
         self.button_3.setIcon(QtGui.QIcon("imgs/finalstate.png"))
         self.button_3.setIconSize(QtCore.QSize(100, 100))
         self.button_3.setObjectName("button_3")
@@ -307,7 +398,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 """)
 
         # merge.png
-        self.button_4 = QtWidgets.QPushButton(self.ToolBarBox)
+        self.button_4 = DraggableButton("Splitter_Merge", self.ToolBarBox)
         self.button_4.setIcon(QtGui.QIcon("imgs/merge.png"))
         self.button_4.setIconSize(QtCore.QSize(100, 100))
         self.button_4.setObjectName("button_4")
@@ -318,7 +409,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 """)
 
         # Signal-sending.png
-        self.button_5 = QtWidgets.QPushButton(self.ToolBarBox)
+        self.button_5 = DraggableButton("SignalSending", self.ToolBarBox)
         self.button_5.setIcon(QtGui.QIcon("imgs/Signal-sending.png"))
         self.button_5.setIconSize(QtCore.QSize(100, 100))
         self.button_5.setObjectName("button_5")
@@ -329,7 +420,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 """)
 
         # Signal-receipt.png
-        self.button_6 = QtWidgets.QPushButton(self.ToolBarBox)
+        self.button_6 = DraggableButton("SignalReceipt", self.ToolBarBox)
         self.button_6.setIcon(QtGui.QIcon("imgs/Signal-receipt.png"))
         self.button_6.setIconSize(QtCore.QSize(100, 100))
         self.button_6.setObjectName("button_6")
@@ -352,7 +443,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 """)
 
         # synchronize.png
-        self.button_8 = QtWidgets.QPushButton(self.ToolBarBox)
+        self.button_8 = DraggableButton("Splitter_Merge", self.ToolBarBox)
         self.button_8.setIcon(QtGui.QIcon("imgs/synchronize.png"))
         self.button_8.setIconSize(QtCore.QSize(100, 100))
         self.button_8.setObjectName("button_8")
@@ -364,7 +455,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
 
         # ativestate.png
-        self.button_9 = QtWidgets.QPushButton(self.ToolBarBox)
+        self.button_9 = DraggableButton("ActiveState", self.ToolBarBox)
         self.button_9.setIcon(QtGui.QIcon("imgs/activestate.png"))
         self.button_9.setIconSize(QtCore.QSize(100, 100))
         self.button_9.setObjectName("button_9")
@@ -406,6 +497,16 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         #self.gridLayout_6.addWidget(self.frame, 0, 1, 1, 1)
         self.gridLayout_2.addLayout(self.gridLayout_6, 0, 1, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
+
+        self.label_x_y = QtWidgets.QLabel(MainWindow)
+        self.label_x_y.setObjectName("label_x_y")
+        self.label_x_y.setAlignment(QtCore.Qt.AlignRight)
+        self.label_x_y.setStyleSheet("""
+QLabel {
+            color: gray;                         }""")
+        self.label_x_y.setText("(0, 0)")
+        self.gridLayout_2.addWidget(self.label_x_y, 1, 1, 1, 1)
+
 
         #Настройка главного меню
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -537,10 +638,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
 
-        # Настроим кастомную сцену для рисования
-        self.scene_ = My_GraphicsScene(self)  # Используем кастомную сцену
-        self.graphicsView.setScene(self.scene_)  # Устанавливаем сцену в QGraphicsView
-        # if self.scene_.has_clicks: self.reset_inaction()
 
         # Кнопки тулбара
         self.button.clicked.connect(self.draw_diamond)
@@ -601,13 +698,14 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # self.connect_objectS = QShortcut(QKeySequence("T"), self.graphicsView)
         # self.connect_objectS.activated.connect(self.disconnect_nodes)
 
-         # Обновляем сцену после инициализации
-        self.scene_.update()  # Перерисовываем сцену
 
         self.user_ = User("User1", 0, self.time_now, self.get_time_for_user(self.last_time))
         self.user_.add_action("Создана диаграмма UML", self.get_current_Realtime())
         self.button.setContextMenuPolicy(Qt.CustomContextMenu)
         self.button.customContextMenuRequested.connect(self.open_dialog)
+
+        self.scene_ = My_GraphicsScene(self, self.objectS_, self.user_, self.label_x_y)
+        self.graphicsView.setScene(self.scene_)  # Устанавливаем сцену в QGraphicsView
 
     def open_dialog(self):
         print('')
@@ -775,7 +873,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             event.ignore()
     
     def message_overcrowed_objectS(self):
-        if len(self.objectS_) == 11:
+        if len(self.objectS_) > 10:
             self.reset_inaction() #Сбрасыем второй таймер
             self.count_objectS.emit(len(self.objectS_) - 1)
             self.scene_.removeItem(self.objectS_[len(self.objectS_) - 1])

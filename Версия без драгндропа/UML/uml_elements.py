@@ -1,5 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QPen, QPainterPath, QColor, QPolygonF
+from PyQt5.QtGui import QPen, QPainterPath, QColor, QPolygonF, QBrush
 from PyQt5.QtCore import QPointF, Qt, QLineF
 from PyQt5.QtWidgets import QGraphicsItem, QGraphicsEllipseItem, QGraphicsRectItem, QGraphicsPolygonItem
 
@@ -100,14 +100,17 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 
 class Arrow(QGraphicsItem):
-    def __init__(self, node1, node2):
+    def __init__(self, node1, node2, intermediate_points=None):
         super().__init__()
 
         self.node1 = node1  # Первый объект
         self.node2 = node2  # Второй объект
+        self.intermediate_points = intermediate_points or []  # Промежуточные точки
+        self.dragged_point_index = None
+        self.top_point = None
 
-        # Сразу рисуем стрелку
         self.update_arrow()
+        self.is_removed = False 
 
     def boundingRect(self):
         extra_margin = 100  # Добавочная область вокруг стрелки
@@ -115,48 +118,73 @@ class Arrow(QGraphicsItem):
         return rect.adjusted(-extra_margin, -extra_margin, extra_margin, extra_margin)
 
     def paint(self, painter, option, widget=None):
-
-        extra_margin = 100  # Размер очищающей области
-        clearing_rect = self.path.boundingRect().adjusted(-extra_margin, -extra_margin, extra_margin, extra_margin)
-        
-        # Рисуем прозрачный фон
         painter.setBrush(Qt.NoBrush)
-        painter.setPen(Qt.NoPen)
-        painter.drawRect(clearing_rect)
-
-        painter.setPen(QPen(Qt.darkRed, 3))
-        painter.setBrush(Qt.darkRed)
+        pen = QPen(Qt.darkRed, 3)
+        painter.setPen(pen)
         painter.drawPath(self.path)
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+
+        # Промежуточкая точка
+        pen.setColor(Qt.black)
+        painter.setPen(pen)
+        brush = QBrush(Qt.blue)
+        painter.setBrush(brush)
+        for point in self.intermediate_points:
+            painter.drawEllipse(point, 5, 5)
+
+    def remove_arrow(self):
+        if self.is_removed:
+            return  # Если стрелка уже удалена, ничего не делаем
+
+        # Удаляем стрелку из списков узлов
+        if self.node1 and self in self.node1.arrows:
+            self.node1.arrows.remove(self)
+        if self.node2 and self in self.node2.arrows:
+            self.node2.arrows.remove(self)
+
+        # Удаляем стрелку из сцены
+        self.scene().removeItem(self)
+
+        # Обновляем флаг
+        self.is_removed = True
+        self.node1 = None
+        self.node2 = None
+
+
+
 
     def update_arrow(self):
-        # Получаем центры объектов
+        if not self.node1 or not self.node2 or not self.scene():
+            return
+
+        # Начало и конец стрелки
         start_center = self.node1.sceneBoundingRect().center()
         end_center = self.node2.sceneBoundingRect().center()
 
-        # Получаем границы узлов
         node1_rect = self.node1.sceneBoundingRect()
         node2_rect = self.node2.sceneBoundingRect()
 
-        # Вычисляем линии пересечения для начала и конца
         start_point = self.get_edge_intersection(node1_rect, start_center, end_center)
         end_point = self.get_edge_intersection(node2_rect, end_center, start_center)
 
-        # Вычисление направления и координаты наконечника стрелки
-        dx = end_point.x() - start_point.x()
-        dy = end_point.y() - start_point.y()
-        angle = atan2(dy, dx)
-        arrow_size = 15.0
+        # Собираем все точки
+        points = [start_point] + self.intermediate_points + [end_point]
 
-        # Координаты наконечников стрелки
-        arrow_p1 = QPointF(end_point.x() - arrow_size * cos(angle - pi / 6),
-                        end_point.y() - arrow_size * sin(angle - pi / 6))
-        arrow_p2 = QPointF(end_point.x() - arrow_size * cos(angle + pi / 6),
-                        end_point.y() - arrow_size * sin(angle + pi / 6))
-
-        # Создаем путь стрелки
+        # Построение пути
         path = QPainterPath()
-        path.moveTo(start_point)  # Начало линии
-        path.lineTo(end_point)    # Линия до конца
+        path.moveTo(points[0])
+        for point in points[1:]:
+            path.lineTo(point)
+
+        # Добавляем наконечник стрелки
+        arrow_size = 15.0
+        angle = atan2(end_point.y() - points[-2].y(), end_point.x() - points[-2].x())
+
+        arrow_p1 = QPointF(end_point.x() - arrow_size * cos(angle - pi / 6),
+                           end_point.y() - arrow_size * sin(angle - pi / 6))
+        arrow_p2 = QPointF(end_point.x() - arrow_size * cos(angle + pi / 6),
+                           end_point.y() - arrow_size * sin(angle + pi / 6))
+
         path.moveTo(end_point)
         path.lineTo(arrow_p1)
         path.moveTo(end_point)
@@ -165,11 +193,71 @@ class Arrow(QGraphicsItem):
         self.path = path
         self.update()
 
+    def mousePressEvent(self, event):
+        pos = event.pos()
+        if event.button() == Qt.RightButton:
+            # Если правый клик, проверяем, попали ли в существующую точку
+            for i, point in enumerate(self.intermediate_points):
+                if QLineF(pos, point).length() < 10:  # Проверка близости к точке
+                    del self.intermediate_points[i]  # Удаляем точку
+                    self.update_arrow()
+                    return
+
+            # Если правый клик не попал в существующую точку, добавляем новую точку
+            self.intermediate_points.append(pos)  # Добавляем точку в текущую позицию
+            self.update_arrow()
+            return
+
+        # Обрабатываем левый клик для перетаскивания
+        for i, point in enumerate(self.intermediate_points):
+            if QLineF(pos, point).length() < 10:  # Проверяем, близка ли точка к позиции клика
+                self.dragged_point_index = i
+                return
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if self.dragged_point_index is not None:
+            new_pos = event.pos()
+            # Перетаскиваем промежуточную точку
+            self.intermediate_points[self.dragged_point_index] = new_pos
+
+            # Обновляем путь стрелки
+            self.update_arrow()
+        else:
+            super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        self.dragged_point_index = None
+        super().mouseReleaseEvent(event)
+
+
+
+
+
+    def get_side_of_intersection(self, rect, point):
+        
+        if abs(point.y() - rect.top()) < 1e-3:  # Верхняя сторона
+            return 'top'
+        elif abs(point.y() - rect.bottom()) < 1e-3:  # Нижняя сторона
+            return 'bottom'
+        elif abs(point.x() - rect.left()) < 1e-3:  # Левая сторона
+            return 'left'
+        elif abs(point.x() - rect.right()) < 1e-3:  # Правая сторона
+            return 'right'
+        return None  # Если не удалось определить сторону
+
+
+
+
+
     def get_edge_intersection(self, rect, start, end):
-        # находим пересечение линии от start к end с границей rect
+        # Проверяем, есть ли пересечение
+        # print(f"Checking intersection: {start} -> {end} with rect {rect}")
+        if rect.isNull():  
+            return start
+
         line = QLineF(start, end)
 
-        # получаем стороны выделения
         top_edge = QLineF(rect.topLeft(), rect.topRight())
         bottom_edge = QLineF(rect.bottomLeft(), rect.bottomRight())
         left_edge = QLineF(rect.topLeft(), rect.bottomLeft())
@@ -180,14 +268,19 @@ class Arrow(QGraphicsItem):
         intersection_point = QPointF()
         for edge in edges:
             if line.intersect(edge, intersection_point) == QLineF.BoundedIntersection:
+                # print(f"Intersection found at {intersection_point}")
                 return intersection_point
-        return start  # возвращаем начальную точку если нет пересечений
+        return start  # Возвращаем начальную точку, если нет пересечений
+
+
+
+
 
 
 
 
 class Decision(QtWidgets.QGraphicsPolygonItem):
-    def __init__(self, x, y, size, color=QtCore.Qt.transparent):
+    def __init__(self, x, y, size, color=QtCore.Qt.transparent, node1=None, node2=None):
         super().__init__()
         self.size = size
         self.center_x = x  # Сохраняем центр при инициализации
@@ -207,6 +300,9 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
 
         self.arrows = []  # Список стрелок, привязанных к этому ромбу
 
+        self.node1 = node1
+        self.node2 = node2
+
     def create_diamond(self, x, y, size):
         # Создает ромб с заданным центром (x, y) и размером.
         half_size = size / 2
@@ -221,6 +317,8 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
         self.color = color
         self.setBrush(self.color)
         self.update()  # Обновляем элемент для перерисовки
+
+
     #Настройка выделения
     def hoverMoveEvent(self, event):
         rect = self.boundingRect()
@@ -243,6 +341,7 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
             self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
             self.resize_side = None
         super().hoverMoveEvent(event)
+        
 
     def mousePressEvent(self, event):
         if self.resize_side:
@@ -255,14 +354,12 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
             if color.isValid():
                 self.setColor(color)  # Устанавливаем выбранный цвет
 
-
     def mouseMoveEvent(self, event):
-        # super().mouseMoveEvent(event)
+        # Обновляем стрелки при движении объекта
         for arrow in self.arrows:
-            arrow.update_arrow()
+            arrow.update_arrow()  # Обновляем стрелку, чтобы она следовала за объектом
 
         if self.is_resizing:
-            # Пропорциональное изменение размера ромба, оставляя центр фиксированным
             delta_x = abs(event.pos().x() - self.center_x)
             delta_y = abs(event.pos().y() - self.center_y)
             delta = max(delta_x, delta_y) * 2  # Умножаем на 2, чтобы изменить размер симметрично
@@ -271,6 +368,8 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
             self.setPolygon(self.create_diamond(self.center_x, self.center_y, new_size))
         else:
             super().mouseMoveEvent(event)
+
+
 
     def mouseReleaseEvent(self, event):
         self.is_resizing = False
@@ -283,18 +382,23 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
 
     def itemChange(self, change, value):
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
+            # Если изменяется позиция, обновляем стрелки
             for arrow in self.arrows:
-                arrow.update_arrow()
-        return super().itemChange(change, value)
+                if arrow.node1 and arrow.node2:  # Проверка, что стрелка всё ещё привязана к узлам
+                    arrow.update_arrow()  # Обновляем стрелку, чтобы она следовала за объектом
+            return value  # Возвращаем новое значение позиции
+        return super().itemChange(change, value)  # Обработка остальных изменений
+
 
     def add_arrow(self, arrow):
-        
         if arrow not in self.arrows:
             self.arrows.append(arrow)
+            arrow.update_arrow()
+
 
 
 class StartEvent(QtWidgets.QGraphicsEllipseItem):
-    def __init__(self, x, y, radius):
+    def __init__(self, x, y, radius, node1=None, node2=None):
         super().__init__(x - radius, y - radius, 2 * radius, 2 * radius)
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать элемент
@@ -306,6 +410,15 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
         self.resize_margin = 10  # Чувствительная область для изменения размера
 
         self.arrows = []  # Список стрелок, привязанных к этому кругу
+
+        self.node1 = node1
+        self.node2 = node2
+
+    # def remove_all_arrows(self):
+    #     for arrow in list(self.arrows):  # Создаем копию списка для безопасного удаления
+    #         if arrow.scene():
+    #             arrow.remove_arrow()  # Удаляем стрелку
+    #     self.arrows.clear()  # Очищаем список стрелок
 
     def hoverMoveEvent(self, event):
         rect = self.rect()
@@ -371,10 +484,12 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
 
     def itemChange(self, change, value):
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
-            # При изменении позиции круга обновляем все привязанные стрелки
+            # Если изменяется позиция, обновляем стрелки
             for arrow in self.arrows:
-                arrow.update_arrow()
-        return super().itemChange(change, value)
+                if arrow.node1 and arrow.node2:  # Проверка, что стрелка всё ещё привязана к узлам
+                    arrow.update_arrow()  # Обновляем стрелку, чтобы она следовала за объектом
+            return value  # Возвращаем новое значение позиции
+        return super().itemChange(change, value)  # Обработка остальных изменений
 
     def add_arrow(self, arrow):
         # self.arrows.append(arrow)
@@ -384,7 +499,7 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
             
 
 class EndEvent(QtWidgets.QGraphicsEllipseItem):
-    def __init__(self, x, y, radius, inner_radius_ratio=0.5):
+    def __init__(self, x, y, radius, inner_radius_ratio=0.5, node1=None, node2=None):
         super().__init__(x - radius, y - radius, 2 * radius, 2 * radius)
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))  # Основной круг
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать элемент
@@ -478,16 +593,19 @@ class EndEvent(QtWidgets.QGraphicsEllipseItem):
 
     def itemChange(self, change, value):
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
+            # Если изменяется позиция, обновляем стрелки
             for arrow in self.arrows:
-                arrow.update_arrow()
-        return super().itemChange(change, value)
+                if arrow.node1 and arrow.node2:  # Проверка, что стрелка всё ещё привязана к узлам
+                    arrow.update_arrow()  # Обновляем стрелку, чтобы она следовала за объектом
+            return value  # Возвращаем новое значение позиции
+        return super().itemChange(change, value)  # Обработка остальных изменений
 
     def add_arrow(self, arrow):
         if arrow not in self.arrows:
             self.arrows.append(arrow)
 
 class ActiveState(QtWidgets.QGraphicsRectItem):
-    def __init__(self, x, y, width, height, radius):
+    def __init__(self, x, y, width, height, radius, node1=None, node2=None):
         super().__init__(x, y, width, height)
         self.width = width
         self.height = height
@@ -593,10 +711,12 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
 
     def itemChange(self, change, value):
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
-            # Предотвращаем перемещение элемента при изменении размера
-            if self.is_resizing:
-                self.pos()  # Зафиксировать позицию
-        return super().itemChange(change, value)
+            # Если изменяется позиция, обновляем стрелки
+            for arrow in self.arrows:
+                if arrow.node1 and arrow.node2:  # Проверка, что стрелка всё ещё привязана к узлам
+                    arrow.update_arrow()  # Обновляем стрелку, чтобы она следовала за объектом
+            return value  # Возвращаем новое значение позиции
+        return super().itemChange(change, value)  # Обработка остальных изменений
 
     def add_arrow(self, arrow):
         if arrow not in self.arrows:
@@ -605,7 +725,7 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
 
 
 class SignalSending(QtWidgets.QGraphicsPolygonItem):
-    def __init__(self, x, y, width, height):
+    def __init__(self, x, y, width, height, node1=None, node2=None):
         super().__init__()
         self.width = width
         self.height = height
@@ -625,6 +745,10 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
         self.resize_margin = 10 # Чувствительная область для изменения размера
 
         self.arrows = []
+        self.text_item = QtWidgets.QGraphicsTextItem(self)
+        self.text_item.setPlainText("Signal Sending")
+        self.text_item.setPos(x - width/2, y - height/2)
+        self.update_text_position()
 
     def create_pentagon(self, x, y, width, height):
         # Создает прямоугольный пятиугольник с заданным центром (x, y) и размером.
@@ -638,14 +762,18 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
 
         polygon = QtGui.QPolygonF(points)
 
-        # # # Создаем текстовое поле внутри полигона
-        # # self.text_item = QtWidgets.QGraphicsTextItem(self)
-        # # self.text_item.setPlainText("Signal Sending")
-        # # # self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
-        # # self.text_item.setPos(x + width/150, y + width/50)
-
-        # return reflected_rotated_polygon
         return polygon
+
+    def update_text_position(self):
+        center_x = self.center_x
+        center_y = self.center_y - self.height / 2 
+
+        # Центрируем текст относительно вычисленного центра
+        text_rect = self.text_item.boundingRect()
+        text_width = text_rect.width()
+        text_height = text_rect.height()
+
+        self.text_item.setPos(center_x - text_width / 2, center_y - text_height / 2)
 
     def hoverMoveEvent(self, event):
         rect = self.boundingRect()
@@ -675,6 +803,7 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
     def mouseMoveEvent(self, event):
         for arrow in self.arrows:
             arrow.update_arrow()
+        
         if self.is_resizing:
             delta_x = abs(event.pos().x() - self.center_x)
             delta_y = abs(event.pos().y() - self.center_y)
@@ -688,6 +817,7 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
 
             new_polygon = self.create_pentagon(self.center_x, self.center_y, self.width, self.height)
             self.setPolygon(new_polygon)
+            self.update_text_position()
         else:
             super().mouseMoveEvent(event)
 
@@ -702,9 +832,12 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
 
     def itemChange(self, change, value):
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
+            # Если изменяется позиция, обновляем стрелки
             for arrow in self.arrows:
-                arrow.update_arrow()
-        return super().itemChange(change, value)
+                if arrow.node1 and arrow.node2:  # Проверка, что стрелка всё ещё привязана к узлам
+                    arrow.update_arrow()  # Обновляем стрелку, чтобы она следовала за объектом
+            return value  # Возвращаем новое значение позиции
+        return super().itemChange(change, value)  # Обработка остальных изменений
 
     def add_arrow(self, arrow):
         self.arrows.append(arrow)
@@ -712,7 +845,7 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
 
 
 class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
-    def __init__(self, x, y, width, height):
+    def __init__(self, x, y, width, height, node1=None, node2=None):
         super().__init__()
         self.width = width
         self.height = height
@@ -732,6 +865,11 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
         self.resize_margin = 10 # Чувствительная область для изменения размера
 
         self.arrows = []
+
+        self.text_item = QtWidgets.QGraphicsTextItem(self)
+        self.text_item.setPlainText("Signal receipt")
+        self.text_item.setPos(x - width/2, y - height/2)
+        self.update_text_position()
 
     def create_pentagon(self, x, y, width, height):
         # Создает прямоугольный пятиугольник с заданным центром (x, y) и размером.
@@ -748,6 +886,17 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
 
         return polygon
 
+    def update_text_position(self):
+        center_x = self.center_x
+        center_y = self.center_y - self.height / 2 
+
+        # Центрируем текст относительно вычисленного центра
+        text_rect = self.text_item.boundingRect()
+        text_width = text_rect.width()
+        text_height = text_rect.height()
+
+        self.text_item.setPos(center_x - text_width / 2, center_y - text_height / 2)
+
 
 
 
@@ -790,6 +939,7 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
                 new_height = max(10, delta_y * 2)
                 self.height = new_height
 
+            self.update_text_position()
             new_polygon = self.create_pentagon(self.center_x, self.center_y, self.width, self.height)
             self.setPolygon(new_polygon)
         else:
@@ -806,15 +956,18 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
 
     def itemChange(self, change, value):
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
+            # Если изменяется позиция, обновляем стрелки
             for arrow in self.arrows:
-                arrow.update_arrow()
-        return super().itemChange(change, value)
+                if arrow.node1 and arrow.node2:  # Проверка, что стрелка всё ещё привязана к узлам
+                    arrow.update_arrow()  # Обновляем стрелку, чтобы она следовала за объектом
+            return value  # Возвращаем новое значение позиции
+        return super().itemChange(change, value)  # Обработка остальных изменений
 
     def add_arrow(self, arrow):
         self.arrows.append(arrow)
 
 class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
-    def __init__(self, x, y, width, height):
+    def __init__(self, x, y, width, height, node1=None, node2=None):
         super().__init__()
         self.width = width
         self.height = height
@@ -906,9 +1059,12 @@ class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
 
     def itemChange(self, change, value):
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
+            # Если изменяется позиция, обновляем стрелки
             for arrow in self.arrows:
-                arrow.update_arrow()
-        return super().itemChange(change, value)
+                if arrow.node1 and arrow.node2:  # Проверка, что стрелка всё ещё привязана к узлам
+                    arrow.update_arrow()  # Обновляем стрелку, чтобы она следовала за объектом
+            return value  # Возвращаем новое значение позиции
+        return super().itemChange(change, value)  # Обработка остальных изменений
 
     def add_arrow(self, arrow):
         self.arrows.append(arrow)

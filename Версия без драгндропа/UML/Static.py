@@ -57,7 +57,7 @@ class Ui_StaticWidget(QtWidgets.QWidget):
         StaticWidget.setObjectName("StaticWidget")
         StaticWidget.setWindowModality(QtCore.Qt.NonModal)
         StaticWidget.resize(316, 157)
-        StaticWidget.setFixedSize(850, 300)  # Фиксируем размер окна
+        StaticWidget.setFixedSize(950, 300)  # Фиксируем размер окна
         # StaticWidget.setStyleSheet("background-color: rgb(233, 233, 233);")
         
         self.gridLayout = QtWidgets.QGridLayout(StaticWidget)  # Основной layout для StaticWidget
