@@ -1055,17 +1055,18 @@ QLabel {
                 arrow.remove_arrow()
 
                 # Убираем стрелку из сцены (если она там ещё есть)
-                if arrow.scene():
-                    self.scene_.removeItem(arrow)
+                
+                # self.scene_.removeItem(arrow)
+                del arrow
 
             # Обновляем узлы
             node1.update()
             node2.update()
 
-            self.user_.add_action(
-                f"Разъединены узлы '{node1.__class__.__name__}' и '{node2.__class__.__name__}'",
-                self.get_current_Realtime()
-            )
+            # self.user_.add_action(
+            #     f"Разъединены узлы '{node1.__class__.__name__}' и '{node2.__class__.__name__}'",
+            #     self.get_current_Realtime()
+            # )
             self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())), self.user_.action_history)
 
 

@@ -122,6 +122,7 @@ class Arrow(QGraphicsItem):
         pen = QPen(Qt.darkRed, 3)
         painter.setPen(pen)
         painter.drawPath(self.path)
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
 
         # Промежуточкая точка
         pen.setColor(Qt.black)
@@ -142,8 +143,7 @@ class Arrow(QGraphicsItem):
             self.node2.arrows.remove(self)
 
         # Удаляем стрелку из сцены
-        if self.scene():
-            self.scene().removeItem(self)
+        self.scene().removeItem(self)
 
         # Обновляем флаг
         self.is_removed = True
