@@ -967,6 +967,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             # Обновляем стрелку сразу после добавления
             arrow.update_arrow()  # Обновляем стрелку вручную, если нужно
             self.scene_.update()  # Перерисовываем сцену
+            self.user_.add_action(f"Соединены '{node1.__class__.__name__}' и '{node2.__class__.__name__}'", self.get_current_Realtime())
 
 
 
