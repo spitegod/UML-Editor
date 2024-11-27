@@ -187,16 +187,19 @@ class Arrow(QGraphicsItem):
 
 
 class Decision(QtWidgets.QGraphicsPolygonItem):
-    def __init__(self, x, y, size):
+    def __init__(self, x, y, size, color=QtCore.Qt.transparent):
         super().__init__()
         self.size = size
         self.center_x = x  # Сохраняем центр при инициализации
         self.center_y = y
+        self.color = color
+        self.border_color = QtCore.Qt.black  # Цвет окантовки
         self.setPolygon(self.create_diamond(self.center_x, self.center_y, self.size))
-        self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
+        self.setBrush(self.color)
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать элемент
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
         self.setAcceptHoverEvents(True)  # Для отслеживания наведения
+        self.setPen(QtGui.QPen(self.border_color, 2))
 
         self.is_resizing = False  # Флаг, указывающий, идет ли изменение размера
         self.resize_side = None  # Определяем, с какой стороны идет изменение размера
@@ -214,6 +217,10 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
             QtCore.QPointF(x - half_size, y)   # Левая вершина
         ])
 
+    def setColor(self, color):  
+        self.color = color
+        self.setBrush(self.color)
+        self.update()  # Обновляем элемент для перерисовки
     #Настройка выделения
     def hoverMoveEvent(self, event):
         rect = self.boundingRect()
@@ -243,6 +250,11 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
         else:
             self.is_resizing = False
         super().mousePressEvent(event)
+        if event.button() == QtCore.Qt.RightButton:  # Проверяем нажатие ПКМ
+            color = QtWidgets.QColorDialog.getColor()
+            if color.isValid():
+                self.setColor(color)  # Устанавливаем выбранный цвет
+
 
     def mouseMoveEvent(self, event):
         # super().mouseMoveEvent(event)

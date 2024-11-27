@@ -823,7 +823,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # for arrow in self.objectS_:
         #     if isinstance(arrow, Arrow):
         #         arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
-
+        
+        
 
     def draw_circle(self):
         # Вставляем круг на сцену
