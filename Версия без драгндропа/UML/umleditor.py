@@ -160,9 +160,9 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
         elif element_type == "ActiveState":
             item = ActiveState(position.x(), position.y(), 100, 60, 15)
         elif element_type == "SignalSending":
-            item = SignalSending(position.x(), position.y(), 100, 60)
+            item = SignalSending(position.x(), position.y(), 160, 60)
         elif element_type == "SignalReceipt":
-            item = SignalReceipt(position.x(), position.y(), 120, 60)
+            item = SignalReceipt(position.x(), position.y(), 180, 60)
         elif element_type == "Splitter_Merge":
             item = Splitter_Merge(position.x(), position.y(), 120, 40)
 
@@ -658,6 +658,8 @@ QLabel {
         self.button_6.clicked.connect(self.message_overcrowed_objectS)
         self.button_8.clicked.connect(self.message_overcrowed_objectS)
         self.button_4.clicked.connect(self.message_overcrowed_objectS)
+        self.action_add_image.triggered.connect(self.message_overcrowed_objectS)
+
         
 
         #Подсказки с горячими клавишами на тулбаре
@@ -981,7 +983,7 @@ QLabel {
         # self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
         x, y, size = 200, 200, 100  # Пример координат, размера и радиуса
-        pentagon = SignalSending(x, y, 100, 60)
+        pentagon = SignalSending(x, y, 160, 60)
         self.scene_.addItem(pentagon)  # Добавляем закругленный прямоугольник на сцену
 
         self.objectS_.append(pentagon)
@@ -996,7 +998,7 @@ QLabel {
         # self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
         x, y, size = 200, 200, 100  # Пример координат, размера и радиуса
-        pentagon = SignalReceipt(x, y, 120, 60)
+        pentagon = SignalReceipt(x, y, 180, 60)
         pentagon.setFlags(QtWidgets.QGraphicsItem.ItemIsMovable | QtWidgets.QGraphicsItem.ItemIsSelectable)
         self.scene_.addItem(pentagon)  # Добавляем закругленный прямоугольник на сцену
 
@@ -1090,18 +1092,11 @@ QLabel {
 
     def disconnect_nodes(self, node1, node2):
         if hasattr(node1, 'arrows') and hasattr(node2, 'arrows'):
-            for arrow in node1.arrows[:]:
+            for arrow in node1.arrows[:]:  # Проходим копию списка, чтобы избежать изменения во время итерации
                 if (arrow.node1 == node2 or arrow.node2 == node2) and arrow in node2.arrows:
                     self.user_.add_action(f"Рассоединены '{node1.__class__.__name__}' и '{node2.__class__.__name__}'", self.get_current_Realtime())
-                    if arrow.scene():  # Удаляем из сцены, если стрелка добавлена
-                        self.scene_.removeItem(arrow)
-                    
-                    # Удаляем стрелку из списков arrows для узлов
-                    if arrow in node1.arrows:
-                        node1.arrows.remove(arrow)
-                    if arrow in node2.arrows:
-                        node2.arrows.remove(arrow)
-            del arrow.node1, arrow.node2, arrow
+                    arrow.remove_arrow()
+
 
 
 

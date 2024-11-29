@@ -157,6 +157,9 @@ class Arrow(QGraphicsItem):
         if not self.node1 or not self.node2 or not self.scene():
             return
 
+        # self.node1 = self.node1  # Первый объект
+        # self.node2 = self.node2  # Второй объект
+        print(self.node1, "\t", self.node2)
         # Начало и конец стрелки
         start_center = self.node1.sceneBoundingRect().center()
         end_center = self.node2.sceneBoundingRect().center()
@@ -604,6 +607,49 @@ class EndEvent(QtWidgets.QGraphicsEllipseItem):
         if arrow not in self.arrows:
             self.arrows.append(arrow)
 
+class Text_into_object(QtWidgets.QGraphicsTextItem):
+    def __init__(self, max_length, parent=None):
+        super().__init__(parent)
+        self.max_length = max_length
+
+    def keyPressEvent(self, event):
+
+        current_text = self.toPlainText()
+
+        if len(current_text) >= self.max_length and event.key() not in (
+            QtCore.Qt.Key_Backspace,
+            QtCore.Qt.Key_Delete,
+            QtCore.Qt.Key_Left,
+            QtCore.Qt.Key_Right,
+        ):
+            event.ignore()
+            return
+        super().keyPressEvent(event)
+
+    def focusOutEvent(self, event):
+        # При потере фокуса выключаем редактирование
+        self.setTextInteractionFlags(QtCore.Qt.NoTextInteraction)
+        super().focusOutEvent(event)
+        
+    def update_wrapped_text(self, max_width):
+        font_metrics = QtGui.QFontMetrics(self.font())
+        current_text = self.toPlainText()
+        words = current_text.split()
+        current_line = ""
+        wrapped_text = ""
+
+        for word in words:
+            test_line = f"{current_line} {word}".strip()
+            if font_metrics.width(test_line) <= max_width:
+                current_line = test_line
+            else:
+                wrapped_text += f"{current_line}\n"
+                current_line = word
+
+        wrapped_text += current_line
+        self.setPlainText(wrapped_text)
+
+
 class ActiveState(QtWidgets.QGraphicsRectItem):
     def __init__(self, x, y, width, height, radius, node1=None, node2=None):
         super().__init__(x, y, width, height)
@@ -623,10 +669,33 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
         self.arrows = []  # Список стрелок, привязанных к этому прямоугольнику
 
         # Создаем текстовое поле внутри объекта
-        self.text_item = QtWidgets.QGraphicsTextItem(self)
+        self.text_item = Text_into_object(15, self) #15 - это максимально разрешаеммая длинна ввода
         self.text_item.setPlainText("Текст")
-        self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)  # Разрешаем редактирование текста
-        self.text_item.setPos(x + width / 4, y + height / 4)  # Устанавливаем начальную позицию текста
+        self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+        self.update_text_wrap()
+        self.update_text_position()
+
+    def update_text_wrap(self):
+        rect = self.rect()
+        text_width = rect.width() - 10  # Отступы по 5px с каждой стороны
+        if text_width > 0:
+            self.text_item.update_wrapped_text(text_width)
+
+        # self.max_text_length = 15 
+
+    def update_text_position(self):
+        rect = self.rect()
+        text_rect = self.text_item.boundingRect()
+        text_width = text_rect.width()
+        text_height = text_rect.height()
+
+        center_x = rect.x() + rect.width() / 2
+        center_y = rect.y() + rect.height() / 2
+
+        # Устанавливаем текст по центру
+        self.text_item.setPos(center_x - text_width / 2, center_y - text_height / 2)
+
+
 
     def paint(self, painter, option, widget=None):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)  # Включение сглаживания
@@ -645,10 +714,9 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
         # super().paint(painter, option, widget)
 
     def hoverMoveEvent(self, event):
-        rect = self.rect()
+        rect = self.boundingRect()
         x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
 
-        # Определяем курсор на основе стороны, к которой он ближе
         if abs(event.pos().x() - x) <= self.resize_margin:
             self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))
             self.resize_side = 'left'
@@ -673,37 +741,50 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
             self.is_resizing = False
         super().mousePressEvent(event)
 
-    def mouseMoveEvent(self, event):
-        for arrow in self.arrows:
-            arrow.update_arrow()
 
+    #Пока не работает. вернуться к этому
+    def mouseDoubleClickEvent(self, event):
+        print("Произошел двойной клик по элементу")
+        # Если двойной клик произошёл на текстовом элементе, включаем редактирование
+        local_pos = self.mapToItem(self.text_item, event.pos())
+        if self.text_item.contains(local_pos):
+            self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+            self.text_item.setFocus(QtCore.Qt.MouseFocusReason)
+        else:
+            super().mouseDoubleClickEvent(event)
+
+
+
+    def mouseMoveEvent(self, event):
         if self.is_resizing:
             rect = self.rect()
             x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
-            self.text_item.setPos(rect.x() + w / 4, rect.y() + h / 4)  # Обновляем позицию текста
 
-            # Пропорциональное изменение размера прямоугольника
             if self.resize_side == 'left':
-                delta = x - event.pos().x()
-                new_width = max(10, w + delta)
-                # Зафиксировать положение X, изменить только ширину
-                self.setRect(x - delta, y, new_width, h)
+                delta = event.pos().x() - x
+                new_width = max(10, w - delta)
+                if new_width > 10:
+                    self.setRect(x + delta, y, new_width, h)
             elif self.resize_side == 'right':
                 delta = event.pos().x() - (x + w)
                 new_width = max(10, w + delta)
-                self.setRect(x, y, new_width, h)  # Изменяется только ширина
+                self.setRect(x, y, new_width, h)
             elif self.resize_side == 'top':
-                delta = y - event.pos().y()
-                new_height = max(10, h + delta)
-                # Зафиксировать положение Y, изменить только высоту
-                self.setRect(x, y - delta, w, new_height)
+                delta = event.pos().y() - y
+                new_height = max(10, h - delta)
+                if new_height > 10:
+                    self.setRect(x, y + delta, w, new_height)
             elif self.resize_side == 'bottom':
                 delta = event.pos().y() - (y + h)
                 new_height = max(10, h + delta)
-                self.setRect(x, y, w, new_height)  # Изменяется только высота
+                self.setRect(x, y, w, new_height)
+
+            self.update_text_position()
+            self.update_text_wrap()
         else:
-            # Если идет изменение размера, не разрешаем перемещать
             super().mouseMoveEvent(event)
+
+
 
     def mouseReleaseEvent(self, event):
         self.is_resizing = False
@@ -745,10 +826,17 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
         self.resize_margin = 10 # Чувствительная область для изменения размера
 
         self.arrows = []
-        self.text_item = QtWidgets.QGraphicsTextItem(self)
+        self.text_item = Text_into_object(15, self)
         self.text_item.setPlainText("Signal Sending")
-        self.text_item.setPos(x - width/2, y - height/2)
+        self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+        self.update_text_wrap()
         self.update_text_position()
+
+    def update_text_wrap(self):
+        rect = self.boundingRect()
+        text_width = rect.width() - 10
+        if text_width > 0:
+            self.text_item.update_wrapped_text(text_width)
 
     def create_pentagon(self, x, y, width, height):
         # Создает прямоугольный пятиугольник с заданным центром (x, y) и размером.
@@ -817,6 +905,7 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
 
             new_polygon = self.create_pentagon(self.center_x, self.center_y, self.width, self.height)
             self.setPolygon(new_polygon)
+            self.update_text_wrap()
             self.update_text_position()
         else:
             super().mouseMoveEvent(event)
@@ -866,10 +955,17 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
 
         self.arrows = []
 
-        self.text_item = QtWidgets.QGraphicsTextItem(self)
+        self.text_item = Text_into_object(15, self)
         self.text_item.setPlainText("Signal receipt")
-        self.text_item.setPos(x - width/2, y - height/2)
+        self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+        self.update_text_wrap()
         self.update_text_position()
+
+    def update_text_wrap(self):
+        rect = self.boundingRect()
+        text_width = rect.width() - 10
+        if text_width > 0:
+            self.text_item.update_wrapped_text(text_width)
 
     def create_pentagon(self, x, y, width, height):
         # Создает прямоугольный пятиугольник с заданным центром (x, y) и размером.
@@ -940,6 +1036,7 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
                 self.height = new_height
 
             self.update_text_position()
+            self.update_text_wrap()
             new_polygon = self.create_pentagon(self.center_x, self.center_y, self.width, self.height)
             self.setPolygon(new_polygon)
         else:
