@@ -112,6 +112,8 @@ class Arrow(QGraphicsItem):
         self.update_arrow()
         self.is_removed = False 
 
+        self.pen = QPen(Qt.darkRed, 3, Qt.SolidLine)
+
     def boundingRect(self):
         extra_margin = 100  # Добавочная область вокруг стрелки
         rect = self.path.boundingRect()
@@ -119,18 +121,30 @@ class Arrow(QGraphicsItem):
 
     def paint(self, painter, option, widget=None):
         painter.setBrush(Qt.NoBrush)
-        pen = QPen(Qt.darkRed, 3)
-        painter.setPen(pen)
+        painter.setPen(self.pen)  # Используем pen для рисования
         painter.drawPath(self.path)
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
 
-        # Промежуточкая точка
-        pen.setColor(Qt.black)
+        # Промежуточные точки
+        pen = QPen(Qt.black)
         painter.setPen(pen)
         brush = QBrush(Qt.blue)
         painter.setBrush(brush)
         for point in self.intermediate_points:
             painter.drawEllipse(point, 5, 5)
+
+    def change_color(self, color):
+        # Метод для изменения цвета стрелки
+        self.pen.setColor(color)
+        self.update()  # Обновляем стрелку с новым цветом
+
+    def change_line_type(self, line_type):
+        # Метод для изменения типа линии
+        if line_type == "dashed":
+            self.pen.setStyle(Qt.DashLine)  # Пунктирная линия
+        else:
+            self.pen.setStyle(Qt.SolidLine)  # Сплошная линия
+        self.update()  # Обновляем стрелку с новым стилем линии
 
     def remove_arrow(self):
         if self.is_removed:
@@ -403,6 +417,7 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
 class StartEvent(QtWidgets.QGraphicsEllipseItem):
     def __init__(self, x, y, radius, node1=None, node2=None):
         super().__init__(x - radius, y - radius, 2 * radius, 2 * radius)
+        self.radius = radius
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать элемент
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
@@ -422,6 +437,10 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
     #         if arrow.scene():
     #             arrow.remove_arrow()  # Удаляем стрелку
     #     self.arrows.clear()  # Очищаем список стрелок
+
+    def setRadius(self, new_radius):
+        self.radius = new_radius
+        self.setRect(self.x(), self.y(), new_radius * 2, new_radius * 2)
 
     def hoverMoveEvent(self, event):
         rect = self.rect()
@@ -504,6 +523,7 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
 class EndEvent(QtWidgets.QGraphicsEllipseItem):
     def __init__(self, x, y, radius, inner_radius_ratio=0.5, node1=None, node2=None):
         super().__init__(x - radius, y - radius, 2 * radius, 2 * radius)
+        self.radius = radius
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))  # Основной круг
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать элемент
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
@@ -519,6 +539,11 @@ class EndEvent(QtWidgets.QGraphicsEllipseItem):
         self.inner_radius_ratio = inner_radius_ratio  # Доля от внешнего радиуса
         self.inner_circle = QtWidgets.QGraphicsEllipseItem(self)
         self.update_inner_circle()
+
+    def setRadius(self, new_radius):
+        self.radius = new_radius
+        self.setRect(self.x(), self.y(), new_radius * 2, new_radius * 2)
+
 
     def update_inner_circle(self):
         rect = self.rect()
@@ -918,6 +943,13 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
         self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
         self.update_text_wrap()
         self.update_text_position()
+
+    # def update_size(self, new_width, new_height):
+    #     self.width = new_width
+    #     self.height = new_height
+    #     self.setPolygon(self.create_pentagon(self.center_x, self.center_y, self.width, self.height))
+    #     self.update_text_wrap()
+    #     self.update_text_position()
 
     def update_text_wrap(self):
         rect = self.boundingRect()

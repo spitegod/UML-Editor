@@ -6,7 +6,7 @@ from datetime import datetime
 from PyQt5 import QtCore, QtGui, QtWidgets
 from Static import Ui_StaticWidget  # Импортируем класс Ui_StaticWidget
 from uml_elements import *
-from PyQt5.QtWidgets import QGraphicsScene, QGraphicsItem, QGraphicsLineItem, QShortcut, QMessageBox, QUndoCommand, QUndoStack, QMenu, QMenuBar
+from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QTimer, QTime, QDateTime
 from PyQt5.QtCore import pyqtSignal  # Импортируем pyqtSignal
 from PyQt5.QtCore import Qt, QPointF, QLineF, QRectF
@@ -30,6 +30,141 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 #         self.scene.addItem(self.shape)  # Добавляем фигуру обратно на сцену
 #         self.scene.objectS_.append(self.shape)  # Добавляем в список объектов
 #         # print(f"{self.shape_type} добавлен, объектов на сцене:", len(self.scene.objectS_))
+
+class EditingPanel(QWidget):
+    def __init__(self, editable_item):
+        super().__init__()
+        self.editable_item = editable_item
+
+        layout = QVBoxLayout()
+
+        if isinstance(self.editable_item, Arrow):
+            self.color_button = QPushButton("Изменить цвет стрелки")
+            self.color_button.clicked.connect(self.change_arrow_color)
+
+            self.line_type_label = QLabel("Тип линии:")
+            self.line_type_combo = QComboBox(self)
+            self.line_type_combo.addItem("Сплошная")
+            self.line_type_combo.addItem("Пунктирная")
+            self.line_type_combo.currentTextChanged.connect(self.update_line_type)
+
+            layout.addWidget(self.color_button)
+            layout.addWidget(self.line_type_label)
+            layout.addWidget(self.line_type_combo)
+
+        
+        elif isinstance(self.editable_item, (StartEvent, EndEvent)):
+            self.radius_label = QLabel("Радиус:")
+            self.radius_spinbox = QSpinBox(self)
+            self.radius_spinbox.setValue(int(self.editable_item.radius))  
+            self.radius_spinbox.valueChanged.connect(self.update_radius)
+            self.color_button = QPushButton("Изменить цвет фона объекта")
+            self.color_button.clicked.connect(self.change_color)
+            layout.addWidget(self.color_button)
+            layout.addWidget(self.radius_label)
+            layout.addWidget(self.radius_spinbox)
+
+
+        elif isinstance(self.editable_item, (ActiveState, SignalSending, SignalReceipt)):
+            self.width_label = QLabel("Ширина:")
+            self.width_spinbox = QSpinBox(self)
+            self.width_spinbox.setValue(int(self.editable_item.boundingRect().width()))
+            self.width_spinbox.valueChanged.connect(self.update_width)
+
+            self.height_label = QLabel("Высота:")
+            self.height_spinbox = QSpinBox(self)
+            self.height_spinbox.setValue(int(self.editable_item.boundingRect().height()))
+            self.height_spinbox.valueChanged.connect(self.update_height)
+
+            self.text_label = QLabel("Текст:")
+            self.text_input = QLineEdit(self)
+            self.text_input.setText(self.editable_item.text_item.toPlainText())
+            self.text_input.textChanged.connect(self.update_text)
+
+            self.color_button = QPushButton("Изменить цвет фона объекта")
+            self.color_button.clicked.connect(self.change_color)
+
+            layout.addWidget(self.color_button)
+
+            layout.addWidget(self.width_label)
+            layout.addWidget(self.width_spinbox)
+            layout.addWidget(self.height_label)
+            layout.addWidget(self.height_spinbox)
+            layout.addWidget(self.text_label)
+            layout.addWidget(self.text_input)
+        
+        elif isinstance(self.editable_item, (ImageItem)):
+
+            self.opacity_label = QLabel("Прозрачность:")
+            self.opacity_slider = QSlider(Qt.Horizontal)
+            self.opacity_slider.setRange(0, 100)
+            self.opacity_slider.setValue(int(self.editable_item.opacity() * 100))
+            self.opacity_slider.valueChanged.connect(self.update_opacity)
+
+            layout.addWidget(self.opacity_label)
+            layout.addWidget(self.opacity_slider)
+
+        else:
+            self.message_label = QLabel("В разработке")
+            layout.addWidget(self.message_label)
+
+        self.setLayout(layout)
+
+    def change_arrow_color(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            self.editable_item.change_color(color)
+
+    def update_line_type(self):
+        line_type = self.line_type_combo.currentText()
+        if line_type == "Пунктирная":
+            self.editable_item.change_line_type("dashed")
+        else:
+            self.editable_item.change_line_type("solid")
+
+    def update_text(self):
+        if hasattr(self.editable_item, 'text_item'):
+            self.editable_item.text_item.setPlainText(self.text_input.text())
+
+    def update_width(self):
+        new_width = self.width_spinbox.value()
+        if hasattr(self.editable_item, 'setRect'):
+            rect = self.editable_item.boundingRect()
+            self.editable_item.setRect(rect.x(), rect.y(), new_width, rect.height())
+        elif hasattr(self.editable_item, 'update_size'):
+            rect = self.editable_item.boundingRect()
+            self.editable_item.update_size(new_width, rect.height())
+        else:
+            print(f"Cannot update width for {type(self.editable_item).__name__}")
+
+    def update_height(self):
+        new_height = self.height_spinbox.value()
+        if hasattr(self.editable_item, 'setRect'):
+            rect = self.editable_item.boundingRect()
+            self.editable_item.setRect(rect.x(), rect.y(), rect.width(), new_height)
+        elif hasattr(self.editable_item, 'update_size'):
+            rect = self.editable_item.boundingRect()
+            self.editable_item.update_size(rect.width(), new_height)
+        else:
+            print(f"Cannot update height for {type(self.editable_item).__name__}")
+
+    def update_radius(self):
+        if isinstance(self.editable_item, (StartEvent, EndEvent)):
+            new_radius = self.radius_spinbox.value()
+            self.editable_item.setRadius(new_radius)  # Обновляем радиус
+
+    def change_color(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            self.editable_item.setBrush(QBrush(color))
+
+    def update_opacity(self):
+        opacity = self.opacity_slider.value() / 100
+        self.editable_item.setOpacity(opacity)
+
+
+
+
 
 class DraggableButton(QtWidgets.QPushButton):
     def __init__(self, element_type, *args, **kwargs):
@@ -93,21 +228,17 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
 
         if selected_item:
             self.is_dragging = True
+            self.reset_time.show_editing_panel(selected_item)
             # Устанавливаем текст в label_x_y с названием класса элемента
             element_name = type(selected_item).__name__
             mouse_pos = event.scenePos()
             self.label.setText(f"Выбрано: {element_name} ({mouse_pos.x():.1f}, {mouse_pos.y():.1f})")
         else:
+            self.reset_time.on_selection_changed()
             self.is_dragging = False
             mouse_pos = event.scenePos()
             self.label.setText(f"({mouse_pos.x():.1f}, {mouse_pos.y():.1f})")
 
-        # # Проверяем, перетаскивается ли какой-то элемент
-        # if self.itemAt(event.scenePos(), QtGui.QTransform()) is not None:
-        #     self.is_dragging = True  # Если элемент найден, устанавливаем флаг перетаскивания
-        #     self.reset_time.reset_inaction()
-        # else:
-        #     self.is_dragging = False  # Если нет — снимаем флаг
 
         if not self.is_dragging:  # Начинаем рисовать прямоугольник выделения is_dragging = True
             if event.button() == QtCore.Qt.LeftButton:
@@ -173,6 +304,7 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
                                next(reversed(self.user_.action_history)),
                                next(reversed(self.user_.action_history.values())), self.user_.action_history)
         event.acceptProposedAction()
+        self.reset_time.show_editing_panel(item)
         if len(self.objectS) > 10:
             self.reset_time.message_overcrowed_objectS()
 
@@ -516,7 +648,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 QLabel {
             color: gray;                         }""")
         self.label_x_y.setText("(0, 0)")
-        self.gridLayout_2.addWidget(self.label_x_y, 1, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.label_x_y, 2, 1, 1, 1)
 
 
         #Настройка главного меню
@@ -719,6 +851,21 @@ QLabel {
 
         self.scene_ = My_GraphicsScene(self, self.objectS_, self.user_, self.label_x_y)
         self.graphicsView.setScene(self.scene_)  # Устанавливаем сцену в QGraphicsView
+
+        self.editing_dock = QDockWidget("Панель редактирования", self)
+        self.editing_dock.setWidget(QWidget())
+        self.addDockWidget(Qt.RightDockWidgetArea, self.editing_dock)
+        self.gridLayout_2.addWidget(self.editing_dock, 1, 1, 1, 1)
+        self.editing_dock.setVisible(False)
+        
+
+    def on_selection_changed(self):
+        self.editing_dock.setVisible(False)
+
+    def show_editing_panel(self, item):
+        panel = EditingPanel(item)
+        self.editing_dock.setWidget(panel)
+        self.editing_dock.setVisible(True)
 
     def open_dialog(self):
         print('')
