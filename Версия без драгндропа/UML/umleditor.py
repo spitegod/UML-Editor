@@ -36,7 +36,8 @@ class EditingPanel(QWidget):
         super().__init__()
         self.editable_item = editable_item
 
-        layout = QVBoxLayout()
+        # Используем QGridLayout вместо QVBoxLayout
+        layout = QGridLayout()
 
         if isinstance(self.editable_item, Arrow):
             self.color_button = QPushButton("Изменить цвет стрелки")
@@ -48,9 +49,9 @@ class EditingPanel(QWidget):
             self.line_type_combo.addItem("Пунктирная")
             self.line_type_combo.currentTextChanged.connect(self.update_line_type)
 
-            layout.addWidget(self.color_button)
-            layout.addWidget(self.line_type_label)
-            layout.addWidget(self.line_type_combo)
+            layout.addWidget(self.color_button, 0, 0, 1, 2)
+            layout.addWidget(self.line_type_label, 1, 0, 1, 1)
+            layout.addWidget(self.line_type_combo, 1, 1, 1, 1)
 
         
         elif isinstance(self.editable_item, (StartEvent, EndEvent)):
@@ -58,11 +59,13 @@ class EditingPanel(QWidget):
             self.radius_spinbox = QSpinBox(self)
             self.radius_spinbox.setValue(int(self.editable_item.radius))  
             self.radius_spinbox.valueChanged.connect(self.update_radius)
+            
             self.color_button = QPushButton("Изменить цвет фона объекта")
             self.color_button.clicked.connect(self.change_color)
-            layout.addWidget(self.color_button)
-            layout.addWidget(self.radius_label)
-            layout.addWidget(self.radius_spinbox)
+
+            layout.addWidget(self.color_button, 0, 0, 1, 2)
+            layout.addWidget(self.radius_label, 1, 0, 1, 1)
+            layout.addWidget(self.radius_spinbox, 1, 1, 1, 1)
 
 
         elif isinstance(self.editable_item, (ActiveState, SignalSending, SignalReceipt)):
@@ -84,14 +87,13 @@ class EditingPanel(QWidget):
             self.color_button = QPushButton("Изменить цвет фона объекта")
             self.color_button.clicked.connect(self.change_color)
 
-            layout.addWidget(self.color_button)
-
-            layout.addWidget(self.width_label)
-            layout.addWidget(self.width_spinbox)
-            layout.addWidget(self.height_label)
-            layout.addWidget(self.height_spinbox)
-            layout.addWidget(self.text_label)
-            layout.addWidget(self.text_input)
+            layout.addWidget(self.color_button, 0, 0, 1, 2)
+            layout.addWidget(self.width_label, 1, 0, 1, 1)
+            layout.addWidget(self.width_spinbox, 1, 1, 1, 1)
+            layout.addWidget(self.height_label, 2, 0, 1, 1)
+            layout.addWidget(self.height_spinbox, 2, 1, 1, 1)
+            layout.addWidget(self.text_label, 3, 0, 1, 1)
+            layout.addWidget(self.text_input, 3, 1, 1, 1)
         
         elif isinstance(self.editable_item, (ImageItem)):
 
@@ -101,12 +103,12 @@ class EditingPanel(QWidget):
             self.opacity_slider.setValue(int(self.editable_item.opacity() * 100))
             self.opacity_slider.valueChanged.connect(self.update_opacity)
 
-            layout.addWidget(self.opacity_label)
-            layout.addWidget(self.opacity_slider)
+            layout.addWidget(self.opacity_label, 0, 0, 1, 1)
+            layout.addWidget(self.opacity_slider, 0, 1, 1, 1)
 
         else:
             self.message_label = QLabel("В разработке")
-            layout.addWidget(self.message_label)
+            layout.addWidget(self.message_label, 0, 0, 1, 2)
 
         self.setLayout(layout)
 
@@ -161,6 +163,7 @@ class EditingPanel(QWidget):
     def update_opacity(self):
         opacity = self.opacity_slider.value() / 100
         self.editable_item.setOpacity(opacity)
+
 
 
 
@@ -852,11 +855,13 @@ QLabel {
         self.scene_ = My_GraphicsScene(self, self.objectS_, self.user_, self.label_x_y)
         self.graphicsView.setScene(self.scene_)  # Устанавливаем сцену в QGraphicsView
 
-        self.editing_dock = QDockWidget("Панель редактирования", self)
-        self.editing_dock.setWidget(QWidget())
-        self.addDockWidget(Qt.RightDockWidgetArea, self.editing_dock)
-        self.gridLayout_2.addWidget(self.editing_dock, 1, 1, 1, 1)
-        self.editing_dock.setVisible(False)
+        self.editing_dock = QtWidgets.QDockWidget("Панель редактирования", MainWindow)
+        self.editing_dock.setObjectName("editing_dock")
+        editing_widget = QtWidgets.QWidget()
+        self.editing_dock.setWidget(editing_widget)
+        MainWindow.addDockWidget(Qt.RightDockWidgetArea, self.editing_dock)
+        self.editing_dock.setVisible(True)
+        self.on_selection_changed()
         
 
     def on_selection_changed(self):
