@@ -717,21 +717,36 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
         rect = self.boundingRect()
         x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
 
-        if abs(event.pos().x() - x) <= self.resize_margin:
-            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))
+        # Проверяем углы
+        if abs(event.pos().x() - x) <= self.resize_margin and abs(event.pos().y() - y) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeFDiagCursor))  # Верхний левый угол
+            self.resize_side = 'top_left'
+        elif abs(event.pos().x() - (x + w)) <= self.resize_margin and abs(event.pos().y() - y) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeBDiagCursor))  # Верхний правый угол
+            self.resize_side = 'top_right'
+        elif abs(event.pos().x() - x) <= self.resize_margin and abs(event.pos().y() - (y + h)) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeBDiagCursor))  # Нижний левый угол
+            self.resize_side = 'bottom_left'
+        elif abs(event.pos().x() - (x + w)) <= self.resize_margin and abs(event.pos().y() - (y + h)) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeFDiagCursor))  # Нижний правый угол
+            self.resize_side = 'bottom_right'
+        # Проверяем стороны
+        elif abs(event.pos().x() - x) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))  # Левая сторона
             self.resize_side = 'left'
         elif abs(event.pos().x() - (x + w)) <= self.resize_margin:
-            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))  # Правая сторона
             self.resize_side = 'right'
         elif abs(event.pos().y() - y) <= self.resize_margin:
-            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))  # Верхняя сторона
             self.resize_side = 'top'
         elif abs(event.pos().y() - (y + h)) <= self.resize_margin:
-            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))  # Нижняя сторона
             self.resize_side = 'bottom'
         else:
             self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
             self.resize_side = None
+
         super().hoverMoveEvent(event)
 
     def mousePressEvent(self, event):
@@ -756,33 +771,105 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
 
 
     def mouseMoveEvent(self, event):
+
+        for arrow in self.arrows:
+            arrow.update_arrow()
+
         if self.is_resizing:
             rect = self.rect()
             x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
 
-            if self.resize_side == 'left':
-                delta = event.pos().x() - x
-                new_width = max(10, w - delta)
-                if new_width > 10:
-                    self.setRect(x + delta, y, new_width, h)
-            elif self.resize_side == 'right':
-                delta = event.pos().x() - (x + w)
-                new_width = max(10, w + delta)
-                self.setRect(x, y, new_width, h)
-            elif self.resize_side == 'top':
-                delta = event.pos().y() - y
-                new_height = max(10, h - delta)
-                if new_height > 10:
-                    self.setRect(x, y + delta, w, new_height)
-            elif self.resize_side == 'bottom':
-                delta = event.pos().y() - (y + h)
-                new_height = max(10, h + delta)
-                self.setRect(x, y, w, new_height)
+            # Проверка нажатия клавиши Shift
+            is_shift_pressed = QtWidgets.QApplication.keyboardModifiers() & QtCore.Qt.ShiftModifier
 
+            delta_x = event.pos().x() - (x if self.resize_side in ['top_left', 'bottom_left', 'left'] else (x + w))
+            delta_y = event.pos().y() - (y if self.resize_side in ['top_left', 'top_right', 'top'] else (y + h))
+
+            if self.resize_side == 'top_left':
+                new_width = max(10, w - delta_x)
+                new_height = max(10, h - delta_y)
+                if new_width > 10 and new_height > 10:
+                    self.setRect(x + delta_x, y + delta_y, new_width, new_height)
+
+            elif self.resize_side == 'top_right':
+                if is_shift_pressed:
+                    scale_factor = max(delta_x / w, -delta_y / h)
+                    delta_x = scale_factor * w
+                    delta_y = -scale_factor * h
+                new_width = max(10, w + delta_x)
+                new_height = max(10, h - delta_y)
+                if new_width > 10 and new_height > 10:
+                    self.setRect(x, y + delta_y, new_width, new_height)
+
+            elif self.resize_side == 'bottom_left':
+                if is_shift_pressed:
+                    scale_factor = max(-delta_x / w, delta_y / h)
+                    delta_x = -scale_factor * w
+                    delta_y = scale_factor * h
+                new_width = max(10, w - delta_x)
+                new_height = max(10, h + delta_y)
+                if new_width > 10 and new_height > 10:
+                    self.setRect(x + delta_x, y, new_width, new_height)
+
+            elif self.resize_side == 'bottom_right':
+                new_width = max(10, w + delta_x)
+                new_height = max(10, h + delta_y)
+                if new_width > 10 and new_height > 10:
+                    self.setRect(x, y, new_width, new_height)
+
+            elif self.resize_side == 'left':
+                new_width = max(10, w - delta_x)
+                if is_shift_pressed:
+                    new_height = new_width * (h / w)
+                    if new_height > 10:
+                        self.setRect(x + delta_x, y, new_width, new_height)
+                else:
+                    if new_width > 10:
+                        self.setRect(x + delta_x, y, new_width, h)
+
+            elif self.resize_side == 'right':
+                new_width = max(10, w + delta_x)
+                if is_shift_pressed:
+                    new_height = new_width * (h / w)
+                    if new_height > 10:
+                        self.setRect(x, y, new_width, new_height)
+                else:
+                    self.setRect(x, y, new_width, h)
+
+            elif self.resize_side == 'top':
+                new_height = max(10, h - delta_y)
+                if is_shift_pressed:
+                    new_width = new_height * (w / h)
+                    if new_width > 10:
+                        self.setRect(x, y + delta_y, new_width, new_height)
+                else:
+                    if new_height > 10:
+                        self.setRect(x, y + delta_y, w, new_height)
+
+            elif self.resize_side == 'bottom':
+                new_height = max(10, h + delta_y)
+                if is_shift_pressed:
+                    new_width = new_height * (w / h)
+                    if new_width > 10:
+                        self.setRect(x, y, new_width, new_height)
+                else:
+                    self.setRect(x, y, w, new_height)
+
+            # Обновляем текст
             self.update_text_position()
             self.update_text_wrap()
         else:
             super().mouseMoveEvent(event)
+
+
+
+
+
+
+
+
+
+
 
 
 

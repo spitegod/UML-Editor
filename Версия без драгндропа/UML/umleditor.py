@@ -213,6 +213,17 @@ class User:
     def add_action(self, action: str, time: str) -> None:
         self.action_history[time] = action  # Время как ключ, действие как значение
 
+    def pop_action(self, time: str = None) -> None:
+        if time:
+            # Удаляем действие по времени
+            removed_action = self.action_history.pop(time, None)
+            
+        else:
+            # Удаляем последнее добавленное действие
+            if self.action_history:
+                time, removed_action = self.action_history.popitem()
+
+
 #Класс в котором хранится массив с информацией о пользователях
 class UserManager:
     def __init__(self):
@@ -886,6 +897,8 @@ QLabel {
             msgBox.setWindowTitle("Предупреждение")
             msgBox.setStandardButtons(QMessageBox.Ok )
             # msgBox.buttonClicked.connect(msgButtonClick)
+            self.user_.pop_action()
+            self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())), self.user_.action_history)
 
             returnValue = msgBox.exec()
 
