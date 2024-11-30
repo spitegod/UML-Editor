@@ -109,10 +109,20 @@ class Arrow(QGraphicsItem):
         self.dragged_point_index = None
         self.top_point = None
 
-        self.update_arrow()
+        self.right_arrow_enabled = True
+        self.left_arrow_enabled = False
+
         self.is_removed = False 
 
-        self.pen = QPen(Qt.darkRed, 3, Qt.SolidLine)
+        self.pen_width = 3
+        self.pen = QPen(Qt.darkRed, self.pen_width, Qt.SolidLine)
+        self.update_arrow()
+
+    def change_width(self, width):
+        """Изменяет толщину линии стрелки."""
+        self.pen_width = width
+        self.pen.setWidth(self.pen_width)
+        self.update()
 
     def boundingRect(self):
         extra_margin = 100  # Добавочная область вокруг стрелки
@@ -136,15 +146,21 @@ class Arrow(QGraphicsItem):
     def change_color(self, color):
         # Метод для изменения цвета стрелки
         self.pen.setColor(color)
-        self.update()  # Обновляем стрелку с новым цветом
+        self.update() 
 
     def change_line_type(self, line_type):
         # Метод для изменения типа линии
-        if line_type == "dashed":
-            self.pen.setStyle(Qt.DashLine)  # Пунктирная линия
+        if line_type == "solid":
+            self.pen.setStyle(Qt.SolidLine)
+        elif line_type == "dashed":
+            self.pen.setStyle(Qt.DashLine)
+        elif line_type == "dotted":
+            self.pen.setStyle(Qt.DotLine)
+        elif line_type == "dash_dot":
+            self.pen.setStyle(Qt.DashDotLine)
         else:
-            self.pen.setStyle(Qt.SolidLine)  # Сплошная линия
-        self.update()  # Обновляем стрелку с новым стилем линии
+            self.pen.setStyle(Qt.SolidLine)
+        self.update()
 
     def remove_arrow(self):
         if self.is_removed:
@@ -171,10 +187,6 @@ class Arrow(QGraphicsItem):
         if not self.node1 or not self.node2 or not self.scene():
             return
 
-        # self.node1 = self.node1  # Первый объект
-        # self.node2 = self.node2  # Второй объект
-        print(self.node1, "\t", self.node2)
-        # Начало и конец стрелки
         start_center = self.node1.sceneBoundingRect().center()
         end_center = self.node2.sceneBoundingRect().center()
 
@@ -184,28 +196,36 @@ class Arrow(QGraphicsItem):
         start_point = self.get_edge_intersection(node1_rect, start_center, end_center)
         end_point = self.get_edge_intersection(node2_rect, end_center, start_center)
 
-        # Собираем все точки
         points = [start_point] + self.intermediate_points + [end_point]
 
-        # Построение пути
         path = QPainterPath()
         path.moveTo(points[0])
         for point in points[1:]:
             path.lineTo(point)
 
-        # Добавляем наконечник стрелки
         arrow_size = 15.0
-        angle = atan2(end_point.y() - points[-2].y(), end_point.x() - points[-2].x())
 
-        arrow_p1 = QPointF(end_point.x() - arrow_size * cos(angle - pi / 6),
-                           end_point.y() - arrow_size * sin(angle - pi / 6))
-        arrow_p2 = QPointF(end_point.x() - arrow_size * cos(angle + pi / 6),
-                           end_point.y() - arrow_size * sin(angle + pi / 6))
+        if self.right_arrow_enabled:
+            angle = atan2(end_point.y() - points[-2].y(), end_point.x() - points[-2].x())
+            arrow_p1 = QPointF(end_point.x() - arrow_size * cos(angle - pi / 6),
+                            end_point.y() - arrow_size * sin(angle - pi / 6))
+            arrow_p2 = QPointF(end_point.x() - arrow_size * cos(angle + pi / 6),
+                            end_point.y() - arrow_size * sin(angle + pi / 6))
+            path.moveTo(end_point)
+            path.lineTo(arrow_p1)
+            path.moveTo(end_point)
+            path.lineTo(arrow_p2)
 
-        path.moveTo(end_point)
-        path.lineTo(arrow_p1)
-        path.moveTo(end_point)
-        path.lineTo(arrow_p2)
+        if self.left_arrow_enabled:
+            angle = atan2(points[1].y() - start_point.y(), points[1].x() - start_point.x()) + pi
+            arrow_p1 = QPointF(start_point.x() - arrow_size * cos(angle - pi / 6),
+                            start_point.y() - arrow_size * sin(angle - pi / 6))
+            arrow_p2 = QPointF(start_point.x() - arrow_size * cos(angle + pi / 6),
+                            start_point.y() - arrow_size * sin(angle + pi / 6))
+            path.moveTo(start_point)
+            path.lineTo(arrow_p1)
+            path.moveTo(start_point)
+            path.lineTo(arrow_p2)
 
         self.path = path
         self.update()
@@ -215,7 +235,7 @@ class Arrow(QGraphicsItem):
         if event.button() == Qt.RightButton:
             # Если правый клик, проверяем, попали ли в существующую точку
             for i, point in enumerate(self.intermediate_points):
-                if QLineF(pos, point).length() < 10:  # Проверка близости к точке
+                if QLineF(pos, point).length() < 10:
                     del self.intermediate_points[i]  # Удаляем точку
                     self.update_arrow()
                     return

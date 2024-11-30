@@ -47,11 +47,34 @@ class EditingPanel(QWidget):
             self.line_type_combo = QComboBox(self)
             self.line_type_combo.addItem("Сплошная")
             self.line_type_combo.addItem("Пунктирная")
+            self.line_type_combo.addItem("Точечная")
+            self.line_type_combo.addItem("Чередующая")
+
+            self.thickness_label = QLabel("Толщина линии:")
+            self.thickness_spinbox = QSpinBox(self)
+            self.thickness_spinbox.setRange(2, 5)
+            self.thickness_spinbox.setValue(self.editable_item.pen_width)
+            self.thickness_spinbox.valueChanged.connect(self.update_arrow_thickness)
+
+
             self.line_type_combo.currentTextChanged.connect(self.update_line_type)
 
+            self.right_arrow_checkbox = QCheckBox("Наконечник справа")
+            self.right_arrow_checkbox.setChecked(self.editable_item.right_arrow_enabled)
+            self.right_arrow_checkbox.stateChanged.connect(self.toggle_right_arrow)
+
+            self.left_arrow_checkbox = QCheckBox("Наконечник слева")
+            self.left_arrow_checkbox.setChecked(self.editable_item.left_arrow_enabled)
+            self.left_arrow_checkbox.stateChanged.connect(self.toggle_left_arrow)
+
+            
             layout.addWidget(self.color_button, 0, 0, 1, 2)
-            layout.addWidget(self.line_type_label, 1, 0, 1, 1)
-            layout.addWidget(self.line_type_combo, 1, 1, 1, 1)
+            layout.addWidget(self.line_type_label, 1, 0)
+            layout.addWidget(self.line_type_combo, 1, 1)
+            layout.addWidget(self.thickness_label, 2, 0)
+            layout.addWidget(self.thickness_spinbox, 2, 1)
+            layout.addWidget(self.right_arrow_checkbox, 3, 0)
+            layout.addWidget(self.left_arrow_checkbox, 3, 1)
 
         
         elif isinstance(self.editable_item, (StartEvent, EndEvent)):
@@ -121,8 +144,25 @@ class EditingPanel(QWidget):
         line_type = self.line_type_combo.currentText()
         if line_type == "Пунктирная":
             self.editable_item.change_line_type("dashed")
+        elif line_type == "Сплошная":
+            self.editable_item.change_line_type("solid")
+        elif line_type == "Точечная":
+            self.editable_item.change_line_type("dotted")
+        elif line_type == "Чередующая":
+            self.editable_item.change_line_type("dash_dot")
         else:
             self.editable_item.change_line_type("solid")
+
+    def toggle_right_arrow(self, state):
+        self.editable_item.right_arrow_enabled = bool(state)
+        self.editable_item.update_arrow()
+
+    def toggle_left_arrow(self, state):
+        self.editable_item.left_arrow_enabled = bool(state)
+        self.editable_item.update_arrow()
+
+    def update_arrow_thickness(self, thickness):
+        self.editable_item.change_width(thickness)
 
     def update_text(self):
         if hasattr(self.editable_item, 'text_item'):
