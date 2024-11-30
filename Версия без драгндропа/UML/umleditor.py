@@ -135,6 +135,9 @@ class EditingPanel(QWidget):
 
         self.setLayout(layout)
 
+        self.setMinimumWidth(200)
+        self.setMaximumWidth(400)
+
     def change_arrow_color(self):
         color = QColorDialog.getColor()
         if color.isValid():
