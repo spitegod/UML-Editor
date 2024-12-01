@@ -1,6 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QPen, QPainterPath, QColor
-from PyQt5.QtCore import QPointF, Qt
+from PyQt5.QtGui import QPen, QPainterPath, QColor, QPolygonF, QBrush
+from PyQt5.QtCore import QPointF, Qt, QLineF
 from PyQt5.QtWidgets import QGraphicsItem, QGraphicsEllipseItem, QGraphicsRectItem, QGraphicsPolygonItem
 
 from math import *
@@ -97,137 +97,193 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 #     def setTextWidth(self, width):
 #         rect = self.boundingRect()
 #         self.setTextWidth(width)  # Устанавливаем новую ширину
-# Класс для создания диалогового окна, наследуемый от QDialog
-class DialogWindow(QtWidgets.QDialog):
-    def __init__(self):
-        super().__init__()
-        self.ui = Ui_Dialog()  # Экземпляр класса интерфейса
-        self.ui.setupUi(self)  # Настройка интерфейса в окне
-
-#--------------------
-class Ui_Dialog(object):
-    def setupUi(self, Dialog):
-        Dialog.setObjectName("Dialog")
-        Dialog.resize(139, 136)
-        self.gridLayout_2 = QtWidgets.QGridLayout(Dialog)
-        self.gridLayout_2.setObjectName("gridLayout_2")
-        self.gridLayout = QtWidgets.QGridLayout()
-        self.gridLayout.setObjectName("gridLayout")
-        self.label_4 = QtWidgets.QLabel(Dialog)
-        self.label_4.setObjectName("label_4")
-        self.gridLayout.addWidget(self.label_4, 0, 0, 1, 1)
-        self.formLayout = QtWidgets.QFormLayout()
-        self.formLayout.setObjectName("formLayout")
-        self.label = QtWidgets.QLabel(Dialog)
-        self.label.setObjectName("label")
-        self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
-        self.label_2 = QtWidgets.QLabel(Dialog)
-        self.label_2.setObjectName("label_2")
-        self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.label_2)
-        self.pushButton_BGcolor = QtWidgets.QPushButton(Dialog)
-        self.pushButton_BGcolor.setStyleSheet("background-color: rgb(255, 0, 0);")
-        self.pushButton_BGcolor.setText("")
-        self.pushButton_BGcolor.setObjectName("pushButton_BGcolor")
-        self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.pushButton_BGcolor)
-        self.lineEdit_text = QtWidgets.QLineEdit(Dialog)#<-----
-        self.lineEdit_text.setObjectName("lineEdit_text")
-        self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.lineEdit_text)
-        self.gridLayout.addLayout(self.formLayout, 1, 0, 1, 1)
-        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.pushButton_delete = QtWidgets.QPushButton(Dialog)
-        self.pushButton_delete.setStyleSheet("color: rgb(255, 0, 0);")
-        self.pushButton_delete.setObjectName("pushButton_delete")
-        self.horizontalLayout_2.addWidget(self.pushButton_delete)
-        self.line = QtWidgets.QFrame(Dialog)
-        self.line.setStyleSheet("background-color: rgb(117, 117, 117);")
-        self.line.setFrameShape(QtWidgets.QFrame.VLine)
-        self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
-        self.line.setObjectName("line")
-        self.horizontalLayout_2.addWidget(self.line)
-        self.pushButton_copy = QtWidgets.QPushButton(Dialog)
-        self.pushButton_copy.setObjectName("pushButton_copy")
-        self.horizontalLayout_2.addWidget(self.pushButton_copy)
-        self.gridLayout.addLayout(self.horizontalLayout_2, 4, 0, 1, 1)
-        self.line_2 = QtWidgets.QFrame(Dialog)
-        self.line_2.setStyleSheet("background-color: rgb(117, 117, 117);")
-        self.line_2.setFrameShape(QtWidgets.QFrame.HLine)
-        self.line_2.setFrameShadow(QtWidgets.QFrame.Sunken)
-        self.line_2.setObjectName("line_2")
-        self.gridLayout.addWidget(self.line_2, 3, 0, 1, 1)
-        self.gridLayout_2.addLayout(self.gridLayout, 0, 0, 1, 1)
-        self.retranslateUi(Dialog)
-        self.pushButton_BGcolor.clicked.connect(self.open_color_dialog)
-        QtCore.QMetaObject.connectSlotsByName(Dialog)
-    def retranslateUi(self, Dialog):
-        _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Управление"))
-        self.label_4.setText(_translate("Dialog", "Управление"))
-        self.label.setText(_translate("Dialog", "Цвет"))
-        self.label_2.setText(_translate("Dialog", "Tекст"))
-        self.pushButton_delete.setText(_translate("Dialog", "Удалить"))
-        self.pushButton_copy.setText(_translate("Dialog", "Копировать"))
-    def open_color_dialog(self):
-        color = QtWidgets.QColorDialog.getColor()
-        if color.isValid():
-            self.pushButton_BGcolor.setStyleSheet(f"background-color: {color.name()};")
-            self.lineEdit_text.setStyleSheet(f"QLineEdit {{ color: {color.name()} }}")
-
-#----------------------------------
-
 
 
 class Arrow(QGraphicsItem):
-    def __init__(self, node1, node2):
+    def __init__(self, node1, node2, intermediate_points=None):
         super().__init__()
 
         self.node1 = node1  # Первый объект
         self.node2 = node2  # Второй объект
+        self.intermediate_points = intermediate_points or []  # Промежуточные точки
+        self.dragged_point_index = None
+        self.top_point = None
 
-        # Сразу рисуем стрелку
         self.update_arrow()
+        self.is_removed = False 
 
     def boundingRect(self):
-        return self.path.boundingRect()
+        extra_margin = 100  # Добавочная область вокруг стрелки
+        rect = self.path.boundingRect()
+        return rect.adjusted(-extra_margin, -extra_margin, extra_margin, extra_margin)
 
     def paint(self, painter, option, widget=None):
-        painter.setPen(QPen(Qt.darkRed, 3))
-        painter.setBrush(Qt.darkRed)
+        painter.setBrush(Qt.NoBrush)
+        pen = QPen(Qt.darkRed, 3)
+        painter.setPen(pen)
         painter.drawPath(self.path)
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+
+        # Промежуточкая точка
+        pen.setColor(Qt.black)
+        painter.setPen(pen)
+        brush = QBrush(Qt.blue)
+        painter.setBrush(brush)
+        for point in self.intermediate_points:
+            painter.drawEllipse(point, 5, 5)
+
+    def remove_arrow(self):
+        if self.is_removed:
+            return  # Если стрелка уже удалена, ничего не делаем
+
+        # Удаляем стрелку из списков узлов
+        if self.node1 and self in self.node1.arrows:
+            self.node1.arrows.remove(self)
+        if self.node2 and self in self.node2.arrows:
+            self.node2.arrows.remove(self)
+
+        # Удаляем стрелку из сцены
+        self.scene().removeItem(self)
+
+        # Обновляем флаг
+        self.is_removed = True
+        self.node1 = None
+        self.node2 = None
+
+
+
 
     def update_arrow(self):
-        # Получаем центры объектов
+        if not self.node1 or not self.node2 or not self.scene():
+            return
+
+        # self.node1 = self.node1  # Первый объект
+        # self.node2 = self.node2  # Второй объект
+        print(self.node1, "\t", self.node2)
+        # Начало и конец стрелки
         start_center = self.node1.sceneBoundingRect().center()
         end_center = self.node2.sceneBoundingRect().center()
 
-        # Вычисляем направление и координаты стрелки
-        dx = end_center.x() - start_center.x()
-        dy = end_center.y() - start_center.y()
-        arrow_size = 15.0
-        angle = atan2(dy, dx)
+        node1_rect = self.node1.sceneBoundingRect()
+        node2_rect = self.node2.sceneBoundingRect()
 
-        # Координаты вершин стрелки
-        arrow_p1 = QPointF(end_center.x() - arrow_size * cos(angle - pi / 6),
-                           end_center.y() - arrow_size * sin(angle - pi / 6))
-        arrow_p2 = QPointF(end_center.x() - arrow_size * cos(angle + pi / 6),
-                           end_center.y() - arrow_size * sin(angle + pi / 6))
+        start_point = self.get_edge_intersection(node1_rect, start_center, end_center)
+        end_point = self.get_edge_intersection(node2_rect, end_center, start_center)
 
-        # Создаем путь стрелки
+        # Собираем все точки
+        points = [start_point] + self.intermediate_points + [end_point]
+
+        # Построение пути
         path = QPainterPath()
-        path.moveTo(start_center)  # Начало линии от центра node1
-        path.lineTo(end_center)    # Добавляем линию к центру node2
-        path.moveTo(end_center)    # Перемещаем "ручку" для рисования к концу линии
-        path.lineTo(arrow_p1)      # Линии для рисования наконечника стрелки
-        path.moveTo(end_center)
+        path.moveTo(points[0])
+        for point in points[1:]:
+            path.lineTo(point)
+
+        # Добавляем наконечник стрелки
+        arrow_size = 15.0
+        angle = atan2(end_point.y() - points[-2].y(), end_point.x() - points[-2].x())
+
+        arrow_p1 = QPointF(end_point.x() - arrow_size * cos(angle - pi / 6),
+                           end_point.y() - arrow_size * sin(angle - pi / 6))
+        arrow_p2 = QPointF(end_point.x() - arrow_size * cos(angle + pi / 6),
+                           end_point.y() - arrow_size * sin(angle + pi / 6))
+
+        path.moveTo(end_point)
+        path.lineTo(arrow_p1)
+        path.moveTo(end_point)
         path.lineTo(arrow_p2)
 
-        # Обновляем путь стрелки
         self.path = path
-        self.update()  # Обновляем отображение стрелки
+        self.update()
+
+    def mousePressEvent(self, event):
+        pos = event.pos()
+        if event.button() == Qt.RightButton:
+            # Если правый клик, проверяем, попали ли в существующую точку
+            for i, point in enumerate(self.intermediate_points):
+                if QLineF(pos, point).length() < 10:  # Проверка близости к точке
+                    del self.intermediate_points[i]  # Удаляем точку
+                    self.update_arrow()
+                    return
+
+            # Если правый клик не попал в существующую точку, добавляем новую точку
+            self.intermediate_points.append(pos)  # Добавляем точку в текущую позицию
+            self.update_arrow()
+            return
+
+        # Обрабатываем левый клик для перетаскивания
+        for i, point in enumerate(self.intermediate_points):
+            if QLineF(pos, point).length() < 10:  # Проверяем, близка ли точка к позиции клика
+                self.dragged_point_index = i
+                return
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if self.dragged_point_index is not None:
+            new_pos = event.pos()
+            # Перетаскиваем промежуточную точку
+            self.intermediate_points[self.dragged_point_index] = new_pos
+
+            # Обновляем путь стрелки
+            self.update_arrow()
+        else:
+            super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        self.dragged_point_index = None
+        super().mouseReleaseEvent(event)
 
 
+
+
+
+    def get_side_of_intersection(self, rect, point):
+        
+        if abs(point.y() - rect.top()) < 1e-3:  # Верхняя сторона
+            return 'top'
+        elif abs(point.y() - rect.bottom()) < 1e-3:  # Нижняя сторона
+            return 'bottom'
+        elif abs(point.x() - rect.left()) < 1e-3:  # Левая сторона
+            return 'left'
+        elif abs(point.x() - rect.right()) < 1e-3:  # Правая сторона
+            return 'right'
+        return None  # Если не удалось определить сторону
+
+
+
+
+
+    def get_edge_intersection(self, rect, start, end):
+        # Проверяем, есть ли пересечение
+        # print(f"Checking intersection: {start} -> {end} with rect {rect}")
+        if rect.isNull():  
+            return start
+
+        line = QLineF(start, end)
+
+        top_edge = QLineF(rect.topLeft(), rect.topRight())
+        bottom_edge = QLineF(rect.bottomLeft(), rect.bottomRight())
+        left_edge = QLineF(rect.topLeft(), rect.bottomLeft())
+        right_edge = QLineF(rect.topRight(), rect.bottomRight())
+
+        edges = [top_edge, bottom_edge, left_edge, right_edge]
+
+        intersection_point = QPointF()
+        for edge in edges:
+            if line.intersect(edge, intersection_point) == QLineF.BoundedIntersection:
+                # print(f"Intersection found at {intersection_point}")
+                return intersection_point
+        return start  # Возвращаем начальную точку, если нет пересечений
+
+
+
+
+
+
+
+#
 class Decision(QtWidgets.QGraphicsPolygonItem):
-    def __init__(self, x, y, size, color=QtCore.Qt.transparent):
+    def __init__(self, x, y, size, color=QtCore.Qt.transparent, node1=None, node2=None):
         super().__init__()
         self.size = size
         self.center_x = x  # Сохраняем центр при инициализации
@@ -236,11 +292,9 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
         self.border_color = QtCore.Qt.black  # Цвет окантовки
         self.setPolygon(self.create_diamond(self.center_x, self.center_y, self.size))
         self.setBrush(self.color)
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)  # Позволяет перемещать элемент
+        self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать элемент
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
         self.setAcceptHoverEvents(True)  # Для отслеживания наведения
-
-
         self.setPen(QtGui.QPen(self.border_color, 2))
 
         self.is_resizing = False  # Флаг, указывающий, идет ли изменение размера
@@ -249,14 +303,11 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
 
         self.arrows = []  # Список стрелок, привязанных к этому ромбу
 
-
-
-
+        self.node1 = node1
+        self.node2 = node2
 
     def create_diamond(self, x, y, size):
         # Создает ромб с заданным центром (x, y) и размером.
-
-
         half_size = size / 2
         return QtGui.QPolygonF([
             QtCore.QPointF(x, y - half_size),  # Верхняя вершина
@@ -264,6 +315,21 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
             QtCore.QPointF(x, y + half_size),  # Нижняя вершина
             QtCore.QPointF(x - half_size, y)   # Левая вершина
         ])
+    def contextMenuEvent(self, event):
+        # Создаем контекстное меню
+        menu = QtWidgets.QMenu()
+        color_action = menu.addAction("Изменить цвет текста")
+        action = menu.exec_(event.screenPos())
+        if action == color_action:
+            self.setColor(self.color)
+
+    def setColor(self, color):  
+        self.color = color
+        color = QtWidgets.QColorDialog.getColor()
+        if color.isValid():
+                self.setBrush(color)
+                self.update()
+          # Обновляем элемент для перерисовки
 
 
     #Настройка выделения
@@ -288,16 +354,7 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
             self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
             self.resize_side = None
         super().hoverMoveEvent(event)
-
-    def open_dialog(self):
-        # Создаем и отображаем диалоговое окно
-        dialog = DialogWindow()
-        dialog.exec_()
-
-    def setColor(self, color):
-        self.color = color
-        self.setBrush(self.color)
-        self.update()  # Обновляем элемент для перерисовки
+        
 
     def mousePressEvent(self, event):
         if self.resize_side:
@@ -305,25 +362,17 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
         else:
             self.is_resizing = False
         super().mousePressEvent(event)
-
-        if event.button() == QtCore.Qt.RightButton:  # Проверяем нажатие ПКМ
-            color = QtWidgets.QColorDialog.getColor()
-            if color.isValid():
-                self.setColor(color)  # Устанавливаем выбранный цвет
-
-
-#        if event.button() == QtCore.Qt.RightButton:  # Проверяем, нажата ли правая кнопка мыши
-#            self.open_dialog()  # Вызываем метод, который ничего не делает
- #       else:
- #           super().mousePressEvent(event)  # Вызов базового метода для стандартного поведения
+        #if event.button() == QtCore.Qt.RightButton:  # Проверяем нажатие ПКМ
+            #color = QtWidgets.QColorDialog.getColor()
+            #if color.isValid():
+                #self.setColor(color)  # Устанавливаем выбранный цвет
 
     def mouseMoveEvent(self, event):
-        # super().mouseMoveEvent(event)
+        # Обновляем стрелки при движении объекта
         for arrow in self.arrows:
-            arrow.update_arrow()
+            arrow.update_arrow()  # Обновляем стрелку, чтобы она следовала за объектом
 
         if self.is_resizing:
-            # Пропорциональное изменение размера ромба, оставляя центр фиксированным
             delta_x = abs(event.pos().x() - self.center_x)
             delta_y = abs(event.pos().y() - self.center_y)
             delta = max(delta_x, delta_y) * 2  # Умножаем на 2, чтобы изменить размер симметрично
@@ -333,30 +382,39 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
         else:
             super().mouseMoveEvent(event)
 
+
+
     def mouseReleaseEvent(self, event):
         self.is_resizing = False
         super().mouseReleaseEvent(event)
 
+    # # Сглаживание отрисовки объекта
+    def paint(self, painter, option, widget=None):
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        super().paint(painter, option, widget)
+
     def itemChange(self, change, value):
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
+            # Если изменяется позиция, обновляем стрелки
             for arrow in self.arrows:
-                arrow.update_arrow()
-        return super().itemChange(change, value)
+                if arrow.node1 and arrow.node2:  # Проверка, что стрелка всё ещё привязана к узлам
+                    arrow.update_arrow()  # Обновляем стрелку, чтобы она следовала за объектом
+            return value  # Возвращаем новое значение позиции
+        return super().itemChange(change, value)  # Обработка остальных изменений
+
 
     def add_arrow(self, arrow):
-        
         if arrow not in self.arrows:
             self.arrows.append(arrow)
-
-
+            arrow.update_arrow()
 
 
 
 class StartEvent(QtWidgets.QGraphicsEllipseItem):
-    def __init__(self, x, y, radius):
+    def __init__(self, x, y, radius, node1=None, node2=None):
         super().__init__(x - radius, y - radius, 2 * radius, 2 * radius)
-        self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)  # Позволяет перемещать элемент
+        self.setBrush(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
+        self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать элемент
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
         self.setAcceptHoverEvents(True)  # Для отслеживания наведения
 
@@ -365,6 +423,15 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
         self.resize_margin = 10  # Чувствительная область для изменения размера
 
         self.arrows = []  # Список стрелок, привязанных к этому кругу
+
+        self.node1 = node1
+        self.node2 = node2
+
+    # def remove_all_arrows(self):
+    #     for arrow in list(self.arrows):  # Создаем копию списка для безопасного удаления
+    #         if arrow.scene():
+    #             arrow.remove_arrow()  # Удаляем стрелку
+    #     self.arrows.clear()  # Очищаем список стрелок
 
     def hoverMoveEvent(self, event):
         rect = self.rect()
@@ -423,12 +490,19 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
         self.is_resizing = False
         super().mouseReleaseEvent(event)
 
+    # Сглаживание отрисовки объекта
+    def paint(self, painter, option, widget=None):
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        super().paint(painter, option, widget)
+
     def itemChange(self, change, value):
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
-            # При изменении позиции круга обновляем все привязанные стрелки
+            # Если изменяется позиция, обновляем стрелки
             for arrow in self.arrows:
-                arrow.update_arrow()
-        return super().itemChange(change, value)
+                if arrow.node1 and arrow.node2:  # Проверка, что стрелка всё ещё привязана к узлам
+                    arrow.update_arrow()  # Обновляем стрелку, чтобы она следовала за объектом
+            return value  # Возвращаем новое значение позиции
+        return super().itemChange(change, value)  # Обработка остальных изменений
 
     def add_arrow(self, arrow):
         # self.arrows.append(arrow)
@@ -438,10 +512,10 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
             
 
 class EndEvent(QtWidgets.QGraphicsEllipseItem):
-    def __init__(self, x, y, radius, inner_radius_ratio=0.5):
+    def __init__(self, x, y, radius, inner_radius_ratio=0.5, node1=None, node2=None):
         super().__init__(x - radius, y - radius, 2 * radius, 2 * radius)
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))  # Основной круг
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)  # Позволяет перемещать элемент
+        self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать элемент
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
         self.setAcceptHoverEvents(True)  # Для отслеживания наведения
 
@@ -524,26 +598,98 @@ class EndEvent(QtWidgets.QGraphicsEllipseItem):
         self.is_resizing = False
         super().mouseReleaseEvent(event)
 
+    # Сглаживание отрисовки объекта
+    def paint(self, painter, option, widget=None):
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        super().paint(painter, option, widget)
+
+
     def itemChange(self, change, value):
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
+            # Если изменяется позиция, обновляем стрелки
             for arrow in self.arrows:
-                arrow.update_arrow()
-        return super().itemChange(change, value)
+                if arrow.node1 and arrow.node2:  # Проверка, что стрелка всё ещё привязана к узлам
+                    arrow.update_arrow()  # Обновляем стрелку, чтобы она следовала за объектом
+            return value  # Возвращаем новое значение позиции
+        return super().itemChange(change, value)  # Обработка остальных изменений
 
     def add_arrow(self, arrow):
         if arrow not in self.arrows:
             self.arrows.append(arrow)
 
+class Text_into_object(QtWidgets.QGraphicsTextItem):
+    def __init__(self, max_length, parent=None):
+        super().__init__(parent)
+        self.max_length = max_length
+        self.setDefaultTextColor(QtGui.QColor(0, 0, 0))  # Устанавливаем начальный цвет текста
+
+    def keyPressEvent(self, event):
+
+        current_text = self.toPlainText()
+
+        if len(current_text) >= self.max_length and event.key() not in (
+            QtCore.Qt.Key_Backspace,
+            QtCore.Qt.Key_Delete,
+            QtCore.Qt.Key_Left,
+            QtCore.Qt.Key_Right,
+        ):
+            event.ignore()
+            return
+        super().keyPressEvent(event)
+
+    def focusOutEvent(self, event):
+        # При потере фокуса выключаем редактирование
+        self.setTextInteractionFlags(QtCore.Qt.NoTextInteraction)
+        super().focusOutEvent(event)
+
+    def contextMenuEvent(self, event):
+        # Создаем контекстное меню
+        menu = QtWidgets.QMenu()
+        color_action = menu.addAction("Изменить цвет текста")
+        
+        action = menu.exec_(event.screenPos())
+        if action == color_action:
+            self.change_text_color()
+
+    def change_text_color(self):
+        # Открываем цветовой пикер
+        color = QtWidgets.QColorDialog.getColor()
+        if color.isValid():
+            self.setDefaultTextColor(color)
+        
+    def update_wrapped_text(self, max_width):
+        font_metrics = QtGui.QFontMetrics(self.font())
+        current_text = self.toPlainText()
+        words = current_text.split()
+        current_line = ""
+        wrapped_text = ""
+
+        for word in words:
+            test_line = f"{current_line} {word}".strip()
+            if font_metrics.width(test_line) <= max_width:
+                current_line = test_line
+            else:
+                wrapped_text += f"{current_line}\n"
+                current_line = word
+
+        wrapped_text += current_line
+        self.setPlainText(wrapped_text)
+
+
 class ActiveState(QtWidgets.QGraphicsRectItem):
-    def __init__(self, x, y, width, height, radius):
+    def __init__(self, x, y, width, height, radius, node1=None,color=QtCore.Qt.transparent, node2=None):
         super().__init__(x, y, width, height)
         self.width = width
         self.height = height
         self.radius = radius  # Радиус закругления
         self.setRect(x, y, width, height)
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
+        self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
         self.setAcceptHoverEvents(True)  # Для отслеживания наведения
+        self.color = color
+        self.border_color = QtCore.Qt.black  # Цвет окантовки
+        self.setBrush(self.color)
 
         self.is_resizing = False  # Флаг, указывающий, идет ли изменение размера
         self.resize_side = None  # Определяем, с какой стороны идет изменение размера
@@ -552,12 +698,51 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
         self.arrows = []  # Список стрелок, привязанных к этому прямоугольнику
 
         # Создаем текстовое поле внутри объекта
-        self.text_item = QtWidgets.QGraphicsTextItem(self)
+        self.text_item = Text_into_object(15, self) #15 - это максимально разрешаеммая длинна ввода
         self.text_item.setPlainText("Текст")
-        self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)  # Разрешаем редактирование текста
-        self.text_item.setPos(x + width / 4, y + height / 4)  # Устанавливаем начальную позицию текста
+        self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+        self.update_text_wrap()
+        self.update_text_position()
+
+    def contextMenuEvent(self, event):
+        # Создаем контекстное меню
+        menu = QtWidgets.QMenu()
+        color_action = menu.addAction("Изменить цвет текста")
+        action = menu.exec_(event.screenPos())
+        if action == color_action:
+            self.setColor(self.color)
+
+    def setColor(self, color):  
+        self.color = color
+        color = QtWidgets.QColorDialog.getColor()
+        if color.isValid():
+                self.setBrush(color)
+                self.update()
+
+    def update_text_wrap(self):
+        rect = self.rect()
+        text_width = rect.width() - 10  # Отступы по 5px с каждой стороны
+        if text_width > 0:
+            self.text_item.update_wrapped_text(text_width)
+
+        # self.max_text_length = 15 
+
+    def update_text_position(self):
+        rect = self.rect()
+        text_rect = self.text_item.boundingRect()
+        text_width = text_rect.width()
+        text_height = text_rect.height()
+
+        center_x = rect.x() + rect.width() / 2
+        center_y = rect.y() + rect.height() / 2
+
+        # Устанавливаем текст по центру
+        self.text_item.setPos(center_x - text_width / 2, center_y - text_height / 2)
+
+
 
     def paint(self, painter, option, widget=None):
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)  # Включение сглаживания
         # Устанавливаем цвет заливки
         painter.setBrush(self.brush())
 
@@ -569,11 +754,13 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
 
         painter.drawRoundedRect(self.rect(), self.radius, self.radius)
 
+        # painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        # super().paint(painter, option, widget)
+
     def hoverMoveEvent(self, event):
-        rect = self.rect()
+        rect = self.boundingRect()
         x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
 
-        # Определяем курсор на основе стороны, к которой он ближе
         if abs(event.pos().x() - x) <= self.resize_margin:
             self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))
             self.resize_side = 'left'
@@ -598,37 +785,50 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
             self.is_resizing = False
         super().mousePressEvent(event)
 
-    def mouseMoveEvent(self, event):
-        for arrow in self.arrows:
-            arrow.update_arrow()
 
+    #Пока не работает. вернуться к этому
+    def mouseDoubleClickEvent(self, event):
+        print("Произошел двойной клик по элементу")
+        # Если двойной клик произошёл на текстовом элементе, включаем редактирование
+        local_pos = self.mapToItem(self.text_item, event.pos())
+        if self.text_item.contains(local_pos):
+            self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+            self.text_item.setFocus(QtCore.Qt.MouseFocusReason)
+        else:
+            super().mouseDoubleClickEvent(event)
+
+
+
+    def mouseMoveEvent(self, event):
         if self.is_resizing:
             rect = self.rect()
             x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
-            self.text_item.setPos(rect.x() + w / 4, rect.y() + h / 4)  # Обновляем позицию текста
 
-            # Пропорциональное изменение размера прямоугольника
             if self.resize_side == 'left':
-                delta = x - event.pos().x()
-                new_width = max(10, w + delta)
-                # Зафиксировать положение X, изменить только ширину
-                self.setRect(x - delta, y, new_width, h)
+                delta = event.pos().x() - x
+                new_width = max(10, w - delta)
+                if new_width > 10:
+                    self.setRect(x + delta, y, new_width, h)
             elif self.resize_side == 'right':
                 delta = event.pos().x() - (x + w)
                 new_width = max(10, w + delta)
-                self.setRect(x, y, new_width, h)  # Изменяется только ширина
+                self.setRect(x, y, new_width, h)
             elif self.resize_side == 'top':
-                delta = y - event.pos().y()
-                new_height = max(10, h + delta)
-                # Зафиксировать положение Y, изменить только высоту
-                self.setRect(x, y - delta, w, new_height)
+                delta = event.pos().y() - y
+                new_height = max(10, h - delta)
+                if new_height > 10:
+                    self.setRect(x, y + delta, w, new_height)
             elif self.resize_side == 'bottom':
                 delta = event.pos().y() - (y + h)
                 new_height = max(10, h + delta)
-                self.setRect(x, y, w, new_height)  # Изменяется только высота
+                self.setRect(x, y, w, new_height)
+
+            self.update_text_position()
+            self.update_text_wrap()
         else:
-            # Если идет изменение размера, не разрешаем перемещать
             super().mouseMoveEvent(event)
+
+
 
     def mouseReleaseEvent(self, event):
         self.is_resizing = False
@@ -636,10 +836,12 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
 
     def itemChange(self, change, value):
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
-            # Предотвращаем перемещение элемента при изменении размера
-            if self.is_resizing:
-                self.pos()  # Зафиксировать позицию
-        return super().itemChange(change, value)
+            # Если изменяется позиция, обновляем стрелки
+            for arrow in self.arrows:
+                if arrow.node1 and arrow.node2:  # Проверка, что стрелка всё ещё привязана к узлам
+                    arrow.update_arrow()  # Обновляем стрелку, чтобы она следовала за объектом
+            return value  # Возвращаем новое значение позиции
+        return super().itemChange(change, value)  # Обработка остальных изменений
 
     def add_arrow(self, arrow):
         if arrow not in self.arrows:
@@ -648,18 +850,21 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
 
 
 class SignalSending(QtWidgets.QGraphicsPolygonItem):
-    def __init__(self, x, y, width, height):
+    def __init__(self, x, y, width, height,color=QtCore.Qt.transparent, node1=None, node2=None):
         super().__init__()
         self.width = width
         self.height = height
         self.center_x = x
         self.center_y = y
+        self.color = color
+        self.border_color = QtCore.Qt.black  # Цвет окантовки
+        self.setBrush(self.color)
 
         # Создаем пентагон
         self.setPolygon(self.create_pentagon(self.center_x, self.center_y, self.width, self.height))
 
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
+        self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
         self.setAcceptHoverEvents(True)
 
@@ -668,36 +873,57 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
         self.resize_margin = 10 # Чувствительная область для изменения размера
 
         self.arrows = []
+        self.text_item = Text_into_object(15, self)
+        self.text_item.setPlainText("Signal Sending")
+        self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+        self.update_text_wrap()
+        self.update_text_position()
+
+    def contextMenuEvent(self, event):
+        # Создаем контекстное меню
+        menu = QtWidgets.QMenu()
+        color_action = menu.addAction("Изменить цвет текста")
+        action = menu.exec_(event.screenPos())
+        if action == color_action:
+            self.setColor(self.color)
+
+    def setColor(self, color):  
+        self.color = color
+        color = QtWidgets.QColorDialog.getColor()
+        if color.isValid():
+                self.setBrush(color)
+                self.update()
+
+    def update_text_wrap(self):
+        rect = self.boundingRect()
+        text_width = rect.width() - 10
+        if text_width > 0:
+            self.text_item.update_wrapped_text(text_width)
 
     def create_pentagon(self, x, y, width, height):
         # Создает прямоугольный пятиугольник с заданным центром (x, y) и размером.
         points = [
             QtCore.QPointF(x - width / 2, y),          # Середина слева
             QtCore.QPointF(x + width / 2, y),          # Середина справа
-            QtCore.QPointF(x + width / 2, y + height / 2),  # Нижний правый угол
-            QtCore.QPointF(x, y - ((height/500) - height * 0.7)),             # Середина внизу
-            QtCore.QPointF(x - width / 2, y + height / 2)   # Нижний левый угол
+            QtCore.QPointF(x + width*0.7, y - height / 2),             # Середина внизу
+            QtCore.QPointF(x + width / 2, y - height),   # Нижний левый угол
+            QtCore.QPointF(x - width / 2, y - height)          # Середина слева
         ]
 
         polygon = QtGui.QPolygonF(points)
 
-        # Применяем отражение по горизонтали и поворот на 90 градусов при создании полигона
-        # Поскольку полигон по умолчаю создается так, что острый угол у него находится внизу, а сторона
-        # с прямыми углами в верху, то мы его переворачиваем
-        transform = QtGui.QTransform()
-        transform.translate(self.center_x, self.center_y)
-        transform.scale(-1, 1)  # Отражение по оси X
-        transform.rotate(90) 
-        transform.translate(-self.center_x, -self.center_y)
-        reflected_rotated_polygon = QtGui.QPolygonF([transform.map(point) for point in polygon])
+        return polygon
 
-        # # Создаем текстовое поле внутри полигона
-        # self.text_item = QtWidgets.QGraphicsTextItem(self)
-        # self.text_item.setPlainText("Signal Sending")
-        # # self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
-        # self.text_item.setPos(x + width/150, y + width/50)
+    def update_text_position(self):
+        center_x = self.center_x
+        center_y = self.center_y - self.height / 2 
 
-        return reflected_rotated_polygon
+        # Центрируем текст относительно вычисленного центра
+        text_rect = self.text_item.boundingRect()
+        text_width = text_rect.width()
+        text_height = text_rect.height()
+
+        self.text_item.setPos(center_x - text_width / 2, center_y - text_height / 2)
 
     def hoverMoveEvent(self, event):
         rect = self.boundingRect()
@@ -727,6 +953,7 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
     def mouseMoveEvent(self, event):
         for arrow in self.arrows:
             arrow.update_arrow()
+        
         if self.is_resizing:
             delta_x = abs(event.pos().x() - self.center_x)
             delta_y = abs(event.pos().y() - self.center_y)
@@ -740,6 +967,8 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
 
             new_polygon = self.create_pentagon(self.center_x, self.center_y, self.width, self.height)
             self.setPolygon(new_polygon)
+            self.update_text_wrap()
+            self.update_text_position()
         else:
             super().mouseMoveEvent(event)
 
@@ -747,11 +976,19 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
         self.is_resizing = False
         super().mouseReleaseEvent(event)
 
+    #Сглаживаине отрисовки объекта
+    def paint(self, painter, option, widget=None):
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        super().paint(painter, option, widget)
+
     def itemChange(self, change, value):
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
+            # Если изменяется позиция, обновляем стрелки
             for arrow in self.arrows:
-                arrow.update_arrow()
-        return super().itemChange(change, value)
+                if arrow.node1 and arrow.node2:  # Проверка, что стрелка всё ещё привязана к узлам
+                    arrow.update_arrow()  # Обновляем стрелку, чтобы она следовала за объектом
+            return value  # Возвращаем новое значение позиции
+        return super().itemChange(change, value)  # Обработка остальных изменений
 
     def add_arrow(self, arrow):
         self.arrows.append(arrow)
@@ -759,18 +996,21 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
 
 
 class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
-    def __init__(self, x, y, width, height):
+    def __init__(self, x, y, width, height,color=QtCore.Qt.transparent, node1=None, node2=None):
         super().__init__()
         self.width = width
         self.height = height
         self.center_x = x
         self.center_y = y
+        self.color = color
+        self.border_color = QtCore.Qt.black  # Цвет окантовки
+        self.setBrush(self.color)
 
         # Создаем пентагон
         self.setPolygon(self.create_pentagon(self.center_x, self.center_y, self.width, self.height))
 
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
+        self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
         self.setAcceptHoverEvents(True)
 
@@ -780,27 +1020,58 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
 
         self.arrows = []
 
+        self.text_item = Text_into_object(15, self)
+        self.text_item.setPlainText("Signal receipt")
+        self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+        self.update_text_wrap()
+        self.update_text_position()
+
+    def contextMenuEvent(self, event):
+        # Создаем контекстное меню
+        menu = QtWidgets.QMenu()
+        color_action = menu.addAction("Изменить цвет текста")
+        action = menu.exec_(event.screenPos())
+        if action == color_action:
+            self.setColor(self.color)
+
+    def setColor(self, color):  
+        self.color = color
+        color = QtWidgets.QColorDialog.getColor()
+        if color.isValid():
+                self.setBrush(color)
+                self.update()
+
+    def update_text_wrap(self):
+        rect = self.boundingRect()
+        text_width = rect.width() - 10
+        if text_width > 0:
+            self.text_item.update_wrapped_text(text_width)
+
     def create_pentagon(self, x, y, width, height):
         # Создает прямоугольный пятиугольник с заданным центром (x, y) и размером.
         points = [
-            QtCore.QPointF(x - width / 2, y),          # Середина слева
-            QtCore.QPointF(x + width / 2, y),          # Середина справа
-            QtCore.QPointF(x + width / 2, y + height / 2),  # Нижний правый угол
-            QtCore.QPointF(x, y - (height / 200) + height/3),             # Середина внизу
-            QtCore.QPointF(x - width / 2, y + height / 2)   # Нижний левый угол
+            QtCore.QPointF(x + width * (-0.325), y - height / 2), # Угол слева
+            QtCore.QPointF(x - width / 2, y),          # Первая точка
+            QtCore.QPointF(x + width / 2, y),          # Точка напротив неё
+            QtCore.QPointF(x + width / 2, y - height),   # Первая нижняя точка
+            QtCore.QPointF(x - width / 2, y - height)    # Точка напротив неё
         ]
 
         polygon = QtGui.QPolygonF(points)
 
-        transform = QtGui.QTransform()
-        transform.translate(self.center_x, self.center_y)
-        transform.scale(-1, 1)  # Отражение по оси X
-        transform.rotate(-90)   # Поворот на 90 градусов влево
-        transform.translate(-self.center_x, -self.center_y)
 
-        reflected_rotated_polygon = QtGui.QPolygonF([transform.map(point) for point in polygon])
+        return polygon
 
-        return reflected_rotated_polygon
+    def update_text_position(self):
+        center_x = self.center_x
+        center_y = self.center_y - self.height / 2 
+
+        # Центрируем текст относительно вычисленного центра
+        text_rect = self.text_item.boundingRect()
+        text_width = text_rect.width()
+        text_height = text_rect.height()
+
+        self.text_item.setPos(center_x - text_width / 2, center_y - text_height / 2)
 
 
 
@@ -844,6 +1115,8 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
                 new_height = max(10, delta_y * 2)
                 self.height = new_height
 
+            self.update_text_position()
+            self.update_text_wrap()
             new_polygon = self.create_pentagon(self.center_x, self.center_y, self.width, self.height)
             self.setPolygon(new_polygon)
         else:
@@ -853,11 +1126,203 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
         self.is_resizing = False
         super().mouseReleaseEvent(event)
 
+    # #Сглаживаине отрисовки объекта
+    def paint(self, painter, option, widget=None):
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        super().paint(painter, option, widget)
+
+    def itemChange(self, change, value):
+        if change == QtWidgets.QGraphicsItem.ItemPositionChange:
+            # Если изменяется позиция, обновляем стрелки
+            for arrow in self.arrows:
+                if arrow.node1 and arrow.node2:  # Проверка, что стрелка всё ещё привязана к узлам
+                    arrow.update_arrow()  # Обновляем стрелку, чтобы она следовала за объектом
+            return value  # Возвращаем новое значение позиции
+        return super().itemChange(change, value)  # Обработка остальных изменений
+
+    def add_arrow(self, arrow):
+        self.arrows.append(arrow)
+
+class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
+    def __init__(self, x, y, width, height, node1=None, node2=None):
+        super().__init__()
+        self.width = width
+        self.height = height
+        self.center_x = x
+        self.center_y = y
+
+        self.setPolygon(self.create_SM(self.center_x, self.center_y, self.width, self.height))
+
+        self.setBrush(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
+        self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
+        self.setAcceptHoverEvents(True)
+
+        self.is_resizing = False # Флаг, указывающий, идет ли изменение размера
+        self.resize_side = None # Определяем, с какой стороны идет изменение размера
+        self.resize_margin = 10 # Чувствительная область для изменения размера
+
+        self.arrows = []
+
+    def create_SM(self, x, y, width, height):
+        # Создает прямоугольный пятиугольник с заданным центром (x, y) и размером.
+        points = [
+            QtCore.QPointF(x - width / 2, y),          # Первая точка
+            QtCore.QPointF(x + width / 2, y),          # Точка напротив неё
+            QtCore.QPointF(x + width / 2, y - height / 2),   # Первая нижняя точка
+            QtCore.QPointF(x - width / 2, y - height / 2)    # Точка напротив неё
+        ]
+
+        sm = QtGui.QPolygonF(points)
+
+
+        return sm
+
+
+
+
+    def hoverMoveEvent(self, event):
+        rect = self.boundingRect()
+        x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
+
+        if abs(event.pos().x() - x) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))
+            self.resize_side = 'left'
+        elif abs(event.pos().x() - (x + w)) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))
+            self.resize_side = 'right'
+        # elif abs(event.pos().y() - y) <= self.resize_margin:
+        #     self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))
+        #     self.resize_side = 'top'
+        # elif abs(event.pos().y() - (y + h)) <= self.resize_margin:
+        #     self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))
+        #     self.resize_side = 'bottom'
+        else:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+            self.resize_side = None
+        super().hoverMoveEvent(event)
+
+    def mousePressEvent(self, event):
+        self.is_resizing = bool(self.resize_side)
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        for arrow in self.arrows:
+            arrow.update_arrow()
+        if self.is_resizing:
+            delta_x = abs(event.pos().x() - self.center_x)
+            delta_y = abs(event.pos().y() - self.center_y)
+
+            if self.resize_side in ['left', 'right']:
+                new_width = max(10, delta_x * 2)
+                self.width = new_width
+            if self.resize_side in ['top', 'bottom']:
+                new_height = max(10, delta_y * 2)
+                self.height = new_height
+
+            new_polygon = self.create_SM(self.center_x, self.center_y, self.width, self.height)
+            self.setPolygon(new_polygon)
+        else:
+            super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        self.is_resizing = False
+        super().mouseReleaseEvent(event)
+
+    # #Сглаживаине отрисовки объекта
+    def paint(self, painter, option, widget=None):
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        super().paint(painter, option, widget)
+
+    def itemChange(self, change, value):
+        if change == QtWidgets.QGraphicsItem.ItemPositionChange:
+            # Если изменяется позиция, обновляем стрелки
+            for arrow in self.arrows:
+                if arrow.node1 and arrow.node2:  # Проверка, что стрелка всё ещё привязана к узлам
+                    arrow.update_arrow()  # Обновляем стрелку, чтобы она следовала за объектом
+            return value  # Возвращаем новое значение позиции
+        return super().itemChange(change, value)  # Обработка остальных изменений
+
+    def add_arrow(self, arrow):
+        self.arrows.append(arrow)
+
+class ImageItem(QtWidgets.QGraphicsPixmapItem):
+    def __init__(self, pixmap, x, y):
+        super().__init__(pixmap)
+        self.setPos(x, y)  # Устанавливаем начальную позицию
+        self.setFlags(
+            QtWidgets.QGraphicsItem.ItemIsMovable |
+            QtWidgets.QGraphicsItem.ItemIsSelectable |
+            QtWidgets.QGraphicsItem.ItemSendsGeometryChanges
+        )
+        self.setAcceptHoverEvents(True)  # Разрешаем обработку событий наведения
+
+        self.is_resizing = False  # Флаг изменения размера
+        self.resize_margin = 10  # Зона, в которой можно начинать изменение размера
+        self.arrows = []  # Список стрелок, привязанных к изображению
+
+    def hoverMoveEvent(self, event):
+        rect = self.boundingRect()
+        x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
+
+        # Изменяем курсор при наведении на края изображения
+        if abs(event.pos().x() - x) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))
+            self.resize_side = 'left'
+        elif abs(event.pos().x() - (x + w)) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))
+            self.resize_side = 'right'
+        elif abs(event.pos().y() - y) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))
+            self.resize_side = 'top'
+        elif abs(event.pos().y() - (y + h)) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))
+            self.resize_side = 'bottom'
+        else:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+        super().hoverMoveEvent(event)
+
+    def mousePressEvent(self, event):
+        if self.cursor().shape() in [QtCore.Qt.SizeHorCursor, QtCore.Qt.SizeVerCursor]:
+            self.is_resizing = True
+        else:
+            self.is_resizing = False
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if self.is_resizing:
+            rect = self.boundingRect()
+            delta = event.pos() - rect.center()
+            new_width = max(10, rect.width() + delta.x() * 2)  # Минимальная ширина 10
+            new_height = max(10, rect.height() + delta.y() * 2)  # Минимальная высота 10
+
+            # Обновляем размер изображения
+            self.setPixmap(
+                self.pixmap().scaled(int(new_width), int(new_height), QtCore.Qt.KeepAspectRatio)
+            )
+        else:
+            super().mouseMoveEvent(event)
+
+        # Обновляем стрелки
+        for arrow in self.arrows:
+            arrow.update_arrow()
+
+    def mouseReleaseEvent(self, event):
+        self.is_resizing = False
+        super().mouseReleaseEvent(event)
+
+    def add_arrow(self, arrow):
+        """Добавляем стрелку к изображению."""
+        if arrow not in self.arrows:
+            self.arrows.append(arrow)
+
     def itemChange(self, change, value):
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
             for arrow in self.arrows:
                 arrow.update_arrow()
         return super().itemChange(change, value)
 
-    def add_arrow(self, arrow):
-        self.arrows.append(arrow)
+    def paint(self, painter, option, widget=None):
+        """Сглаживание при отрисовке."""
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        super().paint(painter, option, widget)
