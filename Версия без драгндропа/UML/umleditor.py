@@ -133,10 +133,34 @@ class EditingPanel(QWidget):
             self.message_label = QLabel("В разработке")
             layout.addWidget(self.message_label, 0, 0, 1, 2)
 
+        self.x_label = QLabel("X:")
+        self.x_spinbox = QDoubleSpinBox(self)
+        self.x_spinbox.setRange(-1000, 1000)  # Диапазон значений
+        self.x_spinbox.setValue(editable_item.scenePos().x())
+        self.x_spinbox.valueChanged.connect(self.update_position)
+
+        self.y_label = QLabel("Y:")
+        self.y_spinbox = QDoubleSpinBox(self)
+        self.y_spinbox.setRange(-1000, 1000)  # Диапазон значений
+        self.y_spinbox.setValue(editable_item.scenePos().y())
+        self.y_spinbox.valueChanged.connect(self.update_position)
+
+        layout.addWidget(self.x_label, 4, 0)
+        layout.addWidget(self.x_spinbox, 4, 1)
+        layout.addWidget(self.y_label, 5, 0)
+        layout.addWidget(self.y_spinbox, 5, 1)
+
+
         self.setLayout(layout)
 
         self.setMinimumWidth(200)
         self.setMaximumWidth(400)
+
+    def update_position(self):
+        new_x = self.x_spinbox.value()
+        new_y = self.y_spinbox.value()
+        self.editable_item.setPos(new_x, new_y)
+
 
     def change_arrow_color(self):
         color = QColorDialog.getColor()
@@ -212,6 +236,8 @@ class EditingPanel(QWidget):
 
 
 
+
+
 class DraggableButton(QtWidgets.QPushButton):
     def __init__(self, element_type, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -256,7 +282,7 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
 
         
 
-    
+
     
     def drawBackground(self, painter, rect):
         # Включаем сглаживание
@@ -271,7 +297,7 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
         # self.clicks.append(event.scenePos())
 
         selected_item = self.itemAt(event.scenePos(), QtGui.QTransform())  # Находим элемент под курсором
-
+  
         if selected_item:
             self.is_dragging = True
             self.reset_time.show_editing_panel(selected_item)
@@ -1138,7 +1164,7 @@ QLabel {
         # Вставляем круг на сцену
         # Координаты центра и радиус круга
         # self.reset_inaction() #Сбрасыем второй таймер
-        x, y, radius = 200, 200, 30  # Пример: рисуем круг в центре с радиусом 50
+        x, y, radius = 0, 0, 30  # Пример: рисуем круг в центре с радиусом 50
         circle = StartEvent(x, y, radius)
         self.scene_.addItem(circle)  # Добавляем круг на сцену
 
@@ -1158,7 +1184,7 @@ QLabel {
         # self.reset_inaction() #Сбрасыем второй таймер
         # Вставляем круг на сцену
         # Координаты центра и радиус круга
-        x, y, radius, into_radius = 200, 200, 30, 0.5  # Пример: рисуем круг в центре с радиусом 50
+        x, y, radius, into_radius = 0, 0, 30, 0.5  # Пример: рисуем круг в центре с радиусом 50
         circle = EndEvent(x,y,radius, into_radius)
         self.scene_.addItem(circle)  # Добавляем круг на сцену
 
@@ -1174,7 +1200,7 @@ QLabel {
     def draw_rounded_rectangle(self):
         # self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
-        x, y, width, height, radius = 200, 200, 100, 60, 15  # Пример координат, размера и радиуса
+        x, y, width, height, radius = 0, 0, 100, 60, 15  # Пример координат, размера и радиуса
         rounded_rect = ActiveState(x, y, width, height, radius)
         self.scene_.addItem(rounded_rect)  # Добавляем закругленный прямоугольник на сцену
 
@@ -1190,7 +1216,7 @@ QLabel {
     def draw_pentagon_signal(self):
         # self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
-        x, y, size = 200, 200, 100  # Пример координат, размера и радиуса
+        x, y, size = 0, 0, 100  # Пример координат, размера и радиуса
         pentagon = SignalSending(x, y, 160, 60)
         self.scene_.addItem(pentagon)  # Добавляем закругленный прямоугольник на сцену
 
@@ -1205,7 +1231,7 @@ QLabel {
     def draw_pentagon_reverse(self):
         # self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
-        x, y, size = 200, 200, 100  # Пример координат, размера и радиуса
+        x, y, size = 0, 0, 100  # Пример координат, размера и радиуса
         pentagon = SignalReceipt(x, y, 180, 60)
         pentagon.setFlags(QtWidgets.QGraphicsItem.ItemIsMovable | QtWidgets.QGraphicsItem.ItemIsSelectable)
         self.scene_.addItem(pentagon)  # Добавляем закругленный прямоугольник на сцену
@@ -1221,7 +1247,7 @@ QLabel {
     def draw_splitter_merge(self):
         # self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
-        x, y = 200, 200  # Пример координат, размера и радиуса
+        x, y = 0, 0  # Пример координат, размера и радиуса
         stick = Splitter_Merge(x, y, 120, 40)
         stick.setFlags(QtWidgets.QGraphicsItem.ItemIsMovable | QtWidgets.QGraphicsItem.ItemIsSelectable)
         self.scene_.addItem(stick) 

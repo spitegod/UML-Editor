@@ -946,12 +946,13 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
         super().mouseReleaseEvent(event)
 
     def itemChange(self, change, value):
-        if change == QtWidgets.QGraphicsItem.ItemPositionChange:
+        if change == QtWidgets.QGraphicsItem.ItemPositionChange:         
             # Если изменяется позиция, обновляем стрелки
             for arrow in self.arrows:
                 if arrow.node1 and arrow.node2:  # Проверка, что стрелка всё ещё привязана к узлам
                     arrow.update_arrow()  # Обновляем стрелку, чтобы она следовала за объектом
-            return value  # Возвращаем новое значение позиции
+            return value  # Возвращаем новое значение позици
+               
         return super().itemChange(change, value)  # Обработка остальных изменений
 
     def add_arrow(self, arrow):
