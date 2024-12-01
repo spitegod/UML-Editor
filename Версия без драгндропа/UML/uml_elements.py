@@ -368,6 +368,7 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
             delta = max(delta_x, delta_y) * 2  # Умножаем на 2, чтобы изменить размер симметрично
 
             new_size = max(10, delta)  # Минимальный размер 10
+            self.size = new_size  # Обновляем атрибут размера
             self.setPolygon(self.create_diamond(self.center_x, self.center_y, new_size))
         else:
             super().mouseMoveEvent(event)
@@ -451,6 +452,7 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
         else:
             self.is_resizing = False
         super().mousePressEvent(event)
+
 
     def mouseMoveEvent(self, event):
          # Обновляем привязанные стрелки, если необходимо

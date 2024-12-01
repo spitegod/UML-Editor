@@ -753,7 +753,12 @@ QLabel {
             if not filepath:
                 return
 
-        data = {"items": []}
+        data = {"items": [], "scene": {}}
+
+        # Сохраняем размер сцены
+        rect = self.scene_.sceneRect()
+        data["scene"]["width"] = rect.width()
+        data["scene"]["height"] = rect.height()
         for item in self.scene_.items():
             if isinstance(item, QtWidgets.QGraphicsItem):
                 data["items"].append(self.serialize_item(item))
@@ -807,6 +812,11 @@ QLabel {
         # Заполняем структуру в зависимости от типа элемента
         if isinstance(item, Decision):  # Ромб
             base_data["size"] = item.size
+            position = item.sceneBoundingRect()
+            p_center = position.center()
+            x = p_center.x()/ 2
+            y = p_center.y() / 2
+            base_data["position"] = {"x": x, "y": y}
             # Проверяем, является ли цвет экземпляром QColor
             if isinstance(item.color, QtGui.QColor):
                 base_data["color"] = item.color.name()  # Сохраняем как HEX
@@ -817,28 +827,54 @@ QLabel {
         elif isinstance(item, StartEvent):  # Круг (начало)
             rect = item.rect()
             base_data["radius"] = rect.width() / 2
+            position = item.sceneBoundingRect()
+            p_center = position.center()
+            x = p_center.x()
+            y = p_center.y()
+            base_data["position"] = {"x": x, "y": y}
 
         elif isinstance(item, EndEvent):  # Круг с внутренним кругом (конец)
             rect = item.rect()
             base_data["radius"] = rect.width() / 2
             base_data["inner_radius_ratio"] = item.inner_radius_ratio
+            position = item.sceneBoundingRect()
+            p_center = position.center()
+            x = p_center.x()
+            y = p_center.y()
+            base_data["position"] = {"x": x, "y": y}
 
         elif isinstance(item, ActiveState):  # Прямоугольник с закругленными углами
             rect = item.rect()
             base_data["width"] = rect.width()
             base_data["height"] = rect.height()
-            base_data["radius"] = rect.width() / 16
+            base_data["radius"] = rect.width() / 6
             base_data["text"] = item.text_item.toPlainText() if hasattr(item, "text_item") else None
+            position = item.sceneBoundingRect()
+            p_center = position.center()
+            x = p_center.x() - 50
+            y = p_center.y() - 30
+            print(x, y)
+            base_data["position"] = {"x": x, "y": y}
 
         elif isinstance(item, SignalSending):  # Пентагон (сигнал отправки)
             rect = item.boundingRect()
-            base_data["width"] = rect.width()
-            base_data["height"] = rect.height()
+            base_data["width"] = item.width
+            base_data["height"] = item.height
+            position = item.sceneBoundingRect()
+            p_center = position.center()
+            x = p_center.x() - 15
+            y = p_center.y() + 30
+            base_data["position"] = {"x": x, "y": y}
 
         elif isinstance(item, SignalReceipt):  # Пентагон (сигнал получения)
             rect = item.boundingRect()
-            base_data["width"] = rect.width()
-            base_data["height"] = rect.height()
+            base_data["width"] = item.width
+            base_data["height"] = item.height
+            position = item.sceneBoundingRect()
+            p_center = position.center()
+            x = p_center.x()
+            y = p_center.y() + 30
+            base_data["position"] = {"x": x, "y": y}
 
         
 
@@ -1254,7 +1290,7 @@ QLabel {
 
             # Создание объектов в зависимости от типа
             if item_type == "Decision":
-                size = item_data.get("size", 50)  # Достаём "size" с умолчанием
+                size = item_data.get("size")  # Достаём "size" с умолчанием
                 color = item_data.get("color", "#000000")
                 if isinstance(color, str):
                     if color.startswith("#"):  # Если это HEX-строка
@@ -1264,21 +1300,30 @@ QLabel {
                 else:
                     color = QtGui.QColor()  # Цвет по умолчанию
 
-                item = Decision(*position, size, color)
+                position_data = item_data.get("position")
+                x, y = position_data.get("x"), position_data.get("y")
+                print(x, y)
+
+                item = Decision(x, y, size, color)
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
-                
+                # Устанавливаем точную позицию
+                item.setPos(x, y)
 
             elif item_type == "StartEvent":
                 radius = item_data.get("radius", 30)  # Достаём "radius" с умолчанием
-                item = StartEvent(*position, radius)
+                position_data = item_data.get("position")
+                x, y = position_data.get("x"), position_data.get("y")
+                item = StartEvent(x, y, radius)
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 
             elif item_type == "EndEvent":
                 radius = item_data.get("radius", 30)
                 inner_radius_ratio = item_data.get("inner_radius_ratio", 0.5)
-                item = EndEvent(*position, radius, inner_radius_ratio)
+                position_data = item_data.get("position")
+                x, y = position_data.get("x"), position_data.get("y")
+                item = EndEvent(x, y, radius, inner_radius_ratio)
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 
@@ -1287,22 +1332,29 @@ QLabel {
                 height = item_data.get("height", 50)
                 radius = item_data.get("radius", 10)
                 text = item_data.get("text", "")
-                item = ActiveState(*position, width, height, radius)
+                position_data = item_data.get("position")
+                x, y = position_data.get("x"), position_data.get("y")
+                item = ActiveState(x, y, width, height, radius)
                 item.text_item.setPlainText(text)
+                
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 
             elif item_type == "SignalSending":
                 width = item_data.get("width", 60)
                 height = item_data.get("height", 40)
-                item = SignalSending(*position, width, height)
+                position_data = item_data.get("position")
+                x, y = position_data.get("x"), position_data.get("y")
+                item = SignalSending(x, y, width, height)
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 
             elif item_type == "SignalReceipt":
                 width = item_data.get("width", 60)
                 height = item_data.get("height", 40)
-                item = SignalReceipt(*position, width, height)
+                position_data = item_data.get("position")
+                x, y = position_data.get("x"), position_data.get("y")
+                item = SignalReceipt(x, y, width, height)
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 
