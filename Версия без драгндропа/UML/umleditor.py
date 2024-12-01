@@ -827,7 +827,7 @@ QLabel {
             rect = item.rect()
             base_data["width"] = rect.width()
             base_data["height"] = rect.height()
-            base_data["radius"] = rect.width() / 16
+            base_data["radius"] = rect.width() / 6
             base_data["text"] = item.text_item.toPlainText() if hasattr(item, "text_item") else None
 
         elif isinstance(item, SignalSending):  # Пентагон (сигнал отправки)
