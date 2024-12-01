@@ -106,11 +106,23 @@ class Arrow(QGraphicsItem):
         self.node1 = node1  # Первый объект
         self.node2 = node2  # Второй объект
         self.intermediate_points = intermediate_points or []  # Промежуточные точки
+        self.relative_points = []
         self.dragged_point_index = None
         self.top_point = None
 
-        self.update_arrow()
+        self.right_arrow_enabled = True
+        self.left_arrow_enabled = False
+
         self.is_removed = False 
+
+        self.pen_width = 3
+        self.pen = QPen(Qt.darkRed, self.pen_width, Qt.SolidLine)
+        self.update_arrow()
+
+    def change_width(self, width): #Толщина стрелки
+        self.pen_width = width
+        self.pen.setWidth(self.pen_width)
+        self.update()
 
     def boundingRect(self):
         extra_margin = 100  # Добавочная область вокруг стрелки
@@ -119,18 +131,36 @@ class Arrow(QGraphicsItem):
 
     def paint(self, painter, option, widget=None):
         painter.setBrush(Qt.NoBrush)
-        pen = QPen(Qt.darkRed, 3)
-        painter.setPen(pen)
+        painter.setPen(self.pen)  # Используем pen для рисования
         painter.drawPath(self.path)
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
 
-        # Промежуточкая точка
-        pen.setColor(Qt.black)
+        # Промежуточные точки
+        pen = QPen(Qt.black)
         painter.setPen(pen)
         brush = QBrush(Qt.blue)
         painter.setBrush(brush)
         for point in self.intermediate_points:
             painter.drawEllipse(point, 5, 5)
+
+    def change_color(self, color):
+        # Метод для изменения цвета стрелки
+        self.pen.setColor(color)
+        self.update() 
+
+    def change_line_type(self, line_type):
+        # Метод для изменения типа линии
+        if line_type == "solid":
+            self.pen.setStyle(Qt.SolidLine)
+        elif line_type == "dashed":
+            self.pen.setStyle(Qt.DashLine)
+        elif line_type == "dotted":
+            self.pen.setStyle(Qt.DotLine)
+        elif line_type == "dash_dot":
+            self.pen.setStyle(Qt.DashDotLine)
+        else:
+            self.pen.setStyle(Qt.SolidLine)
+        self.update()
 
     def remove_arrow(self):
         if self.is_removed:
@@ -157,10 +187,6 @@ class Arrow(QGraphicsItem):
         if not self.node1 or not self.node2 or not self.scene():
             return
 
-        # self.node1 = self.node1  # Первый объект
-        # self.node2 = self.node2  # Второй объект
-        print(self.node1, "\t", self.node2)
-        # Начало и конец стрелки
         start_center = self.node1.sceneBoundingRect().center()
         end_center = self.node2.sceneBoundingRect().center()
 
@@ -170,64 +196,95 @@ class Arrow(QGraphicsItem):
         start_point = self.get_edge_intersection(node1_rect, start_center, end_center)
         end_point = self.get_edge_intersection(node2_rect, end_center, start_center)
 
-        # Собираем все точки
-        points = [start_point] + self.intermediate_points + [end_point]
 
-        # Построение пути
+        if not self.relative_points:
+            self.relative_points = [
+                QPointF(point.x() - start_point.x(), point.y() - start_point.y())
+                for point in self.intermediate_points
+            ]
+        self.intermediate_points = [
+            QPointF(start_point.x() + rel_point.x(), start_point.y() + rel_point.y())
+            for rel_point in self.relative_points
+        ]
+
+        points = [start_point] + self.intermediate_points + [end_point]
         path = QPainterPath()
         path.moveTo(points[0])
         for point in points[1:]:
             path.lineTo(point)
 
-        # Добавляем наконечник стрелки
         arrow_size = 15.0
-        angle = atan2(end_point.y() - points[-2].y(), end_point.x() - points[-2].x())
 
-        arrow_p1 = QPointF(end_point.x() - arrow_size * cos(angle - pi / 6),
-                           end_point.y() - arrow_size * sin(angle - pi / 6))
-        arrow_p2 = QPointF(end_point.x() - arrow_size * cos(angle + pi / 6),
-                           end_point.y() - arrow_size * sin(angle + pi / 6))
+        if self.right_arrow_enabled:
+            angle = atan2(end_point.y() - points[-2].y(), end_point.x() - points[-2].x())
+            arrow_p1 = QPointF(end_point.x() - arrow_size * cos(angle - pi / 6),
+                            end_point.y() - arrow_size * sin(angle - pi / 6))
+            arrow_p2 = QPointF(end_point.x() - arrow_size * cos(angle + pi / 6),
+                            end_point.y() - arrow_size * sin(angle + pi / 6))
+            path.moveTo(end_point)
+            path.lineTo(arrow_p1)
+            path.moveTo(end_point)
+            path.lineTo(arrow_p2)
 
-        path.moveTo(end_point)
-        path.lineTo(arrow_p1)
-        path.moveTo(end_point)
-        path.lineTo(arrow_p2)
+        if self.left_arrow_enabled:
+            angle = atan2(points[1].y() - start_point.y(), points[1].x() - start_point.x()) + pi
+            arrow_p1 = QPointF(start_point.x() - arrow_size * cos(angle - pi / 6),
+                            start_point.y() - arrow_size * sin(angle - pi / 6))
+            arrow_p2 = QPointF(start_point.x() - arrow_size * cos(angle + pi / 6),
+                            start_point.y() - arrow_size * sin(angle + pi / 6))
+            path.moveTo(start_point)
+            path.lineTo(arrow_p1)
+            path.moveTo(start_point)
+            path.lineTo(arrow_p2)
 
         self.path = path
         self.update()
 
+
     def mousePressEvent(self, event):
         pos = event.pos()
+
         if event.button() == Qt.RightButton:
-            # Если правый клик, проверяем, попали ли в существующую точку
+            # Удаление точки, если попали в существующую
             for i, point in enumerate(self.intermediate_points):
-                if QLineF(pos, point).length() < 10:  # Проверка близости к точке
-                    del self.intermediate_points[i]  # Удаляем точку
+                if QLineF(pos, point).length() < 10:
+                    del self.intermediate_points[i]
+                    del self.relative_points[i]
                     self.update_arrow()
                     return
 
-            # Если правый клик не попал в существующую точку, добавляем новую точку
-            self.intermediate_points.append(pos)  # Добавляем точку в текущую позицию
-            self.update_arrow()
+            # Добавление новой точки
+            if self.node1:
+                start_point = self.node1.sceneBoundingRect().center()
+                relative_pos = QPointF(pos.x() - start_point.x(), pos.y() - start_point.y())
+                self.relative_points.append(relative_pos)
+                self.intermediate_points.append(pos)
+                self.update_arrow()
             return
 
-        # Обрабатываем левый клик для перетаскивания
+        # перетаскивание точки
         for i, point in enumerate(self.intermediate_points):
-            if QLineF(pos, point).length() < 10:  # Проверяем, близка ли точка к позиции клика
+            if QLineF(pos, point).length() < 10:
                 self.dragged_point_index = i
                 return
+
         super().mousePressEvent(event)
+
 
     def mouseMoveEvent(self, event):
         if self.dragged_point_index is not None:
             new_pos = event.pos()
-            # Перетаскиваем промежуточную точку
+            # Обновляем положение точки
             self.intermediate_points[self.dragged_point_index] = new_pos
-
-            # Обновляем путь стрелки
+            # Обновляем её относительные координаты
+            start_point = self.node1.sceneBoundingRect().center()
+            self.relative_points[self.dragged_point_index] = QPointF(
+                new_pos.x() - start_point.x(), new_pos.y() - start_point.y()
+            )
             self.update_arrow()
         else:
             super().mouseMoveEvent(event)
+
 
     def mouseReleaseEvent(self, event):
         self.dragged_point_index = None
@@ -404,6 +461,7 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
 class StartEvent(QtWidgets.QGraphicsEllipseItem):
     def __init__(self, x, y, radius, node1=None, node2=None):
         super().__init__(x - radius, y - radius, 2 * radius, 2 * radius)
+        self.radius = radius
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать элемент
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
@@ -423,6 +481,10 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
     #         if arrow.scene():
     #             arrow.remove_arrow()  # Удаляем стрелку
     #     self.arrows.clear()  # Очищаем список стрелок
+
+    def setRadius(self, new_radius):
+        self.radius = new_radius
+        self.setRect(self.x(), self.y(), new_radius * 2, new_radius * 2)
 
     def hoverMoveEvent(self, event):
         rect = self.rect()
@@ -506,6 +568,7 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
 class EndEvent(QtWidgets.QGraphicsEllipseItem):
     def __init__(self, x, y, radius, inner_radius_ratio=0.5, node1=None, node2=None):
         super().__init__(x - radius, y - radius, 2 * radius, 2 * radius)
+        self.radius = radius
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))  # Основной круг
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать элемент
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
@@ -521,6 +584,11 @@ class EndEvent(QtWidgets.QGraphicsEllipseItem):
         self.inner_radius_ratio = inner_radius_ratio  # Доля от внешнего радиуса
         self.inner_circle = QtWidgets.QGraphicsEllipseItem(self)
         self.update_inner_circle()
+
+    def setRadius(self, new_radius):
+        self.radius = new_radius
+        self.setRect(self.x(), self.y(), new_radius * 2, new_radius * 2)
+
 
     def update_inner_circle(self):
         rect = self.rect()
@@ -719,21 +787,36 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
         rect = self.boundingRect()
         x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
 
-        if abs(event.pos().x() - x) <= self.resize_margin:
-            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))
+        # Проверяем углы
+        if abs(event.pos().x() - x) <= self.resize_margin and abs(event.pos().y() - y) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeFDiagCursor))  # Верхний левый угол
+            self.resize_side = 'top_left'
+        elif abs(event.pos().x() - (x + w)) <= self.resize_margin and abs(event.pos().y() - y) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeBDiagCursor))  # Верхний правый угол
+            self.resize_side = 'top_right'
+        elif abs(event.pos().x() - x) <= self.resize_margin and abs(event.pos().y() - (y + h)) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeBDiagCursor))  # Нижний левый угол
+            self.resize_side = 'bottom_left'
+        elif abs(event.pos().x() - (x + w)) <= self.resize_margin and abs(event.pos().y() - (y + h)) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeFDiagCursor))  # Нижний правый угол
+            self.resize_side = 'bottom_right'
+        # Проверяем стороны
+        elif abs(event.pos().x() - x) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))  # Левая сторона
             self.resize_side = 'left'
         elif abs(event.pos().x() - (x + w)) <= self.resize_margin:
-            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))  # Правая сторона
             self.resize_side = 'right'
         elif abs(event.pos().y() - y) <= self.resize_margin:
-            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))  # Верхняя сторона
             self.resize_side = 'top'
         elif abs(event.pos().y() - (y + h)) <= self.resize_margin:
-            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))  # Нижняя сторона
             self.resize_side = 'bottom'
         else:
             self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
             self.resize_side = None
+
         super().hoverMoveEvent(event)
 
     def mousePressEvent(self, event):
@@ -758,33 +841,105 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
 
 
     def mouseMoveEvent(self, event):
+
+        for arrow in self.arrows:
+            arrow.update_arrow()
+
         if self.is_resizing:
             rect = self.rect()
             x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
 
-            if self.resize_side == 'left':
-                delta = event.pos().x() - x
-                new_width = max(10, w - delta)
-                if new_width > 10:
-                    self.setRect(x + delta, y, new_width, h)
-            elif self.resize_side == 'right':
-                delta = event.pos().x() - (x + w)
-                new_width = max(10, w + delta)
-                self.setRect(x, y, new_width, h)
-            elif self.resize_side == 'top':
-                delta = event.pos().y() - y
-                new_height = max(10, h - delta)
-                if new_height > 10:
-                    self.setRect(x, y + delta, w, new_height)
-            elif self.resize_side == 'bottom':
-                delta = event.pos().y() - (y + h)
-                new_height = max(10, h + delta)
-                self.setRect(x, y, w, new_height)
+            # Проверка нажатия клавиши Shift
+            is_shift_pressed = QtWidgets.QApplication.keyboardModifiers() & QtCore.Qt.ShiftModifier
 
+            delta_x = event.pos().x() - (x if self.resize_side in ['top_left', 'bottom_left', 'left'] else (x + w))
+            delta_y = event.pos().y() - (y if self.resize_side in ['top_left', 'top_right', 'top'] else (y + h))
+
+            if self.resize_side == 'top_left':
+                new_width = max(10, w - delta_x)
+                new_height = max(10, h - delta_y)
+                if new_width > 10 and new_height > 10:
+                    self.setRect(x + delta_x, y + delta_y, new_width, new_height)
+
+            elif self.resize_side == 'top_right':
+                if is_shift_pressed:
+                    scale_factor = max(delta_x / w, -delta_y / h)
+                    delta_x = scale_factor * w
+                    delta_y = -scale_factor * h
+                new_width = max(10, w + delta_x)
+                new_height = max(10, h - delta_y)
+                if new_width > 10 and new_height > 10:
+                    self.setRect(x, y + delta_y, new_width, new_height)
+
+            elif self.resize_side == 'bottom_left':
+                if is_shift_pressed:
+                    scale_factor = max(-delta_x / w, delta_y / h)
+                    delta_x = -scale_factor * w
+                    delta_y = scale_factor * h
+                new_width = max(10, w - delta_x)
+                new_height = max(10, h + delta_y)
+                if new_width > 10 and new_height > 10:
+                    self.setRect(x + delta_x, y, new_width, new_height)
+
+            elif self.resize_side == 'bottom_right':
+                new_width = max(10, w + delta_x)
+                new_height = max(10, h + delta_y)
+                if new_width > 10 and new_height > 10:
+                    self.setRect(x, y, new_width, new_height)
+
+            elif self.resize_side == 'left':
+                new_width = max(10, w - delta_x)
+                if is_shift_pressed:
+                    new_height = new_width * (h / w)
+                    if new_height > 10:
+                        self.setRect(x + delta_x, y, new_width, new_height)
+                else:
+                    if new_width > 10:
+                        self.setRect(x + delta_x, y, new_width, h)
+
+            elif self.resize_side == 'right':
+                new_width = max(10, w + delta_x)
+                if is_shift_pressed:
+                    new_height = new_width * (h / w)
+                    if new_height > 10:
+                        self.setRect(x, y, new_width, new_height)
+                else:
+                    self.setRect(x, y, new_width, h)
+
+            elif self.resize_side == 'top':
+                new_height = max(10, h - delta_y)
+                if is_shift_pressed:
+                    new_width = new_height * (w / h)
+                    if new_width > 10:
+                        self.setRect(x, y + delta_y, new_width, new_height)
+                else:
+                    if new_height > 10:
+                        self.setRect(x, y + delta_y, w, new_height)
+
+            elif self.resize_side == 'bottom':
+                new_height = max(10, h + delta_y)
+                if is_shift_pressed:
+                    new_width = new_height * (w / h)
+                    if new_width > 10:
+                        self.setRect(x, y, new_width, new_height)
+                else:
+                    self.setRect(x, y, w, new_height)
+
+            # Обновляем текст
             self.update_text_position()
             self.update_text_wrap()
         else:
             super().mouseMoveEvent(event)
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -833,6 +988,13 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
         self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
         self.update_text_wrap()
         self.update_text_position()
+
+    # def update_size(self, new_width, new_height):
+    #     self.width = new_width
+    #     self.height = new_height
+    #     self.setPolygon(self.create_pentagon(self.center_x, self.center_y, self.width, self.height))
+    #     self.update_text_wrap()
+    #     self.update_text_position()
 
     def update_text_wrap(self):
         rect = self.boundingRect()
