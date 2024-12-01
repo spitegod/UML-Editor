@@ -837,6 +837,11 @@ QLabel {
             rect = item.rect()
             base_data["radius"] = rect.width() / 2
             base_data["inner_radius_ratio"] = item.inner_radius_ratio
+            position = item.sceneBoundingRect()
+            p_center = position.center()
+            x = p_center.x()
+            y = p_center.y()
+            base_data["position"] = {"x": x, "y": y}
 
         elif isinstance(item, ActiveState):  # Прямоугольник с закругленными углами
             rect = item.rect()
@@ -1300,7 +1305,9 @@ QLabel {
             elif item_type == "EndEvent":
                 radius = item_data.get("radius", 30)
                 inner_radius_ratio = item_data.get("inner_radius_ratio", 0.5)
-                item = EndEvent(*position, radius, inner_radius_ratio)
+                position_data = item_data.get("position")
+                x, y = position_data.get("x"), position_data.get("y")
+                item = EndEvent(x, y, radius, inner_radius_ratio)
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 
