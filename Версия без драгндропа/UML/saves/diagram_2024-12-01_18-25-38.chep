@@ -1,0 +1,38 @@
+{
+    "items": [
+        {
+            "type": "Text_into_object",
+            "position": [
+                279.5,
+                248.0
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null
+        },
+        {
+            "type": "ActiveState",
+            "position": {
+                "x": 300.0,
+                "y": 260.0
+            },
+            "size": null,
+            "radius": 16.666666666666668,
+            "inner_radius_ratio": null,
+            "width": 100.0,
+            "height": 60.0,
+            "text": "\u0422\u0435\u043a\u0441\u0442",
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null
+        }
+    ]
+}

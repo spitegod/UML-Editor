@@ -849,6 +849,12 @@ QLabel {
             base_data["height"] = rect.height()
             base_data["radius"] = rect.width() / 6
             base_data["text"] = item.text_item.toPlainText() if hasattr(item, "text_item") else None
+            position = item.sceneBoundingRect()
+            p_center = position.center()
+            x = p_center.x() - 50
+            y = p_center.y() - 30
+            print(x, y)
+            base_data["position"] = {"x": x, "y": y}
 
         elif isinstance(item, SignalSending):  # Пентагон (сигнал отправки)
             rect = item.boundingRect()
@@ -1316,8 +1322,11 @@ QLabel {
                 height = item_data.get("height", 50)
                 radius = item_data.get("radius", 10)
                 text = item_data.get("text", "")
-                item = ActiveState(*position, width, height, radius)
+                position_data = item_data.get("position")
+                x, y = position_data.get("x"), position_data.get("y")
+                item = ActiveState(x, y, width, height, radius)
                 item.text_item.setPlainText(text)
+                
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 
