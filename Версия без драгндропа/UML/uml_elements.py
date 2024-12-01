@@ -106,6 +106,7 @@ class Arrow(QGraphicsItem):
         self.node1 = node1  # Первый объект
         self.node2 = node2  # Второй объект
         self.intermediate_points = intermediate_points or []  # Промежуточные точки
+        self.relative_points = []
         self.dragged_point_index = None
         self.top_point = None
 
@@ -118,8 +119,7 @@ class Arrow(QGraphicsItem):
         self.pen = QPen(Qt.darkRed, self.pen_width, Qt.SolidLine)
         self.update_arrow()
 
-    def change_width(self, width):
-        """Изменяет толщину линии стрелки."""
+    def change_width(self, width): #Толщина стрелки
         self.pen_width = width
         self.pen.setWidth(self.pen_width)
         self.update()
@@ -196,8 +196,18 @@ class Arrow(QGraphicsItem):
         start_point = self.get_edge_intersection(node1_rect, start_center, end_center)
         end_point = self.get_edge_intersection(node2_rect, end_center, start_center)
 
-        points = [start_point] + self.intermediate_points + [end_point]
 
+        if not self.relative_points:
+            self.relative_points = [
+                QPointF(point.x() - start_point.x(), point.y() - start_point.y())
+                for point in self.intermediate_points
+            ]
+        self.intermediate_points = [
+            QPointF(start_point.x() + rel_point.x(), start_point.y() + rel_point.y())
+            for rel_point in self.relative_points
+        ]
+
+        points = [start_point] + self.intermediate_points + [end_point]
         path = QPainterPath()
         path.moveTo(points[0])
         for point in points[1:]:
@@ -230,38 +240,51 @@ class Arrow(QGraphicsItem):
         self.path = path
         self.update()
 
+
     def mousePressEvent(self, event):
         pos = event.pos()
+
         if event.button() == Qt.RightButton:
-            # Если правый клик, проверяем, попали ли в существующую точку
+            # Удаление точки, если попали в существующую
             for i, point in enumerate(self.intermediate_points):
                 if QLineF(pos, point).length() < 10:
-                    del self.intermediate_points[i]  # Удаляем точку
+                    del self.intermediate_points[i]
+                    del self.relative_points[i]
                     self.update_arrow()
                     return
 
-            # Если правый клик не попал в существующую точку, добавляем новую точку
-            self.intermediate_points.append(pos)  # Добавляем точку в текущую позицию
-            self.update_arrow()
+            # Добавление новой точки
+            if self.node1:
+                start_point = self.node1.sceneBoundingRect().center()
+                relative_pos = QPointF(pos.x() - start_point.x(), pos.y() - start_point.y())
+                self.relative_points.append(relative_pos)
+                self.intermediate_points.append(pos)
+                self.update_arrow()
             return
 
-        # Обрабатываем левый клик для перетаскивания
+        # перетаскивание точки
         for i, point in enumerate(self.intermediate_points):
-            if QLineF(pos, point).length() < 10:  # Проверяем, близка ли точка к позиции клика
+            if QLineF(pos, point).length() < 10:
                 self.dragged_point_index = i
                 return
+
         super().mousePressEvent(event)
+
 
     def mouseMoveEvent(self, event):
         if self.dragged_point_index is not None:
             new_pos = event.pos()
-            # Перетаскиваем промежуточную точку
+            # Обновляем положение точки
             self.intermediate_points[self.dragged_point_index] = new_pos
-
-            # Обновляем путь стрелки
+            # Обновляем её относительные координаты
+            start_point = self.node1.sceneBoundingRect().center()
+            self.relative_points[self.dragged_point_index] = QPointF(
+                new_pos.x() - start_point.x(), new_pos.y() - start_point.y()
+            )
             self.update_arrow()
         else:
             super().mouseMoveEvent(event)
+
 
     def mouseReleaseEvent(self, event):
         self.dragged_point_index = None
