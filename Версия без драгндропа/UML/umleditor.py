@@ -1254,7 +1254,7 @@ QLabel {
 
             # Создание объектов в зависимости от типа
             if item_type == "Decision":
-                size = item_data.get("size", 50)  # Достаём "size" с умолчанием
+                size = item_data.get("size")  # Достаём "size" с умолчанием
                 color = item_data.get("color", "#000000")
                 if isinstance(color, str):
                     if color.startswith("#"):  # Если это HEX-строка

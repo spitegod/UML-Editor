@@ -1,0 +1,95 @@
+{
+    "items": [
+        {
+            "type": "Arrow",
+            "position": [
+                0.0,
+                0.0
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": [
+                -88.0,
+                -405.0
+            ],
+            "end_node": [
+                107.0,
+                -41.0
+            ],
+            "color": null,
+            "line_width": null
+        },
+        {
+            "type": "QGraphicsEllipseItem",
+            "position": [
+                0.0,
+                0.0
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": 30.0,
+            "height": 30.0,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null
+        },
+        {
+            "type": "EndEvent",
+            "position": [
+                107.0,
+                -41.0
+            ],
+            "size": null,
+            "radius": 30.0,
+            "inner_radius_ratio": 0.5,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null
+        },
+        {
+            "type": "QGraphicsTextItem",
+            "position": [
+                225.0,
+                217.5
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null
+        },
+        {
+            "type": "ActiveState",
+            "position": [
+                -88.0,
+                -405.0
+            ],
+            "size": null,
+            "radius": 6.25,
+            "inner_radius_ratio": null,
+            "width": 100.0,
+            "height": 71.0,
+            "text": "\u0422\u0435dsgd\u043a\u0441\u0442",
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null
+        }
+    ]
+}
