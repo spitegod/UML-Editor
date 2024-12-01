@@ -827,6 +827,11 @@ QLabel {
         elif isinstance(item, StartEvent):  # Круг (начало)
             rect = item.rect()
             base_data["radius"] = rect.width() / 2
+            position = item.sceneBoundingRect()
+            p_center = position.center()
+            x = p_center.x()
+            y = p_center.y()
+            base_data["position"] = {"x": x, "y": y}
 
         elif isinstance(item, EndEvent):  # Круг с внутренним кругом (конец)
             rect = item.rect()
@@ -1286,7 +1291,9 @@ QLabel {
 
             elif item_type == "StartEvent":
                 radius = item_data.get("radius", 30)  # Достаём "radius" с умолчанием
-                item = StartEvent(*position, radius)
+                position_data = item_data.get("position")
+                x, y = position_data.get("x"), position_data.get("y")
+                item = StartEvent(x, y, radius)
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 

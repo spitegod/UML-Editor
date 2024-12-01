@@ -1,0 +1,55 @@
+{
+    "items": [
+        {
+            "type": "StartEvent",
+            "position": {
+                "x": 315.0,
+                "y": 255.0
+            },
+            "size": null,
+            "radius": 30.0,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null
+        },
+        {
+            "type": "StartEvent",
+            "position": {
+                "x": 200.0,
+                "y": 200.0
+            },
+            "size": null,
+            "radius": 30.0,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null
+        },
+        {
+            "type": "Decision",
+            "position": {
+                "x": 186.32322330470336,
+                "y": 89.32322330470336
+            },
+            "size": 50,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": "19",
+            "line_width": null
+        }
+    ]
+}
