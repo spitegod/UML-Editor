@@ -858,13 +858,23 @@ QLabel {
 
         elif isinstance(item, SignalSending):  # Пентагон (сигнал отправки)
             rect = item.boundingRect()
-            base_data["width"] = rect.width()
-            base_data["height"] = rect.height()
+            base_data["width"] = item.width
+            base_data["height"] = item.height
+            position = item.sceneBoundingRect()
+            p_center = position.center()
+            x = p_center.x() - 15
+            y = p_center.y() + 30
+            base_data["position"] = {"x": x, "y": y}
 
         elif isinstance(item, SignalReceipt):  # Пентагон (сигнал получения)
             rect = item.boundingRect()
-            base_data["width"] = rect.width()
-            base_data["height"] = rect.height()
+            base_data["width"] = item.width
+            base_data["height"] = item.height
+            position = item.sceneBoundingRect()
+            p_center = position.center()
+            x = p_center.x()
+            y = p_center.y() + 30
+            base_data["position"] = {"x": x, "y": y}
 
         
 
@@ -1333,14 +1343,18 @@ QLabel {
             elif item_type == "SignalSending":
                 width = item_data.get("width", 60)
                 height = item_data.get("height", 40)
-                item = SignalSending(*position, width, height)
+                position_data = item_data.get("position")
+                x, y = position_data.get("x"), position_data.get("y")
+                item = SignalSending(x, y, width, height)
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 
             elif item_type == "SignalReceipt":
                 width = item_data.get("width", 60)
                 height = item_data.get("height", 40)
-                item = SignalReceipt(*position, width, height)
+                position_data = item_data.get("position")
+                x, y = position_data.get("x"), position_data.get("y")
+                item = SignalReceipt(x, y, width, height)
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 
