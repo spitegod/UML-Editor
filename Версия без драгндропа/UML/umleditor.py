@@ -807,6 +807,12 @@ QLabel {
         # Заполняем структуру в зависимости от типа элемента
         if isinstance(item, Decision):  # Ромб
             base_data["size"] = item.size
+            # Проверяем, является ли цвет экземпляром QColor
+            if isinstance(item.color, QtGui.QColor):
+                base_data["color"] = item.color.name()  # Сохраняем как HEX
+            else:
+                # Для предопределённых цветов сохраняем их название
+                base_data["color"] = str(item.color)  # Например, 'transparent'
 
         elif isinstance(item, StartEvent):  # Круг (начало)
             rect = item.rect()
@@ -1249,7 +1255,16 @@ QLabel {
             # Создание объектов в зависимости от типа
             if item_type == "Decision":
                 size = item_data.get("size", 50)  # Достаём "size" с умолчанием
-                item = Decision(*position, size)
+                color = item_data.get("color", "#000000")
+                if isinstance(color, str):
+                    if color.startswith("#"):  # Если это HEX-строка
+                        color = QtGui.QColor(color)
+                    else:  # Если это предопределённый цвет
+                        color = getattr(QtCore.Qt, color, QtCore.Qt.transparent)
+                else:
+                    color = QtGui.QColor()  # Цвет по умолчанию
+
+                item = Decision(*position, size, color)
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
                 
