@@ -1,0 +1,21 @@
+{
+    "items": [
+        {
+            "type": "Decision",
+            "position": {
+                "x": 199.64644660940672,
+                "y": 199.64644660940672
+            },
+            "size": 50,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": "19",
+            "line_width": null
+        }
+    ]
+}

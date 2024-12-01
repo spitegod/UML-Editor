@@ -1,0 +1,38 @@
+{
+    "items": [
+        {
+            "type": "Decision",
+            "position": {
+                "x": 111.82322330470336,
+                "y": 58.82322330470336
+            },
+            "size": 50,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": "19",
+            "line_width": null
+        },
+        {
+            "type": "Decision",
+            "position": {
+                "x": 277.46966991411,
+                "y": -40.530330085889915
+            },
+            "size": 50,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": "19",
+            "line_width": null
+        }
+    ]
+}

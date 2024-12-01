@@ -453,6 +453,7 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
             self.is_resizing = False
         super().mousePressEvent(event)
 
+
     def mouseMoveEvent(self, event):
          # Обновляем привязанные стрелки, если необходимо
         for arrow in self.arrows:

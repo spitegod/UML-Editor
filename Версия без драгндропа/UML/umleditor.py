@@ -753,7 +753,12 @@ QLabel {
             if not filepath:
                 return
 
-        data = {"items": []}
+        data = {"items": [], "scene": {}}
+
+        # Сохраняем размер сцены
+        rect = self.scene_.sceneRect()
+        data["scene"]["width"] = rect.width()
+        data["scene"]["height"] = rect.height()
         for item in self.scene_.items():
             if isinstance(item, QtWidgets.QGraphicsItem):
                 data["items"].append(self.serialize_item(item))
@@ -807,6 +812,11 @@ QLabel {
         # Заполняем структуру в зависимости от типа элемента
         if isinstance(item, Decision):  # Ромб
             base_data["size"] = item.size
+            position = item.sceneBoundingRect()
+            p_center = position.center()
+            x = p_center.x()/ 2
+            y = p_center.y() / 2
+            base_data["position"] = {"x": x, "y": y}
             # Проверяем, является ли цвет экземпляром QColor
             if isinstance(item.color, QtGui.QColor):
                 base_data["color"] = item.color.name()  # Сохраняем как HEX
@@ -1264,10 +1274,15 @@ QLabel {
                 else:
                     color = QtGui.QColor()  # Цвет по умолчанию
 
-                item = Decision(*position, size, color)
+                position_data = item_data.get("position")
+                x, y = position_data.get("x"), position_data.get("y")
+                print(x, y)
+
+                item = Decision(x, y, size, color)
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
-                
+                # Устанавливаем точную позицию
+                item.setPos(x, y)
 
             elif item_type == "StartEvent":
                 radius = item_data.get("radius", 30)  # Достаём "radius" с умолчанием
