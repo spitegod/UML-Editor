@@ -32,9 +32,10 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 #         # print(f"{self.shape_type} добавлен, объектов на сцене:", len(self.scene.objectS_))
 
 class EditingPanel(QWidget):
-    def __init__(self, editable_item):
+    def __init__(self, editable_item, main_window):
         super().__init__()
         self.editable_item = editable_item
+        self.main_window = main_window
 
         # Используем QGridLayout вместо QVBoxLayout
         layout = QGridLayout()
@@ -133,10 +134,53 @@ class EditingPanel(QWidget):
             self.message_label = QLabel("В разработке")
             layout.addWidget(self.message_label, 0, 0, 1, 2)
 
+        self.x_label = QLabel("X:")
+        self.x_spinbox = QDoubleSpinBox(self)
+        self.x_spinbox.setRange(-1000, 1000)  # Диапазон значений
+        self.x_spinbox.setValue(editable_item.scenePos().x())
+        self.x_spinbox.valueChanged.connect(self.update_position)
+
+        self.y_label = QLabel("Y:")
+        self.y_spinbox = QDoubleSpinBox(self)
+        self.y_spinbox.setRange(-1000, 1000)  # Диапазон значений
+        self.y_spinbox.setValue(editable_item.scenePos().y())
+        self.y_spinbox.valueChanged.connect(self.update_position)
+
+        self.mainwin = Ui_MainWindow()
+
+        self.delete_item = QPushButton("Удалить")
+        self.copy_item = QPushButton("Дублировать")
+
+        # self.delete_item.clicked.connect(self.mainwin.delete_selected_item)
+
+        self.delete_item.clicked.connect(self.delete_current_item)
+        self.copy_item.clicked.connect(self.duplicate_current_item)
+
+
+        layout.addWidget(self.x_label, 4, 0)
+        layout.addWidget(self.x_spinbox, 4, 1)
+        layout.addWidget(self.y_label, 5, 0)
+        layout.addWidget(self.y_spinbox, 5, 1)
+        layout.addWidget(self.delete_item, 6, 0)
+        layout.addWidget(self.copy_item, 6, 1)
+
+
         self.setLayout(layout)
 
         self.setMinimumWidth(200)
         self.setMaximumWidth(400)
+
+    def delete_current_item(self):
+        if self.editable_item:
+            # self.editable_item.setSelected(True)  # Выделяем текущий объект
+            self.main_window.delete_specific_item(self.editable_item)    
+
+    def update_position(self):
+        if self.editable_item:
+            new_x = self.x_spinbox.value()
+            new_y = self.y_spinbox.value()
+            self.editable_item.setPos(new_x, new_y)
+
 
     def change_arrow_color(self):
         color = QColorDialog.getColor()
@@ -198,6 +242,32 @@ class EditingPanel(QWidget):
             new_radius = self.radius_spinbox.value()
             self.editable_item.setRadius(new_radius)  # Обновляем радиус
 
+    def duplicate_current_item(self):
+        if isinstance(self.editable_item, (StartEvent, Decision, EndEvent, ActiveState, SignalSending, SignalReceipt, Splitter_Merge, ImageItem)):
+            new_item = self.editable_item.clone()
+            new_pos = self.editable_item.scenePos() + QPointF(10, 10)
+            new_item.setPos(new_pos)
+
+            self.main_window.scene_.addItem(new_item)
+
+            self.main_window.objectS_.append(new_item)
+
+            self.main_window.user_.add_action(f"Создан дубликат элемента '{self.editable_item.__class__.__name__}'", self.main_window.get_current_Realtime())
+            self.main_window.user_actions.emit(
+                self.main_window.user_.nickname,
+                self.main_window.user_.user_id,
+                self.main_window.user_.start_work,
+                self.main_window.user_.end_work,
+                next(reversed(self.main_window.user_.action_history)),
+                next(reversed(self.main_window.user_.action_history.values())),
+                self.main_window.user_.action_history
+            )
+
+            self.main_window.count_objectS.emit(len(self.main_window.objectS_))
+            self.main_window.scene_.update()
+            self.main_window.populate_object_list()
+
+
     def change_color(self):
         color = QColorDialog.getColor()
         if color.isValid():
@@ -206,6 +276,8 @@ class EditingPanel(QWidget):
     def update_opacity(self):
         opacity = self.opacity_slider.value() / 100
         self.editable_item.setOpacity(opacity)
+
+
 
 
 
@@ -256,7 +328,7 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
 
         
 
-    
+
     
     def drawBackground(self, painter, rect):
         # Включаем сглаживание
@@ -271,7 +343,7 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
         # self.clicks.append(event.scenePos())
 
         selected_item = self.itemAt(event.scenePos(), QtGui.QTransform())  # Находим элемент под курсором
-
+  
         if selected_item:
             self.is_dragging = True
             self.reset_time.show_editing_panel(selected_item)
@@ -279,6 +351,12 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
             element_name = type(selected_item).__name__
             mouse_pos = event.scenePos()
             self.label.setText(f"Выбрано: {element_name} ({mouse_pos.x():.1f}, {mouse_pos.y():.1f})")
+
+            # self.reset_time.on_object_selected(selected_item)
+
+            item_rect = selected_item.sceneBoundingRect()
+            item_center = item_rect.center()  # Центр объекта
+            print(f"Выбран объект {element_name} с центром координат: ({item_center.x():.1f}, {item_center.y():.1f})")
         else:
             self.reset_time.on_selection_changed()
             self.is_dragging = False
@@ -345,14 +423,29 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
 
         self.addItem(item)
         self.objectS.append(item)
-        self.user_.add_action(f"Добавлен элемент '{item.__class__.__name__}'", self.reset_time.get_current_Realtime())
-        self.reset_time.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work,
-                               next(reversed(self.user_.action_history)),
-                               next(reversed(self.user_.action_history.values())), self.user_.action_history)
-        event.acceptProposedAction()
+
+        # Передача объекта в панель
         self.reset_time.show_editing_panel(item)
+
+        self.user_.add_action(
+            f"Добавлен элемент '{item.__class__.__name__}'", 
+            self.reset_time.get_current_Realtime()
+        )
+        self.reset_time.user_actions.emit(
+            self.user_.nickname, 
+            self.user_.user_id, 
+            self.user_.start_work, 
+            self.user_.end_work,
+            next(reversed(self.user_.action_history)),
+            next(reversed(self.user_.action_history.values())), 
+            self.user_.action_history
+        )
+        self.reset_time.populate_object_list()
+        event.acceptProposedAction()
+
         if len(self.objectS) > 10:
             self.reset_time.message_overcrowed_objectS()
+
 
 
     def dragMoveEvent(self, event):
@@ -532,7 +625,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     def setupUi(self, MainWindow):
 
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1280, 720)
+        MainWindow.resize(1500, 720)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout_2 = QtWidgets.QGridLayout(self.centralwidget)
@@ -711,6 +804,8 @@ QLabel {
         #Тестовое меню для таймера
         self.menu_3 = QtWidgets.QMenu(self.menubar)
         self.menu_3.setObjectName("menu_3")
+        self.menu_show_panel = QtWidgets.QMenu(self.menubar)
+        self.menu_show_panel.setObjectName("menu_show_panel")
 
         
 
@@ -744,6 +839,13 @@ QLabel {
         self.action_time_reset = QtWidgets.QAction(MainWindow)
         self.action_time_reset.setObjectName("action_time_reset")
 
+        #Вкладки показа панелий
+        self.action_edit_panel = QtWidgets.QAction(MainWindow)
+        self.action_edit_panel.setObjectName("action_edit_panel")
+        self.action_object_panel = QtWidgets.QAction(MainWindow)
+        self.action_object_panel.setObjectName("action_object_panel")
+        self.action_Toolbar = QtWidgets.QAction(MainWindow)
+        self.action_Toolbar.setObjectName("action_Toolbar")
 
         # Подключаем действие для запуска окна статистики
         self.action_Statystics.triggered.connect(self.show_static_widget)
@@ -762,6 +864,16 @@ QLabel {
         self.menubar.addAction(self.menu.menuAction())
         self.menubar.addAction(self.menu_insert.menuAction())
         self.menubar.addAction(self.menu_2.menuAction())
+        self.menubar.addAction(self.menu_show_panel.menuAction())
+
+        #Панели
+        self.menu_show_panel.addAction(self.action_edit_panel)
+        self.menu_show_panel.addAction(self.action_object_panel)
+        self.menu_show_panel.addAction(self.action_Toolbar)
+
+        self.action_edit_panel.triggered.connect(self.show_edit_panel)
+        self.action_object_panel.triggered.connect(self.show_object_panel)
+        self.action_Toolbar.triggered.connect(self.show_toolbar)
         # self.menubar.addAction(self.menu_3.menuAction()) #Тестовое меню таймера
 
         self.action_2.triggered.connect(self.save_to_file)
@@ -886,6 +998,9 @@ QLabel {
         self.connect_objectS = QShortcut(QKeySequence("Ctrl+A"), self.graphicsView)
         self.connect_objectS.activated.connect(self.select_all_item)
 
+        self.connect_objectS = QShortcut(QKeySequence("Ctrl+D"), self.graphicsView)
+        self.connect_objectS.activated.connect(self.duplicate_selected_item)
+
         # self.connect_objectS = QShortcut(QKeySequence("T"), self.graphicsView)
         # self.connect_objectS.activated.connect(self.disconnect_nodes)
 
@@ -905,13 +1020,63 @@ QLabel {
         MainWindow.addDockWidget(Qt.RightDockWidgetArea, self.editing_dock)
         self.editing_dock.setVisible(True)
         self.on_selection_changed()
+
+        self.object_list_dock = QtWidgets.QDockWidget("Список объектов", MainWindow)
+        self.object_list_dock.setObjectName("object_list_dock")
+
+        self.dock_widget = QtWidgets.QDockWidget("Тулбар", MainWindow)
+        self.dock_widget.setWidget(self.ToolBarBox)
+        MainWindow.addDockWidget(Qt.LeftDockWidgetArea, self.dock_widget)
+        self.dock_widget.setVisible(True)
+
+        object_list_widget = QtWidgets.QListWidget()
+        self.object_list_widget = object_list_widget
+        self.object_list_dock.setWidget(object_list_widget)
+        MainWindow.addDockWidget(Qt.LeftDockWidgetArea, self.object_list_dock)
+        MainWindow.tabifyDockWidget(self.object_list_dock, self.dock_widget) #Размещаем dockwidget'ы одновременно, чтобы сразу через них можно было переключаться
+        self.object_list_dock.setMinimumWidth(100)
+        self.object_list_dock.setMaximumWidth(150)
+        self.object_list_widget.itemClicked.connect(self.on_object_selected)
+        self.populate_object_list()
+
+    def show_toolbar(self):
+        self.dock_widget.setVisible(True)
+    def show_edit_panel(self):
+        self.editing_dock.setVisible(True)
+    def show_object_panel(self):
+        self.object_list_dock.setVisible(True)
+
+    def populate_object_list(self):
+        self.object_list_widget.clear()
+        for index, item in enumerate(self.objectS_):
+            list_item_text = f"#{item.unique_id}: {type(item).__name__}"
+            list_item = QtWidgets.QListWidgetItem(list_item_text)
+            self.object_list_widget.addItem(list_item)
+
+    def on_object_selected(self, item):
+        # Получаем объект, привязанный к элементу списка
+        selected_object = item.data(Qt.UserRole)
+        if selected_object:
+            # Снимаем выделение со всех объектов
+            for obj in self.objectS_:
+                obj.setSelected(False)  # Снимаем выделение
+
+            # Выделяем выбранный объект
+            selected_object.setSelected(True)
+
+            # Центрируем сцену на выделенном объекте (опционально)
+            if hasattr(self.scene_view, "centerOn"):
+                self.scene_view.centerOn(selected_object)
+
+            print(f"Выбран объект: {type(selected_object).__name__}")
+
         
 
     def on_selection_changed(self):
         self.editing_dock.setVisible(False)
 
     def show_editing_panel(self, item):
-        panel = EditingPanel(item)
+        panel = EditingPanel(item, self)
         self.editing_dock.setWidget(panel)
         self.editing_dock.setVisible(True)
 
@@ -1128,6 +1293,7 @@ QLabel {
             self.count_objectS.emit(len(self.objectS_) - 1)
             self.scene_.removeItem(self.objectS_[len(self.objectS_) - 1])
             del self.objectS_[len(self.objectS_) - 1]
+            self.populate_object_list()
             msgBox = QMessageBox()
             msgBox.setIcon(QMessageBox.Information)
             msgBox.setText("Превышено максимальное значение элементов")
@@ -1157,12 +1323,13 @@ QLabel {
     def draw_diamond(self):
         # self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра и размер ромба
-        x, y, size = 200, 200, 50  # Пример координат и размера
+        x, y, size = 0, 0, 50  # Пример координат и размера
         diamond = Decision(x, y, size)
         self.scene_.addItem(diamond)  # Добавляем ромб на сцену
 
 
         self.objectS_.append(diamond)
+        self.populate_object_list()
 
         print("Количество объектов на сцене - ", len(self.objectS_))
         self.count_objectS.emit(len(self.objectS_))
@@ -1180,11 +1347,12 @@ QLabel {
         # Вставляем круг на сцену
         # Координаты центра и радиус круга
         # self.reset_inaction() #Сбрасыем второй таймер
-        x, y, radius = 200, 200, 30  # Пример: рисуем круг в центре с радиусом 50
+        x, y, radius = 0, 0, 30  # Пример: рисуем круг в центре с радиусом 50
         circle = StartEvent(x, y, radius)
         self.scene_.addItem(circle)  # Добавляем круг на сцену
 
         self.objectS_.append(circle)
+        self.populate_object_list()
 
         print("Количество объектов на сцене - ", len(self.objectS_))
         self.count_objectS.emit(len(self.objectS_))
@@ -1200,11 +1368,12 @@ QLabel {
         # self.reset_inaction() #Сбрасыем второй таймер
         # Вставляем круг на сцену
         # Координаты центра и радиус круга
-        x, y, radius, into_radius = 200, 200, 30, 0.5  # Пример: рисуем круг в центре с радиусом 50
+        x, y, radius, into_radius = 0, 0, 30, 0.5  # Пример: рисуем круг в центре с радиусом 50
         circle = EndEvent(x,y,radius, into_radius)
         self.scene_.addItem(circle)  # Добавляем круг на сцену
 
         self.objectS_.append(circle)
+        self.populate_object_list()
 
         print("Количество объектов на сцене - ", len(self.objectS_))
         self.count_objectS.emit(len(self.objectS_))
@@ -1216,11 +1385,12 @@ QLabel {
     def draw_rounded_rectangle(self):
         # self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
-        x, y, width, height, radius = 200, 200, 100, 60, 15  # Пример координат, размера и радиуса
+        x, y, width, height, radius = 0, 0, 100, 60, 15  # Пример координат, размера и радиуса
         rounded_rect = ActiveState(x, y, width, height, radius)
         self.scene_.addItem(rounded_rect)  # Добавляем закругленный прямоугольник на сцену
 
         self.objectS_.append(rounded_rect)
+        self.populate_object_list()
 
         print("Количество объектов на сцене - ", len(self.objectS_))
         self.count_objectS.emit(len(self.objectS_))
@@ -1232,11 +1402,11 @@ QLabel {
     def draw_pentagon_signal(self):
         # self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
-        x, y, size = 200, 200, 100  # Пример координат, размера и радиуса
+        x, y, size = 0, 0, 100  # Пример координат, размера и радиуса
         pentagon = SignalSending(x, y, 160, 60)
         self.scene_.addItem(pentagon)  # Добавляем закругленный прямоугольник на сцену
-
         self.objectS_.append(pentagon)
+        self.populate_object_list()
 
         print("Количество объектов на сцене - ", len(self.objectS_))
         self.count_objectS.emit(len(self.objectS_))
@@ -1247,13 +1417,12 @@ QLabel {
     def draw_pentagon_reverse(self):
         # self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
-        x, y, size = 200, 200, 100  # Пример координат, размера и радиуса
+        x, y, size = 0, 0, 100  # Пример координат, размера и радиуса
         pentagon = SignalReceipt(x, y, 180, 60)
         pentagon.setFlags(QtWidgets.QGraphicsItem.ItemIsMovable | QtWidgets.QGraphicsItem.ItemIsSelectable)
         self.scene_.addItem(pentagon)  # Добавляем закругленный прямоугольник на сцену
-
         self.objectS_.append(pentagon)
-
+        self.populate_object_list()
         print("Количество объектов на сцене - ", len(self.objectS_))
         self.count_objectS.emit(len(self.objectS_))
 
@@ -1263,12 +1432,12 @@ QLabel {
     def draw_splitter_merge(self):
         # self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
-        x, y = 200, 200  # Пример координат, размера и радиуса
+        x, y = 0, 0  # Пример координат, размера и радиуса
         stick = Splitter_Merge(x, y, 120, 40)
         stick.setFlags(QtWidgets.QGraphicsItem.ItemIsMovable | QtWidgets.QGraphicsItem.ItemIsSelectable)
         self.scene_.addItem(stick) 
         self.objectS_.append(stick)
-
+        self.populate_object_list()
         print("Количество объектов на сцене - ", len(self.objectS_))
         self.count_objectS.emit(len(self.objectS_))
 
@@ -1307,6 +1476,7 @@ QLabel {
 
             # Создаем стрелку и привязываем её к выбранным узлам
             arrow = Arrow(node1, node2)
+            arrow.setZValue(-1)
             self.scene_.addItem(arrow)  # Добавляем стрелку на сцену
 
 
@@ -1322,14 +1492,6 @@ QLabel {
 
 
 
-    # def handle_selection(self, selected_item):
-    #     # Добавляем логику для отслеживания выбора
-    #     if selected_item not in self.selected_order:
-    #         self.selected_order.append(selected_item)
-    #     else:
-    #         # Перемещаем выбранный элемент в конец списка
-    #         self.selected_order.remove(selected_item)
-    #         self.selected_order.append(selected_item)
 
 
     
@@ -1342,7 +1504,7 @@ QLabel {
 
     def disconnect_nodes(self, node1, node2):
         if hasattr(node1, 'arrows') and hasattr(node2, 'arrows'):
-            for arrow in node1.arrows[:]:  # Проходим копию списка, чтобы избежать изменения во время итерации
+            for arrow in node1.arrows[:]:
                 if (arrow.node1 == node2 or arrow.node2 == node2) and arrow in node2.arrows:
                     self.user_.add_action(f"Рассоединены '{node1.__class__.__name__}' и '{node2.__class__.__name__}'", self.get_current_Realtime())
                     arrow.remove_arrow()
@@ -1376,8 +1538,70 @@ QLabel {
                 self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())), self.user_.action_history)
 
         self.count_objectS.emit(len(self.objectS_))
+        self.on_selection_changed()
         self.scene_.update()  # Перерисовываем сцену
+        self.populate_object_list()
         del selected_items
+
+    #Для панели редактирования
+    def delete_specific_item(self, item):
+        if isinstance(item, (StartEvent, Decision, EndEvent, ActiveState, SignalSending, SignalReceipt, Splitter_Merge, ImageItem)):
+
+            if item in self.objectS_:
+                self.objectS_.remove(item)
+                if hasattr(item, 'arrows') and item.arrows:
+                    arrows_to_remove = list(item.arrows)
+                    for arrow in arrows_to_remove:
+                        if arrow.scene():
+                            self.scene_.removeItem(arrow)
+                            item.arrows.remove(arrow)
+                            del arrow
+                    del arrows_to_remove
+
+                self.scene_.removeItem(item)
+                self.user_.add_action(f"Удален элемент '{item.__class__.__name__}'", self.get_current_Realtime())
+                self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work,
+                                    next(reversed(self.user_.action_history)),
+                                    next(reversed(self.user_.action_history.values())),
+                                    self.user_.action_history)
+                self.count_objectS.emit(len(self.objectS_))
+                self.scene_.update()
+                self.populate_object_list()
+                self.on_selection_changed()
+            else:
+                print(f"Объект {item.__class__.__name__} отсутствует в objectS_")
+
+    def duplicate_selected_item(self):
+        selected_items = self.scene_.selectedItems()
+
+        for item in selected_items:
+            if isinstance(item, (StartEvent, Decision, EndEvent, ActiveState, SignalSending, SignalReceipt, Splitter_Merge, ImageItem)):
+                # Копируем свойства объекта
+                new_item = item.clone()
+
+                new_pos = item.scenePos() + QPointF(10, 10)
+                new_item.setPos(new_pos)
+
+                self.scene_.addItem(new_item)
+                self.objectS_.append(new_item)
+
+                if (len(self.objectS_)> 10):
+                    self.message_overcrowed_objectS()
+
+                #это для стрелочек. пока не работает
+                if hasattr(new_item, 'arrows'):
+                    new_item.arrows = []
+
+                self.user_.add_action(f"Создан дубликат элемента '{item.__class__.__name__}'", self.get_current_Realtime())
+                self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work,
+                                    next(reversed(self.user_.action_history)),
+                                    next(reversed(self.user_.action_history.values())),
+                                    self.user_.action_history)
+
+        self.count_objectS.emit(len(self.objectS_))
+        self.scene_.update()
+        self.populate_object_list()
+
 
 
     # def count_objectS(self):
@@ -1723,6 +1947,11 @@ QLabel {
         self.menu_2.setTitle(_translate("MainWindow", "Статистика"))
 
         self.menu_3.setTitle(_translate("MainWindow", "Тест таймера"))
+
+        self.menu_show_panel.setTitle(_translate("MainWindow", "Окна"))
+        self.action_edit_panel.setText(_translate("MainWindow", "Панель редактирования"))
+        self.action_object_panel.setText(_translate("MainWindow", "Список объектов"))
+        self.action_Toolbar.setText(_translate("MainWindow", "Тулбар"))
         
 
         
