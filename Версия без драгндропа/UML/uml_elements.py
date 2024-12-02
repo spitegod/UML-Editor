@@ -340,8 +340,11 @@ class Arrow(QGraphicsItem):
 
 
 class Decision(QtWidgets.QGraphicsPolygonItem):
-    def __init__(self, x, y, size, color=QtCore.Qt.transparent, node1=None, node2=None):
+    _id_counter = 0
+    def __init__(self, x, y, size, color=QtCore.Qt.transparent,  node1=None, node2=None):
         super().__init__()
+        self.unique_id = Decision._id_counter
+        Decision._id_counter += 1
         self.size = size
         self.center_x = x  # Сохраняем центр при инициализации
         self.center_y = y
@@ -362,6 +365,13 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
 
         self.node1 = node1
         self.node2 = node2
+
+    def clone(self):
+        clone_item = Decision(self.center_x, self.center_y, self.size)
+        clone_item.setPolygon(self.polygon())
+        clone_item.setBrush(self.brush())
+        clone_item.setPen(self.pen())
+        return clone_item
 
     def create_diamond(self, x, y, size):
         # Создает ромб с заданным центром (x, y) и размером.
@@ -458,8 +468,13 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
 
 
 class StartEvent(QtWidgets.QGraphicsEllipseItem):
+    _id_counter = 0
     def __init__(self, x, y, radius, node1=None, node2=None):
         super().__init__(x - radius, y - radius, 2 * radius, 2 * radius)
+        self.unique_id = StartEvent._id_counter
+        StartEvent._id_counter += 1
+        self.x = x
+        self.y = y
         self.radius = radius
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать элемент
@@ -480,6 +495,15 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
     #         if arrow.scene():
     #             arrow.remove_arrow()  # Удаляем стрелку
     #     self.arrows.clear()  # Очищаем список стрелок
+
+    def clone(self):
+        clone_item = StartEvent(self.x, self.y, self.radius)
+        clone_item.setRect(self.rect())
+        clone_item.setBrush(self.brush())
+        clone_item.setPen(self.pen())
+        clone_item.radius = self.radius
+        return clone_item
+
 
     def setRadius(self, new_radius):
         self.radius = new_radius
@@ -564,9 +588,15 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
             
 
 class EndEvent(QtWidgets.QGraphicsEllipseItem):
+    _id_counter = 0
     def __init__(self, x, y, radius, inner_radius_ratio=0.5, node1=None, node2=None):
         super().__init__(x - radius, y - radius, 2 * radius, 2 * radius)
+        self.unique_id = EndEvent._id_counter
+        EndEvent._id_counter += 1
+        self.x = x
+        self.y = y
         self.radius = radius
+        self.inner_radius_ratio = inner_radius_ratio
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))  # Основной круг
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать элемент
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
@@ -582,6 +612,16 @@ class EndEvent(QtWidgets.QGraphicsEllipseItem):
         self.inner_radius_ratio = inner_radius_ratio  # Доля от внешнего радиуса
         self.inner_circle = QtWidgets.QGraphicsEllipseItem(self)
         self.update_inner_circle()
+
+    def clone(self):
+        clone_item = EndEvent(self.x, self.y, self.radius, self.inner_radius_ratio)
+        clone_item.setRect(self.rect())
+        clone_item.setBrush(self.brush())
+        clone_item.setPen(self.pen())
+        clone_item.radius = self.radius
+        clone_item.inner_radius_ratio = self.inner_radius_ratio
+        clone_item.update_inner_circle()
+        return clone_item
 
     def setRadius(self, new_radius):
         self.radius = new_radius
@@ -719,8 +759,13 @@ class Text_into_object(QtWidgets.QGraphicsTextItem):
 
 
 class ActiveState(QtWidgets.QGraphicsRectItem):
+    _id_counter = 0
     def __init__(self, x, y, width, height, radius, node1=None, node2=None):
         super().__init__(x, y, width, height)
+        self.unique_id = ActiveState._id_counter
+        ActiveState._id_counter += 1
+        self.x = x
+        self.y = y
         self.width = width
         self.height = height
         self.radius = radius  # Радиус закругления
@@ -742,6 +787,15 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
         self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
         self.update_text_wrap()
         self.update_text_position()
+
+    def clone(self):
+        cloned_item = ActiveState(self.x, self.y, self.width, self.height, self.radius)
+        cloned_item.setRect(self.rect())
+        cloned_item.setBrush(self.brush())
+        cloned_item.setPen(self.pen())
+        cloned_item.text_item.setPlainText(self.text_item.toPlainText())
+
+        return cloned_item
 
     def update_text_wrap(self):
         rect = self.rect()
@@ -962,7 +1016,10 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
 
 
 class SignalSending(QtWidgets.QGraphicsPolygonItem):
+    _id_counter = 0
     def __init__(self, x, y, width, height, node1=None, node2=None):
+        self.unique_id = SignalSending._id_counter
+        SignalSending._id_counter += 1
         super().__init__()
         self.width = width
         self.height = height
@@ -994,6 +1051,16 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
     #     self.setPolygon(self.create_pentagon(self.center_x, self.center_y, self.width, self.height))
     #     self.update_text_wrap()
     #     self.update_text_position()
+
+    def clone(self):
+        cloned_item = SignalSending(self.center_x, self.center_y, self.width, self.height)
+        cloned_item.setPolygon(self.polygon())
+        cloned_item.setBrush(self.brush())
+        cloned_item.setPen(self.pen())
+        
+        cloned_item.text_item.setPlainText(self.text_item.toPlainText())
+
+        return cloned_item
 
     def update_text_wrap(self):
         rect = self.boundingRect()
@@ -1097,8 +1164,11 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
 
 
 class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
+    _id_counter = 0
     def __init__(self, x, y, width, height, node1=None, node2=None):
         super().__init__()
+        self.unique_id = SignalReceipt._id_counter
+        SignalReceipt._id_counter += 1
         self.width = width
         self.height = height
         self.center_x = x
@@ -1123,6 +1193,16 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
         self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
         self.update_text_wrap()
         self.update_text_position()
+
+    def clone(self):
+        cloned_item = SignalSending(self.center_x, self.center_y, self.width, self.height)
+        cloned_item.setPolygon(self.polygon())
+        cloned_item.setBrush(self.brush())
+        cloned_item.setPen(self.pen())
+        
+        cloned_item.text_item.setPlainText(self.text_item.toPlainText())
+
+        return cloned_item
 
     def update_text_wrap(self):
         rect = self.boundingRect()
@@ -1227,8 +1307,11 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
         self.arrows.append(arrow)
 
 class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
+    _id_counter = 0
     def __init__(self, x, y, width, height, node1=None, node2=None):
         super().__init__()
+        self.unique_id = Splitter_Merge._id_counter
+        Splitter_Merge._id_counter += 1
         self.width = width
         self.height = height
         self.center_x = x
@@ -1246,6 +1329,13 @@ class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
         self.resize_margin = 10 # Чувствительная область для изменения размера
 
         self.arrows = []
+
+    def clone(self):
+        clone_item = Splitter_Merge(self.center_x, self.center_y, self.width, self.height)
+        clone_item.setPolygon(self.polygon())
+        clone_item.setBrush(self.brush())
+        clone_item.setPen(self.pen())
+        return clone_item
 
     def create_SM(self, x, y, width, height):
         # Создает прямоугольный пятиугольник с заданным центром (x, y) и размером.
@@ -1330,8 +1420,13 @@ class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
         self.arrows.append(arrow)
 
 class ImageItem(QtWidgets.QGraphicsPixmapItem):
+    _id_counter = 0
     def __init__(self, pixmap, x, y):
         super().__init__(pixmap)
+        self.unique_id = ImageItem._id_counter
+        ImageItem._id_counter += 1
+        self.x = x
+        self.y = y
         self.setPos(x, y)  # Устанавливаем начальную позицию
         self.setFlags(
             QtWidgets.QGraphicsItem.ItemIsMovable |
@@ -1343,6 +1438,11 @@ class ImageItem(QtWidgets.QGraphicsPixmapItem):
         self.is_resizing = False  # Флаг изменения размера
         self.resize_margin = 10  # Зона, в которой можно начинать изменение размера
         self.arrows = []  # Список стрелок, привязанных к изображению
+
+    def clone(self):
+        cloned_item = ImageItem(self.pixmap(), self.x, self.y)
+        
+        return cloned_item
 
     def hoverMoveEvent(self, event):
         rect = self.boundingRect()
