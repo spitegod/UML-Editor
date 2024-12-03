@@ -1319,6 +1319,7 @@ QLabel {
             x = p_center.x() - 15
             y = p_center.y() + 30
             base_data["position"] = {"x": x, "y": y}
+            base_data["id"] = item.unique_id
 
         elif isinstance(item, SignalReceipt):  # Пентагон (сигнал получения)
             rect = item.boundingRect()
@@ -1878,6 +1879,7 @@ QLabel {
                 position_data = item_data.get("position")
                 x, y = position_data.get("x"), position_data.get("y")
                 item = SignalSending(x, y, width, height)
+                item.unique_id = item_data.get("id")
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 
