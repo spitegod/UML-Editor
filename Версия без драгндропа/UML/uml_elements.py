@@ -9,6 +9,96 @@ import math
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
+# class Text_Edit(QtWidgets.QGraphicsTextItem):
+#     def __init__(self, x, y, width, height, text=""):
+#         super().__init__(text)  # Инициализация с начальным текстом
+#         self.setPos(x, y)  # Устанавливаем позицию текста
+#         self.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)  # Разрешаем редактирование текста
+#         self.setTextWidth(width)  # Устанавливаем ширину текста
+#         self.setDefaultTextColor(QtGui.QColor(0, 0, 0))  # Цвет текста (по умолчанию черный)
+#         self.setFont(QtGui.QFont("Arial", 12))  # Шрифт текста
+#
+#         # Создаем прямоугольник, который будет служить фоном для текстового поля
+#         self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)  # Позволяет перемещать элемент
+#         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события изменения положения
+#
+#         self.setAcceptHoverEvents(True)  # Для отслеживания наведения
+#
+#         self.resize_margin = 10  # Чувствительная область для изменения размера
+#         self.is_resizing = False  # Флаг, указывающий, идет ли изменение размера
+#         self.resize_side = None  # Определяем, с какой стороны идет изменение размера
+#
+#     def hoverMoveEvent(self, event):
+#         rect = self.boundingRect()
+#         x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
+#
+#         # Определяем курсор на основе стороны, к которой он ближе
+#         if abs(event.pos().x() - x) <= self.resize_margin:
+#             self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))
+#             self.resize_side = 'left'
+#         elif abs(event.pos().x() - (x + w)) <= self.resize_margin:
+#             self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))
+#             self.resize_side = 'right'
+#         elif abs(event.pos().y() - y) <= self.resize_margin:
+#             self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))
+#             self.resize_side = 'top'
+#         elif abs(event.pos().y() - (y + h)) <= self.resize_margin:
+#             self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))
+#             self.resize_side = 'bottom'
+#         else:
+#             self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+#             self.resize_side = None
+#         super().hoverMoveEvent(event)
+#
+#     def mousePressEvent(self, event):
+#         if self.resize_side:
+#             self.is_resizing = True
+#         else:
+#             self.is_resizing = False
+#         super().mousePressEvent(event)
+#
+#     def mouseMoveEvent(self, event):
+#         if self.is_resizing:
+#             rect = self.boundingRect()
+#             x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
+#
+#             if self.resize_side == 'right':
+#                 delta = event.pos().x() - (x + w)
+#                 new_width = max(10, w + delta)
+#                 self.setTextWidth(new_width)
+#             elif self.resize_side == 'left':
+#                 delta = x - event.pos().x()
+#                 new_width = max(10, w + delta)
+#                 new_x = x + w - new_width
+#                 self.setPos(new_x, y)
+#                 self.setTextWidth(new_width)
+#             elif self.resize_side == 'bottom':
+#                 delta = event.pos().y() - (y + h)
+#                 new_height = max(10, h + delta)
+#                 self.setTextHeight(new_height)
+#             elif self.resize_side == 'top':
+#                 delta = y - event.pos().y()
+#                 new_height = max(10, h + delta)
+#                 new_y = y + h - new_height
+#                 self.setPos(x, new_y)
+#                 self.setTextHeight(new_height)
+#
+#         else:
+#             super().mouseMoveEvent(event)
+#
+#     def mouseReleaseEvent(self, event):
+#         self.is_resizing = False
+#         super().mouseReleaseEvent(event)
+#
+#     def setTextHeight(self, height):
+#         rect = self.boundingRect()
+#         self.setTextWidth(rect.width())  # Фиксируем ширину
+#         self.setTextHeight(height)  # Устанавливаем новую высоту
+#
+#     def setTextWidth(self, width):
+#         rect = self.boundingRect()
+#         self.setTextWidth(width)  # Устанавливаем новую ширину
+
 
 class Arrow(QGraphicsItem):
     def __init__(self, node1, node2, intermediate_points=None):
@@ -252,8 +342,9 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
     _id_counter = 0
     def __init__(self, x, y, size, color=QtCore.Qt.transparent,  node1=None, node2=None):
         super().__init__()
-        self.unique_id = Decision._id_counter
-        Decision._id_counter += 1
+        global global_id  # Объявляем, что будем использовать глобальную переменную
+        self.unique_id = global_id
+        global_id += 1
         self.size = size
         self.center_x = x  # Сохраняем центр при инициализации
         self.center_y = y
@@ -344,6 +435,7 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
             delta = max(delta_x, delta_y) * 2  # Умножаем на 2, чтобы изменить размер симметрично
 
             new_size = max(10, delta)  # Минимальный размер 10
+            self.size = new_size  # Обновляем атрибут размера
             self.setPolygon(self.create_diamond(self.center_x, self.center_y, new_size))
         else:
             super().mouseMoveEvent(event)
@@ -380,8 +472,9 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
     _id_counter = 0
     def __init__(self, x, y, radius, node1=None, node2=None):
         super().__init__(x - radius, y - radius, 2 * radius, 2 * radius)
-        self.unique_id = StartEvent._id_counter
-        StartEvent._id_counter += 1
+        global global_id  # Объявляем, что будем использовать глобальную переменную
+        self.unique_id = global_id
+        global_id += 1
         self.x_center = x
         self.y_center = y
         self.radius = radius
@@ -446,6 +539,7 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
         else:
             self.is_resizing = False
         super().mousePressEvent(event)
+
 
     def mouseMoveEvent(self, event):
          # Обновляем привязанные стрелки, если необходимо
@@ -627,6 +721,7 @@ class EndEvent(QtWidgets.QGraphicsEllipseItem):
 class Text_into_object(QtWidgets.QGraphicsTextItem):
     def __init__(self, max_length, parent=None):
         super().__init__(parent)
+        self.unique_id = None
         self.max_length = max_length
 
     def keyPressEvent(self, event):
@@ -671,8 +766,9 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
     _id_counter = 0
     def __init__(self, x, y, width, height, radius, node1=None, node2=None):
         super().__init__(x, y, width, height)
-        self.unique_id = ActiveState._id_counter
-        ActiveState._id_counter += 1
+        global global_id  # Объявляем, что будем использовать глобальную переменную
+        self.unique_id = global_id
+        global_id += 1
         self.x_center = x
         self.y_center = y
         self.width = width

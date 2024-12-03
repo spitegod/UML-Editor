@@ -429,6 +429,10 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
             item = StartEvent(position.x(), position.y(), 30)
         elif element_type == "EndEvent":
             item = EndEvent(position.x(), position.y(), 30, 0.5)
+            if isinstance(item, EndEvent):
+                print(f"Created EndEvent with unique_id: {item.unique_id}")
+            else:
+                print("Created object is not of type EndEvent.")
         elif element_type == "ActiveState":
             item = ActiveState(position.x(), position.y(), 100, 60, 15)
         elif element_type == "SignalSending":
@@ -537,6 +541,41 @@ class UserManager:
 
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+#Окно Помощь
+class HelpWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Помощь")
+        self.setGeometry(100, 100, 400, 600)
+        
+        layout = QVBoxLayout()
+        
+        instruction_text = QTextEdit()
+        instruction_text.setReadOnly(True)
+        instruction_text.setText(self.load_instruction())
+        
+        layout.addWidget(instruction_text)
+        self.setLayout(layout)
+
+    def load_instruction(self):
+        # Загружаем текст инструкции из файла
+        instruction_path = os.path.join(os.path.dirname(__file__), 'readme.txt')
+        try:
+            with open(instruction_path, 'r', encoding='utf-8') as file:
+                return file.read()
+        except UnicodeDecodeError:  # Попробуем открыть в кодировке windows-1251
+            try:
+                with open(instruction_path, 'r', encoding='windows-1251') as file:
+                    return file.read()
+            except FileNotFoundError:
+                return "Файл с инструкцией не найден."
+            except Exception as e:
+                return f"Ошибка при загрузке инструкции: {e}"
+        except FileNotFoundError:
+            return "Файл с инструкцией не найден."
+        except Exception as e:
+            return f"Ошибка при загрузке инструкции: {e}"
 
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
@@ -824,10 +863,14 @@ QLabel {
         #Тестовое меню для таймера
         self.menu_3 = QtWidgets.QMenu(self.menubar)
         self.menu_3.setObjectName("menu_3")
+
+        #Меню Окна
         self.menu_show_panel = QtWidgets.QMenu(self.menubar)
         self.menu_show_panel.setObjectName("menu_show_panel")
 
-        
+        #Меню Помощь
+        self.menu_help = QtWidgets.QMenu(self.menubar)
+        self.menu_help.setObjectName("menu_help")
 
 
         MainWindow.setMenuBar(self.menubar)
@@ -885,11 +928,18 @@ QLabel {
         self.menubar.addAction(self.menu_insert.menuAction())
         self.menubar.addAction(self.menu_2.menuAction())
         self.menubar.addAction(self.menu_show_panel.menuAction())
+        #self.menubar.addAction(self.menu_help)
+        # Создаем действие для пункта "Помощь"
+        self.action_help = QAction("Помощь", self)
+        
+        # Добавляем действие в менюбар
+        self.menubar.addAction(self.action_help)
 
         #Панели
         self.menu_show_panel.addAction(self.action_edit_panel)
         self.menu_show_panel.addAction(self.action_object_panel)
         self.menu_show_panel.addAction(self.action_Toolbar)
+
 
         self.action_edit_panel.triggered.connect(self.show_edit_panel)
         self.action_object_panel.triggered.connect(self.show_object_panel)
@@ -903,6 +953,11 @@ QLabel {
         self.action_exit.triggered.connect(self.close_application)
 
         self.action_add_image.triggered.connect(self.insert_image)
+
+        # Связываем сигнал triggered с методом show_help
+        self.action_help.triggered.connect(self.show_help)
+        
+        self.help_window = None  # Окно помощи создается при первом вызове
 
 
         # Создаём невидимый QLabel для записи времени
@@ -1100,6 +1155,11 @@ QLabel {
             list_item = QtWidgets.QListWidgetItem(list_item_text)
             self.object_list_widget.addItem(list_item)
 
+    def show_help(self):
+        if not self.help_window:
+            self.help_window = HelpWindow()
+        self.help_window.show()
+
     def on_object_selected(self, item):
         # Получаем объект, привязанный к элементу списка
         selected_object = item.data(Qt.UserRole)
@@ -1148,10 +1208,31 @@ QLabel {
             current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")  # Временная метка
             filepath = os.path.join(saves_dir, f"diagram_{current_time}.chep")
 
-        data = {"items": []}
+        data = {"items": [], "arrows": []}
+        elements = {}
+
+        # Сохраняем элементы, пропуская стрелки
         for item in self.scene_.items():
-            if isinstance(item, QtWidgets.QGraphicsItem):
-                data["items"].append(self.serialize_item(item))
+            if isinstance(item, QtWidgets.QGraphicsItem) and not isinstance(item, Arrow) and not isinstance(item, QGraphicsEllipseItem):
+                item_data = self.serialize_item(item)
+                data["items"].append(item_data)  # Добавляем элемент в items
+                elements[item.unique_id] = item  # Сохраняем элемент по уникальному идентификатору
+
+            if isinstance(item, QGraphicsEllipseItem):
+                item_data = self.serialize_item(item)
+                data["items"].append(item_data)  # Добавляем элемент в items
+                
+
+        # Сохраняем стрелки отдельно через их id
+        for item in self.scene_.items():
+            if isinstance(item, Arrow):
+                start_node_id = item.node1.unique_id  # Получаем id начального узла
+                end_node_id = item.node2.unique_id    # Получаем id конечного узла
+
+                data["arrows"].append({
+                    "start_node_id": start_node_id,
+                    "end_node_id": end_node_id
+                })
 
         try:
             # Сохраняем данные в файл
@@ -1171,10 +1252,22 @@ QLabel {
             if not filepath:
                 return
 
-        data = {"items": []}
+        data = {"items": [], "arrows": []}
+        elements = {}
+
+        # Сохраняем элементы
         for item in self.scene_.items():
             if isinstance(item, QtWidgets.QGraphicsItem):
-                data["items"].append(self.serialize_item(item))
+                item_data = self.serialize_item(item)
+                data["items"].append(item_data)
+                elements[item.unique_id] = item  # Сохраняем элементы по их уникальному идентификатору
+
+                if isinstance(item, Arrow):  # Если элемент - стрелка
+                    arrow_data = {
+                        "start_node_id": item.node1.unique_id,  # Сохраняем идентификаторы узлов
+                        "end_node_id": item.node2.unique_id,
+                    }
+                    data["arrows"].append(arrow_data)
 
         try:
             with open(filepath, "w") as file:
@@ -1218,39 +1311,83 @@ QLabel {
             "start_node": None,           # Начальная точка соединения (для Arrow)
             "end_node": None,             # Конечная точка соединения (для Arrow)
             "color": None,                # Цвет линии (для Arrow)
-            "line_width": None            # Толщина линии (для Arrow)
+            "line_width": None,
+            "id": None
         }
 
        
         # Заполняем структуру в зависимости от типа элемента
         if isinstance(item, Decision):  # Ромб
             base_data["size"] = item.size
+            position = item.sceneBoundingRect()
+            p_center = position.center()
+            x = p_center.x()/ 2
+            y = p_center.y() / 2
+            base_data["position"] = {"x": x, "y": y}
+            base_data["id"] = item.unique_id
+            # Проверяем, является ли цвет экземпляром QColor
+            if isinstance(item.color, QtGui.QColor):
+                base_data["color"] = item.color.name()  # Сохраняем как HEX
+            else:
+                # Для предопределённых цветов сохраняем их название
+                base_data["color"] = str(item.color)  # Например, 'transparent'
 
         elif isinstance(item, StartEvent):  # Круг (начало)
             rect = item.rect()
             base_data["radius"] = rect.width() / 2
+            position = item.sceneBoundingRect()
+            p_center = position.center()
+            x = p_center.x()
+            y = p_center.y()
+            base_data["position"] = {"x": x, "y": y}
+            base_data["id"] = item.unique_id
 
         elif isinstance(item, EndEvent):  # Круг с внутренним кругом (конец)
             rect = item.rect()
             base_data["radius"] = rect.width() / 2
             base_data["inner_radius_ratio"] = item.inner_radius_ratio
+            position = item.sceneBoundingRect()
+            p_center = position.center()
+            x = p_center.x()
+            y = p_center.y()
+            base_data["position"] = {"x": x, "y": y}
+            base_data["id"] = item.unique_id
 
         elif isinstance(item, ActiveState):  # Прямоугольник с закругленными углами
             rect = item.rect()
             base_data["width"] = rect.width()
             base_data["height"] = rect.height()
-            base_data["radius"] = rect.width() / 16
+            base_data["radius"] = rect.width() / 6
             base_data["text"] = item.text_item.toPlainText() if hasattr(item, "text_item") else None
+            position = item.sceneBoundingRect()
+            p_center = position.center()
+            x = p_center.x() - 50
+            y = p_center.y() - 30
+            print(x, y)
+            base_data["position"] = {"x": x, "y": y}
+            base_data["id"] = item.unique_id
 
         elif isinstance(item, SignalSending):  # Пентагон (сигнал отправки)
             rect = item.boundingRect()
-            base_data["width"] = rect.width()
-            base_data["height"] = rect.height()
+            base_data["width"] = item.width
+            base_data["height"] = item.height
+            position = item.sceneBoundingRect()
+            p_center = position.center()
+            x = p_center.x() - 15
+            y = p_center.y() + 30
+            base_data["position"] = {"x": x, "y": y}
+            base_data["id"] = item.unique_id
 
         elif isinstance(item, SignalReceipt):  # Пентагон (сигнал получения)
             rect = item.boundingRect()
-            base_data["width"] = rect.width()
-            base_data["height"] = rect.height()
+            base_data["width"] = item.width
+            base_data["height"] = item.height
+            position = item.sceneBoundingRect()
+            p_center = position.center()
+            x = p_center.x()
+            y = p_center.y() + 30
+            base_data["position"] = {"x": x, "y": y}
+            base_data["id"] = item.unique_id
 
         
 
@@ -1259,9 +1396,11 @@ QLabel {
             base_data["width"] = rect.width()
             base_data["height"] = rect.height()
 
-        elif hasattr(item, "node1") and hasattr(item, "node2"):  # Стрелка (Arrow)
-            base_data["start_node"] = (item.node1.x(), item.node1.y())
-            base_data["end_node"] = (item.node2.x(), item.node2.y())
+
+
+        # elif hasattr(item, "node1") and hasattr(item, "node2"):  # Стрелка (Arrow)
+        #     base_data["start_node"] = {"x": item.node1.x(), "y": item.node1.y()}
+        #     base_data["end_node"] = {"x": item.node2.x(), "y": item.node2.y()}
         # Если хотите указать цвет или ширину линии, добавьте сюда
         
 
@@ -1720,6 +1859,15 @@ QLabel {
         return last_time
 
 
+    def get_element_by_id(self, id):
+        for item in self.objectS_:
+            print(f"Checking item: {item}")
+            print(f"Item type: {type(item)}")
+            print(f"Item unique_id: {getattr(item, 'unique_id', None)}")
+            if item.unique_id == id:
+                print(f"Returning item with id:' {getattr(item, 'unique_id', None)}")
+                return item
+        return None
     
 
 
@@ -1733,22 +1881,46 @@ QLabel {
 
             # Создание объектов в зависимости от типа
             if item_type == "Decision":
-                size = item_data.get("size", 50)  # Достаём "size" с умолчанием
-                item = Decision(*position, size)
+                size = item_data.get("size")  # Достаём "size" с умолчанием
+                color = item_data.get("color", "#000000")
+                if isinstance(color, str):
+                    if color.startswith("#"):  # Если это HEX-строка
+                        color = QtGui.QColor(color)
+                    else:  # Если это предопределённый цвет
+                        color = getattr(QtCore.Qt, color, QtCore.Qt.transparent)
+                else:
+                    color = QtGui.QColor()  # Цвет по умолчанию
+
+                position_data = item_data.get("position")
+                x, y = position_data.get("x"), position_data.get("y")
+                print(x, y)
+
+                item = Decision(x, y, size, color)
+                item.unique_id = item_data.get("id")
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
-                
+                # Устанавливаем точную позицию
+                item.setPos(x, y)
 
             elif item_type == "StartEvent":
                 radius = item_data.get("radius", 30)  # Достаём "radius" с умолчанием
-                item = StartEvent(*position, radius)
+                position_data = item_data.get("position")
+                x, y = position_data.get("x"), position_data.get("y")
+                item = StartEvent(x, y, radius)
+                print('id now:', item.unique_id)
+                item.unique_id = item_data.get("id")
+                print('id after:', item.unique_id)
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 
             elif item_type == "EndEvent":
                 radius = item_data.get("radius", 30)
                 inner_radius_ratio = item_data.get("inner_radius_ratio", 0.5)
-                item = EndEvent(*position, radius, inner_radius_ratio)
+                position_data = item_data.get("position")
+                x, y = position_data.get("x"), position_data.get("y")
+                item = EndEvent(x, y, radius, inner_radius_ratio)
+                item.unique_id = item_data.get("id")
+                
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 
@@ -1757,22 +1929,32 @@ QLabel {
                 height = item_data.get("height", 50)
                 radius = item_data.get("radius", 10)
                 text = item_data.get("text", "")
-                item = ActiveState(*position, width, height, radius)
+                position_data = item_data.get("position")
+                x, y = position_data.get("x"), position_data.get("y")
+                item = ActiveState(x, y, width, height, radius)
+                item.unique_id = item_data.get("id")
                 item.text_item.setPlainText(text)
+                
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 
             elif item_type == "SignalSending":
                 width = item_data.get("width", 60)
                 height = item_data.get("height", 40)
-                item = SignalSending(*position, width, height)
+                position_data = item_data.get("position")
+                x, y = position_data.get("x"), position_data.get("y")
+                item = SignalSending(x, y, width, height)
+                item.unique_id = item_data.get("id")
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 
             elif item_type == "SignalReceipt":
                 width = item_data.get("width", 60)
                 height = item_data.get("height", 40)
-                item = SignalReceipt(*position, width, height)
+                position_data = item_data.get("position")
+                x, y = position_data.get("x"), position_data.get("y")
+                item = SignalReceipt(x, y, width, height)
+                item.unique_id = item_data.get("id")
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 
@@ -1787,34 +1969,38 @@ QLabel {
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 
-        for item_data in data["items"]:
-            if item_data["type"] == "Arrow":  # Проверяем, является ли элемент стрелкой
-                start_node_coords = item_data.get("start_node")  # Преобразуем в кортеж
-                end_node_coords = item_data.get("end_node")  # Преобразуем в кортеж
+        for arrow_data in data.get("arrows", []):
+            
+            start_node_id = arrow_data["start_node_id"]
+            end_node_id = arrow_data["end_node_id"]
 
-                # Получаем узлы по их координатам
-                start_node = elements.get(start_node_coords)
-                end_node = elements.get(end_node_coords)
 
-                if start_node is None or end_node is None:
-                    # Если точного совпадения нет, ищем узлы с близкими координатами
-                    for coords, node in elements.items():
-                        if start_node is None and all(abs(a - b) < 1e-5 for a, b in zip(coords, start_node_coords)):
-                            start_node = node
-                        if end_node is None and all(abs(a - b) < 1e-5 for a, b in zip(coords, end_node_coords)):
-                            end_node = node
+            start_node = self.get_element_by_id(start_node_id)
+            print('start_node', start_node)
+            end_node = self.get_element_by_id(end_node_id)
+            print(end_node)
 
-                if start_node and end_node:
-                    # Выделяем узлы
-                    start_node.setSelected(True)
-                    end_node.setSelected(True)
 
-                    # Создаём стрелку через функцию add_edge
-                    self.add_edge()
+            if start_node and end_node:
+                node1, node2 = start_node, end_node
+                print(node1)
 
-                    # Снимаем выделение
-                    start_node.setSelected(False)
-                    end_node.setSelected(False)
+                
+
+                # Создаем стрелку и привязываем её к выбранным узлам
+                arrow = Arrow(node1, node2)
+                arrow.setZValue(-1)
+                self.scene_.addItem(arrow)  # Добавляем стрелку на сцену
+
+
+                # Привязываем стрелку к обоим узлам
+                node1.add_arrow(arrow)
+                node2.add_arrow(arrow)
+                
+
+                # Обновляем стрелку сразу после добавления
+                arrow.update_arrow()  # Обновляем стрелку вручную, если нужно
+                self.scene_.update()  # Перерисовываем сцену
 
         # Добавляем элемент на сцену
         self.scene_.addItem(item)
@@ -1935,6 +2121,7 @@ QLabel {
         self.menu_3.setTitle(_translate("MainWindow", "Тест таймера"))
 
         self.menu_show_panel.setTitle(_translate("MainWindow", "Окна"))
+        self.menu_help.setTitle(_translate("MainWindow", "Помощь"))
         self.action_edit_panel.setText(_translate("MainWindow", "Панель редактирования"))
         self.action_object_panel.setText(_translate("MainWindow", "Список объектов"))
         self.action_Toolbar.setText(_translate("MainWindow", "Тулбар"))

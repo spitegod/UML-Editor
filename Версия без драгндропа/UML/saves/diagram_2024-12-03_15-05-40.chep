@@ -2,10 +2,10 @@
     "items": [
         {
             "type": "StartEvent",
-            "position": [
-                0.0,
-                0.0
-            ],
+            "position": {
+                "x": 0.0,
+                "y": 0.0
+            },
             "size": null,
             "radius": 30.0,
             "inner_radius_ratio": null,
