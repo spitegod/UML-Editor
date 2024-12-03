@@ -8,6 +8,7 @@ import math
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+global_id = 0
 # class Text_Edit(QtWidgets.QGraphicsTextItem):
 #     def __init__(self, x, y, width, height, text=""):
 #         super().__init__(text)  # Инициализация с начальным текстом
@@ -343,8 +344,9 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
     _id_counter = 0
     def __init__(self, x, y, size, color=QtCore.Qt.transparent,  node1=None, node2=None):
         super().__init__()
-        self.unique_id = Decision._id_counter
-        Decision._id_counter += 1
+        global global_id  # Объявляем, что будем использовать глобальную переменную
+        self.unique_id = global_id
+        global_id += 1
         self.size = size
         self.center_x = x  # Сохраняем центр при инициализации
         self.center_y = y
@@ -472,8 +474,9 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
     _id_counter = 0
     def __init__(self, x, y, radius, node1=None, node2=None):
         super().__init__(x - radius, y - radius, 2 * radius, 2 * radius)
-        self.unique_id = StartEvent._id_counter
-        StartEvent._id_counter += 1
+        global global_id  # Объявляем, что будем использовать глобальную переменную
+        self.unique_id = global_id
+        global_id += 1
         self.x_center = x
         self.y_center = y
         self.radius = radius
