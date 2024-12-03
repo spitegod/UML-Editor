@@ -538,6 +538,14 @@ class HelpWindow(QWidget):
         try:
             with open(instruction_path, 'r', encoding='utf-8') as file:
                 return file.read()
+        except UnicodeDecodeError:  # Попробуем открыть в кодировке windows-1251
+            try:
+                with open(instruction_path, 'r', encoding='windows-1251') as file:
+                    return file.read()
+            except FileNotFoundError:
+                return "Файл с инструкцией не найден."
+            except Exception as e:
+                return f"Ошибка при загрузке инструкции: {e}"
         except FileNotFoundError:
             return "Файл с инструкцией не найден."
         except Exception as e:
