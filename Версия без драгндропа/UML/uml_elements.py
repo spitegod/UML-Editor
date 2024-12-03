@@ -474,8 +474,8 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
         super().__init__(x - radius, y - radius, 2 * radius, 2 * radius)
         self.unique_id = StartEvent._id_counter
         StartEvent._id_counter += 1
-        self.x = x
-        self.y = y
+        self.x_center = x
+        self.y_center = y
         self.radius = radius
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать элемент
@@ -498,7 +498,7 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
     #     self.arrows.clear()  # Очищаем список стрелок
 
     def clone(self):
-        clone_item = StartEvent(self.x, self.y, self.radius)
+        clone_item = StartEvent(self.x_center, self.y_center, self.radius)
         clone_item.setRect(self.rect())
         clone_item.setBrush(self.brush())
         clone_item.setPen(self.pen())
@@ -595,8 +595,8 @@ class EndEvent(QtWidgets.QGraphicsEllipseItem):
         super().__init__(x - radius, y - radius, 2 * radius, 2 * radius)
         self.unique_id = EndEvent._id_counter
         EndEvent._id_counter += 1
-        self.x = x
-        self.y = y
+        self.x_center = x
+        self.y_center = y
         self.radius = radius
         self.inner_radius_ratio = inner_radius_ratio
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))  # Основной круг
@@ -616,7 +616,7 @@ class EndEvent(QtWidgets.QGraphicsEllipseItem):
         self.update_inner_circle()
 
     def clone(self):
-        clone_item = EndEvent(self.x, self.y, self.radius, self.inner_radius_ratio)
+        clone_item = EndEvent(self.x_center, self.y_center, self.radius, self.inner_radius_ratio)
         clone_item.setRect(self.rect())
         clone_item.setBrush(self.brush())
         clone_item.setPen(self.pen())
@@ -766,12 +766,12 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
         super().__init__(x, y, width, height)
         self.unique_id = ActiveState._id_counter
         ActiveState._id_counter += 1
-        self.x = x
-        self.y = y
+        self.x_center = x
+        self.y_center = y
         self.width = width
         self.height = height
         self.radius = radius  # Радиус закругления
-        self.setRect(x, y, width, height)
+        self.setRect(self.x_center, self.y_center, width, height)
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
@@ -791,7 +791,7 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
         self.update_text_position()
 
     def clone(self):
-        cloned_item = ActiveState(self.x, self.y, self.width, self.height, self.radius)
+        cloned_item = ActiveState(self.x_center, self.y_center, self.width, self.height, self.radius)
         cloned_item.setRect(self.rect())
         cloned_item.setBrush(self.brush())
         cloned_item.setPen(self.pen())
@@ -1427,9 +1427,9 @@ class ImageItem(QtWidgets.QGraphicsPixmapItem):
         super().__init__(pixmap)
         self.unique_id = ImageItem._id_counter
         ImageItem._id_counter += 1
-        self.x = x
-        self.y = y
-        self.setPos(x, y)  # Устанавливаем начальную позицию
+        self.x_center = x
+        self.y_center = y
+        self.setPos(self.x_center, self.y_center)  # Устанавливаем начальную позицию
         self.setFlags(
             QtWidgets.QGraphicsItem.ItemIsMovable |
             QtWidgets.QGraphicsItem.ItemIsSelectable |
@@ -1442,7 +1442,7 @@ class ImageItem(QtWidgets.QGraphicsPixmapItem):
         self.arrows = []  # Список стрелок, привязанных к изображению
 
     def clone(self):
-        cloned_item = ImageItem(self.pixmap(), self.x, self.y)
+        cloned_item = ImageItem(self.pixmap(), self.x_center, self.y_center)
         
         return cloned_item
 
