@@ -1,0 +1,82 @@
+{
+    "items": [
+        {
+            "type": "Text_into_object",
+            "position": [
+                -43.0,
+                -42.0
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": null
+        },
+        {
+            "type": "SignalReceipt",
+            "position": {
+                "x": 19.0,
+                "y": -121.0
+            },
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": 180,
+            "height": 60,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": 1
+        },
+        {
+            "type": "Text_into_object",
+            "position": [
+                -43.0,
+                -42.0
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": null
+        },
+        {
+            "type": "SignalReceipt",
+            "position": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": 180,
+            "height": 60,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": 0
+        }
+    ],
+    "arrows": [
+        {
+            "start_node_id": 0,
+            "end_node_id": 1
+        }
+    ]
+}
