@@ -723,6 +723,7 @@ class EndEvent(QtWidgets.QGraphicsEllipseItem):
 class Text_into_object(QtWidgets.QGraphicsTextItem):
     def __init__(self, max_length, parent=None):
         super().__init__(parent)
+        self.unique_id = None
         self.max_length = max_length
 
     def keyPressEvent(self, event):
@@ -767,8 +768,9 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
     _id_counter = 0
     def __init__(self, x, y, width, height, radius, node1=None, node2=None):
         super().__init__(x, y, width, height)
-        self.unique_id = ActiveState._id_counter
-        ActiveState._id_counter += 1
+        global global_id  # Объявляем, что будем использовать глобальную переменную
+        self.unique_id = global_id
+        global_id += 1
         self.x_center = x
         self.y_center = y
         self.width = width
