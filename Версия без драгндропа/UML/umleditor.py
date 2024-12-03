@@ -527,10 +527,21 @@ class HelpWindow(QWidget):
         
         instruction_text = QTextEdit()
         instruction_text.setReadOnly(True)
-        instruction_text.setText("Здесь будет текст инструкции по использованию приложения...")
+        instruction_text.setText(self.load_instruction())
         
         layout.addWidget(instruction_text)
         self.setLayout(layout)
+
+    def load_instruction(self):
+        # Загружаем текст инструкции из файла
+        instruction_path = os.path.join(os.path.dirname(__file__), 'readme.txt')
+        try:
+            with open(instruction_path, 'r', encoding='utf-8') as file:
+                return file.read()
+        except FileNotFoundError:
+            return "Файл с инструкцией не найден."
+        except Exception as e:
+            return f"Ошибка при загрузке инструкции: {e}"
 
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
