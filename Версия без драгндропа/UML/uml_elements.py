@@ -8,7 +8,7 @@ import math
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-global_id = 0
+
 # class Text_Edit(QtWidgets.QGraphicsTextItem):
 #     def __init__(self, x, y, width, height, text=""):
 #         super().__init__(text)  # Инициализация с начальным текстом
@@ -110,6 +110,7 @@ class Arrow(QGraphicsItem):
         self.relative_points = []
         self.dragged_point_index = None
         self.top_point = None
+        self.show_points = True #по умолчанию точки видны
 
         self.right_arrow_enabled = True
         self.left_arrow_enabled = False
@@ -131,18 +132,18 @@ class Arrow(QGraphicsItem):
         return rect.adjusted(-extra_margin, -extra_margin, extra_margin, extra_margin)
 
     def paint(self, painter, option, widget=None):
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
         painter.setBrush(Qt.NoBrush)
         painter.setPen(self.pen)  # Используем pen для рисования
         painter.drawPath(self.path)
-        painter.setRenderHint(QtGui.QPainter.Antialiasing)
 
-        # Промежуточные точки
-        pen = QPen(Qt.black)
-        painter.setPen(pen)
-        brush = QBrush(Qt.blue)
-        painter.setBrush(brush)
-        for point in self.intermediate_points:
-            painter.drawEllipse(point, 5, 5)
+        if self.show_points:
+            pen = QPen(Qt.black)
+            painter.setPen(pen)
+            brush = QBrush(Qt.blue)
+            painter.setBrush(brush)
+            for point in self.intermediate_points:
+                painter.drawEllipse(point, 5, 5)
 
     def change_color(self, color):
         # Метод для изменения цвета стрелки
@@ -332,9 +333,6 @@ class Arrow(QGraphicsItem):
                 # print(f"Intersection found at {intersection_point}")
                 return intersection_point
         return start  # Возвращаем начальную точку, если нет пересечений
-
-
-
 
 
 
@@ -992,16 +990,6 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
 
 
 
-
-
-
-
-
-
-
-
-
-
     def mouseReleaseEvent(self, event):
         self.is_resizing = False
         super().mouseReleaseEvent(event)
@@ -1502,7 +1490,6 @@ class ImageItem(QtWidgets.QGraphicsPixmapItem):
         super().mouseReleaseEvent(event)
 
     def add_arrow(self, arrow):
-        """Добавляем стрелку к изображению."""
         if arrow not in self.arrows:
             self.arrows.append(arrow)
 
@@ -1516,3 +1503,142 @@ class ImageItem(QtWidgets.QGraphicsPixmapItem):
         """Сглаживание при отрисовке."""
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
         super().paint(painter, option, widget)
+
+
+class Text_Edit(Text_into_object):
+    _id_counter = 0
+    def __init__(self, x, y, width, height, text="Текст", max_length=250, parent=None):
+        super().__init__(max_length, parent)
+        self.unique_id = Splitter_Merge._id_counter
+        Splitter_Merge._id_counter += 1
+        self.setPlainText(text)
+        self.max_length = max_length
+
+        self.x_center = x
+        self.y_center = y
+        self.arrows = []
+
+        self.setPos(self.x_center, self.y_center)
+        self.setFont(QtGui.QFont("Arial", 12))
+        self.setDefaultTextColor(QtGui.QColor(0, 0, 0))
+
+        self.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+        self.setAcceptHoverEvents(True)
+
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable)
+
+        self.is_resizing = False
+        self.resize_margin = 10
+        self.resize_side = None
+
+        self.width = width
+        self.height = height
+
+    def clone(self):
+        cloned_item = Text_Edit(self.x_center, self.y_center, self.width, self.height, self.toPlainText())
+        
+        return cloned_item
+
+    def update_text_wrap(self):
+        rect = self.boundingRect()
+        max_width = rect.width() - 10
+        if max_width > 0:
+            super().update_wrapped_text(max_width)
+
+    def mouseDoubleClickEvent(self, event):
+        self.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+        self.setFocus(QtCore.Qt.MouseFocusReason)
+
+    def focusOutEvent(self, event):
+        self.setTextInteractionFlags(QtCore.Qt.NoTextInteraction)
+        super().focusOutEvent(event)
+
+    def hoverMoveEvent(self, event):
+        rect = self.boundingRect() 
+        x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
+
+        if abs(event.pos().x() - x) <= self.resize_margin and abs(event.pos().y() - y) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeFDiagCursor))  # Верхний левый угол
+            self.resize_side = 'top_left'
+        elif abs(event.pos().x() - (x + w)) <= self.resize_margin and abs(event.pos().y() - y) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeBDiagCursor))  # Верхний правый угол
+            self.resize_side = 'top_right'
+        elif abs(event.pos().x() - x) <= self.resize_margin and abs(event.pos().y() - (y + h)) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeBDiagCursor))  # Нижний левый угол
+            self.resize_side = 'bottom_left'
+        elif abs(event.pos().x() - (x + w)) <= self.resize_margin and abs(event.pos().y() - (y + h)) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeFDiagCursor))  # Нижний правый угол
+            self.resize_side = 'bottom_right'
+        elif abs(event.pos().x() - x) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))  # Левая сторона
+            self.resize_side = 'left'
+        elif abs(event.pos().x() - (x + w)) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeHorCursor))  # Правая сторона
+            self.resize_side = 'right'
+        elif abs(event.pos().y() - y) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))  # Верхняя сторона
+            self.resize_side = 'top'
+        elif abs(event.pos().y() - (y + h)) <= self.resize_margin:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))  # Нижняя сторона
+            self.resize_side = 'bottom'
+        else:
+            self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+            self.resize_side = None
+
+    def mousePressEvent(self, event):
+        if self.resize_side:
+            self.is_resizing = True
+        else:
+            self.is_resizing = False
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        for arrow in self.arrows:
+            arrow.update_arrow()
+        if self.is_resizing:
+            rect = self.boundingRect()
+            x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
+
+            delta_x = event.pos().x() - event.lastPos().x()
+            delta_y = event.pos().y() - event.lastPos().y()
+
+            new_x, new_y = self.pos().x(), self.pos().y()
+            new_width, new_height = self.width, self.height
+
+            if self.resize_side in ['top_left', 'left', 'bottom_left']:
+                new_width = max(10, self.width - delta_x)
+                new_x += delta_x
+            if self.resize_side in ['top_left', 'top', 'top_right']:
+                new_height = max(10, self.height - delta_y)
+                new_y += delta_y
+            if self.resize_side in ['top_right', 'right', 'bottom_right']:
+                new_width = max(10, self.width + delta_x)
+            if self.resize_side in ['bottom_left', 'bottom', 'bottom_right']:
+                new_height = max(10, self.height + delta_y)
+            self.prepareGeometryChange()
+            self.width = new_width
+            self.height = new_height
+            self.setPos(new_x, new_y)
+
+            # Обновляем ширину текста
+            self.setTextWidth(self.width)
+            self.update_text_wrap()
+        else:
+            super().mouseMoveEvent(event)
+
+    def add_arrow(self, arrow):
+        if arrow not in self.arrows:
+            self.arrows.append(arrow)
+
+    def itemChange(self, change, value):
+        if change == QtWidgets.QGraphicsItem.ItemPositionChange:
+            for arrow in self.arrows:
+                arrow.update_arrow()
+        return super().itemChange(change, value)
+
+
+
+
+
+
