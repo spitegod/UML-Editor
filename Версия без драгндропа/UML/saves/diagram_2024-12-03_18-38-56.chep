@@ -1,0 +1,86 @@
+{
+    "items": [
+        {
+            "type": "StartEvent",
+            "position": {
+                "x": 182.0,
+                "y": -67.0
+            },
+            "size": null,
+            "radius": 30.0,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": 3
+        },
+        {
+            "type": "StartEvent",
+            "position": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "size": null,
+            "radius": 30.0,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": 2
+        },
+        {
+            "type": "StartEvent",
+            "position": {
+                "x": -143.0,
+                "y": -96.0
+            },
+            "size": null,
+            "radius": 30.0,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": 0
+        },
+        {
+            "type": "StartEvent",
+            "position": {
+                "x": 100.0,
+                "y": -204.0
+            },
+            "size": null,
+            "radius": 30.0,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": 1
+        }
+    ],
+    "arrows": [
+        {
+            "start_node_id": 2,
+            "end_node_id": 3
+        },
+        {
+            "start_node_id": 0,
+            "end_node_id": 1
+        }
+    ]
+}
