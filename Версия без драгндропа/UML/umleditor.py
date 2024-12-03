@@ -412,6 +412,10 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
             item = StartEvent(position.x(), position.y(), 30)
         elif element_type == "EndEvent":
             item = EndEvent(position.x(), position.y(), 30, 0.5)
+            if isinstance(item, EndEvent):
+                print(f"Created EndEvent with unique_id: {item.unique_id}")
+            else:
+                print("Created object is not of type EndEvent.")
         elif element_type == "ActiveState":
             item = ActiveState(position.x(), position.y(), 100, 60, 15)
         elif element_type == "SignalSending":
@@ -1162,10 +1166,15 @@ QLabel {
 
         # Сохраняем элементы, пропуская стрелки
         for item in self.scene_.items():
-            if isinstance(item, QtWidgets.QGraphicsItem) and not isinstance(item, Arrow):
+            if isinstance(item, QtWidgets.QGraphicsItem) and not isinstance(item, Arrow) and not isinstance(item, QGraphicsEllipseItem):
                 item_data = self.serialize_item(item)
                 data["items"].append(item_data)  # Добавляем элемент в items
                 elements[item.unique_id] = item  # Сохраняем элемент по уникальному идентификатору
+
+            if isinstance(item, QGraphicsEllipseItem):
+                item_data = self.serialize_item(item)
+                data["items"].append(item_data)  # Добавляем элемент в items
+                
 
         # Сохраняем стрелки отдельно через их id
         for item in self.scene_.items():
@@ -1295,6 +1304,7 @@ QLabel {
             x = p_center.x()
             y = p_center.y()
             base_data["position"] = {"x": x, "y": y}
+            base_data["id"] = item.unique_id
 
         elif isinstance(item, ActiveState):  # Прямоугольник с закругленными углами
             rect = item.rect()
@@ -1856,6 +1866,7 @@ QLabel {
                 position_data = item_data.get("position")
                 x, y = position_data.get("x"), position_data.get("y")
                 item = EndEvent(x, y, radius, inner_radius_ratio)
+                item.unique_id = item_data.get("id")
                 
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
