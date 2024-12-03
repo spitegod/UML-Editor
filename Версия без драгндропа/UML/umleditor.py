@@ -520,7 +520,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 class HelpWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Инструкция")
+        self.setWindowTitle("Помощь")
         self.setGeometry(100, 100, 400, 300)
         
         layout = QVBoxLayout()
