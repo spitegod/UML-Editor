@@ -516,6 +516,22 @@ class UserManager:
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+#Окно Помощь
+class HelpWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Инструкция")
+        self.setGeometry(100, 100, 400, 300)
+        
+        layout = QVBoxLayout()
+        
+        instruction_text = QTextEdit()
+        instruction_text.setReadOnly(True)
+        instruction_text.setText("Здесь будет текст инструкции по использованию приложения...")
+        
+        layout.addWidget(instruction_text)
+        self.setLayout(layout)
+
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
@@ -869,14 +885,18 @@ QLabel {
         self.menubar.addAction(self.menu_insert.menuAction())
         self.menubar.addAction(self.menu_2.menuAction())
         self.menubar.addAction(self.menu_show_panel.menuAction())
-        self.menubar.addAction(self.menu_help.menuAction())
+        #self.menubar.addAction(self.menu_help)
+        # Создаем действие для пункта "Помощь"
+        self.action_help = QAction("Помощь", self)
+        
+        # Добавляем действие в менюбар
+        self.menubar.addAction(self.action_help)
 
         #Панели
         self.menu_show_panel.addAction(self.action_edit_panel)
         self.menu_show_panel.addAction(self.action_object_panel)
         self.menu_show_panel.addAction(self.action_Toolbar)
 
-        #self.menu_help.addAction(self.action_help)
 
         self.action_edit_panel.triggered.connect(self.show_edit_panel)
         self.action_object_panel.triggered.connect(self.show_object_panel)
@@ -890,6 +910,11 @@ QLabel {
         self.action_exit.triggered.connect(self.close_application)
 
         self.action_add_image.triggered.connect(self.insert_image)
+
+        # Связываем сигнал triggered с методом show_help
+        self.action_help.triggered.connect(self.show_help)
+        
+        self.help_window = None  # Окно помощи создается при первом вызове
 
 
         # Создаём невидимый QLabel для записи времени
@@ -1059,6 +1084,11 @@ QLabel {
             list_item_text = f"#{item.unique_id}: {type(item).__name__}"
             list_item = QtWidgets.QListWidgetItem(list_item_text)
             self.object_list_widget.addItem(list_item)
+
+    def show_help(self):
+        if not self.help_window:
+            self.help_window = HelpWindow()
+        self.help_window.show()
 
     def on_object_selected(self, item):
         # Получаем объект, привязанный к элементу списка
