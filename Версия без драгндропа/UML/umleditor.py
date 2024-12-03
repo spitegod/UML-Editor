@@ -1268,6 +1268,7 @@ QLabel {
             x = p_center.x()/ 2
             y = p_center.y() / 2
             base_data["position"] = {"x": x, "y": y}
+            base_data["id"] = item.unique_id
             # Проверяем, является ли цвет экземпляром QColor
             if isinstance(item.color, QtGui.QColor):
                 base_data["color"] = item.color.name()  # Сохраняем как HEX
@@ -1829,6 +1830,7 @@ QLabel {
                 print(x, y)
 
                 item = Decision(x, y, size, color)
+                item.unique_id = item_data.get("id")
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
                 # Устанавливаем точную позицию
@@ -1851,6 +1853,7 @@ QLabel {
                 position_data = item_data.get("position")
                 x, y = position_data.get("x"), position_data.get("y")
                 item = EndEvent(x, y, radius, inner_radius_ratio)
+                
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 
