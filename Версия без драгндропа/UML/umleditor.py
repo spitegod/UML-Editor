@@ -1932,18 +1932,7 @@ QLabel {
                 node1, node2 = start_node, end_node
                 print(node1)
 
-                # Проверяем, существует ли уже стрелка между node1 и node2
-                for arrow in node1.arrows:
-                    if (arrow.node1 == node1 and arrow.node2 == node2) or (arrow.node1 == node2 and arrow.node2 == node1):
-                        disconnect = QMessageBox.question(
-                            None,
-                            "Предупреждение",
-                            "Стрелка уже существует между выбранными элементами. Вы хотите удалить её?",
-                            QMessageBox.Yes | QMessageBox.No
-                        )
-                        if disconnect == QMessageBox.Yes:
-                            self.disconnect_nodes(node1, node2)
-                        return
+                
 
                 # Создаем стрелку и привязываем её к выбранным узлам
                 arrow = Arrow(node1, node2)
