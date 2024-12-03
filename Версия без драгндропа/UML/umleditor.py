@@ -804,10 +804,14 @@ QLabel {
         #Тестовое меню для таймера
         self.menu_3 = QtWidgets.QMenu(self.menubar)
         self.menu_3.setObjectName("menu_3")
+
+        #Меню Окна
         self.menu_show_panel = QtWidgets.QMenu(self.menubar)
         self.menu_show_panel.setObjectName("menu_show_panel")
 
-        
+        #Меню Помощь
+        self.menu_help = QtWidgets.QMenu(self.menubar)
+        self.menu_help.setObjectName("menu_help")
 
 
         MainWindow.setMenuBar(self.menubar)
@@ -865,11 +869,14 @@ QLabel {
         self.menubar.addAction(self.menu_insert.menuAction())
         self.menubar.addAction(self.menu_2.menuAction())
         self.menubar.addAction(self.menu_show_panel.menuAction())
+        self.menubar.addAction(self.menu_help.menuAction())
 
         #Панели
         self.menu_show_panel.addAction(self.action_edit_panel)
         self.menu_show_panel.addAction(self.action_object_panel)
         self.menu_show_panel.addAction(self.action_Toolbar)
+
+        #self.menu_help.addAction(self.action_help)
 
         self.action_edit_panel.triggered.connect(self.show_edit_panel)
         self.action_object_panel.triggered.connect(self.show_object_panel)
@@ -1949,6 +1956,7 @@ QLabel {
         self.menu_3.setTitle(_translate("MainWindow", "Тест таймера"))
 
         self.menu_show_panel.setTitle(_translate("MainWindow", "Окна"))
+        self.menu_help.setTitle(_translate("MainWindow", "Помощь"))
         self.action_edit_panel.setText(_translate("MainWindow", "Панель редактирования"))
         self.action_object_panel.setText(_translate("MainWindow", "Список объектов"))
         self.action_Toolbar.setText(_translate("MainWindow", "Тулбар"))
