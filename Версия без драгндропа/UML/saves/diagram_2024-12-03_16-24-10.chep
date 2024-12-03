@@ -1,0 +1,61 @@
+{
+    "items": [
+        {
+            "type": "Decision",
+            "position": {
+                "x": 49.32322330470336,
+                "y": -0.17677669529663476
+            },
+            "size": 50,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": "19",
+            "line_width": null
+        },
+        {
+            "type": "Decision",
+            "position": {
+                "x": -0.17677669529663653,
+                "y": -0.17677669529663476
+            },
+            "size": 50,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": "19",
+            "line_width": null
+        },
+        {
+            "type": "Arrow",
+            "position": [
+                0.0,
+                0.0
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "end_node": {
+                "x": 99.0,
+                "y": 0.0
+            },
+            "color": null,
+            "line_width": null
+        }
+    ]
+}

@@ -1,0 +1,46 @@
+{
+    "items": [
+        {
+            "type": "StartEvent",
+            "position": {
+                "x": 100.0,
+                "y": -104.0
+            },
+            "size": null,
+            "radius": 30.0,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": 1
+        },
+        {
+            "type": "Decision",
+            "position": {
+                "x": -0.17677669529663653,
+                "y": -0.17677669529663476
+            },
+            "size": 50,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": "19",
+            "line_width": null,
+            "id": 0
+        }
+    ],
+    "arrows": [
+        {
+            "start_node_id": 0,
+            "end_node_id": 1
+        }
+    ]
+}

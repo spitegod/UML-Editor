@@ -1,0 +1,126 @@
+{
+    "items": [
+        {
+            "type": "Text_into_object",
+            "position": [
+                -44.65802943555934,
+                1.0
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": null
+        },
+        {
+            "type": "SignalSending",
+            "position": {
+                "x": 2.7629558466609865,
+                "y": 43.0
+            },
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": 160,
+            "height": 60,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": 0
+        },
+        {
+            "type": "Text_into_object",
+            "position": [
+                -8.5,
+                -237.0
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": null
+        },
+        {
+            "type": "ActiveState",
+            "position": {
+                "x": -38.0,
+                "y": -255.0
+            },
+            "size": null,
+            "radius": 16.666666666666668,
+            "inner_radius_ratio": null,
+            "width": 100.0,
+            "height": 60.0,
+            "text": "\u0422\u0435\u043a\u0441\u0442",
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": 0
+        },
+        {
+            "type": "Text_into_object",
+            "position": [
+                -40.57901471777967,
+                -115.0
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": null
+        },
+        {
+            "type": "SignalSending",
+            "position": {
+                "x": 87.84197056444066,
+                "y": -74.0
+            },
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": 160,
+            "height": 60,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": 2
+        }
+    ],
+    "arrows": [
+        {
+            "start_node_id": 2,
+            "end_node_id": 0
+        },
+        {
+            "start_node_id": 0,
+            "end_node_id": 0
+        },
+        {
+            "start_node_id": 0,
+            "end_node_id": 2
+        }
+    ]
+}
