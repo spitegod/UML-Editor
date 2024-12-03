@@ -516,6 +516,41 @@ class UserManager:
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+#Окно Помощь
+class HelpWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Помощь")
+        self.setGeometry(100, 100, 400, 600)
+        
+        layout = QVBoxLayout()
+        
+        instruction_text = QTextEdit()
+        instruction_text.setReadOnly(True)
+        instruction_text.setText(self.load_instruction())
+        
+        layout.addWidget(instruction_text)
+        self.setLayout(layout)
+
+    def load_instruction(self):
+        # Загружаем текст инструкции из файла
+        instruction_path = os.path.join(os.path.dirname(__file__), 'readme.txt')
+        try:
+            with open(instruction_path, 'r', encoding='utf-8') as file:
+                return file.read()
+        except UnicodeDecodeError:  # Попробуем открыть в кодировке windows-1251
+            try:
+                with open(instruction_path, 'r', encoding='windows-1251') as file:
+                    return file.read()
+            except FileNotFoundError:
+                return "Файл с инструкцией не найден."
+            except Exception as e:
+                return f"Ошибка при загрузке инструкции: {e}"
+        except FileNotFoundError:
+            return "Файл с инструкцией не найден."
+        except Exception as e:
+            return f"Ошибка при загрузке инструкции: {e}"
+
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
@@ -804,10 +839,14 @@ QLabel {
         #Тестовое меню для таймера
         self.menu_3 = QtWidgets.QMenu(self.menubar)
         self.menu_3.setObjectName("menu_3")
+
+        #Меню Окна
         self.menu_show_panel = QtWidgets.QMenu(self.menubar)
         self.menu_show_panel.setObjectName("menu_show_panel")
 
-        
+        #Меню Помощь
+        self.menu_help = QtWidgets.QMenu(self.menubar)
+        self.menu_help.setObjectName("menu_help")
 
 
         MainWindow.setMenuBar(self.menubar)
@@ -865,11 +904,18 @@ QLabel {
         self.menubar.addAction(self.menu_insert.menuAction())
         self.menubar.addAction(self.menu_2.menuAction())
         self.menubar.addAction(self.menu_show_panel.menuAction())
+        #self.menubar.addAction(self.menu_help)
+        # Создаем действие для пункта "Помощь"
+        self.action_help = QAction("Помощь", self)
+        
+        # Добавляем действие в менюбар
+        self.menubar.addAction(self.action_help)
 
         #Панели
         self.menu_show_panel.addAction(self.action_edit_panel)
         self.menu_show_panel.addAction(self.action_object_panel)
         self.menu_show_panel.addAction(self.action_Toolbar)
+
 
         self.action_edit_panel.triggered.connect(self.show_edit_panel)
         self.action_object_panel.triggered.connect(self.show_object_panel)
@@ -883,6 +929,11 @@ QLabel {
         self.action_exit.triggered.connect(self.close_application)
 
         self.action_add_image.triggered.connect(self.insert_image)
+
+        # Связываем сигнал triggered с методом show_help
+        self.action_help.triggered.connect(self.show_help)
+        
+        self.help_window = None  # Окно помощи создается при первом вызове
 
 
         # Создаём невидимый QLabel для записи времени
@@ -1052,6 +1103,11 @@ QLabel {
             list_item_text = f"#{item.unique_id}: {type(item).__name__}"
             list_item = QtWidgets.QListWidgetItem(list_item_text)
             self.object_list_widget.addItem(list_item)
+
+    def show_help(self):
+        if not self.help_window:
+            self.help_window = HelpWindow()
+        self.help_window.show()
 
     def on_object_selected(self, item):
         # Получаем объект, привязанный к элементу списка
@@ -1949,6 +2005,7 @@ QLabel {
         self.menu_3.setTitle(_translate("MainWindow", "Тест таймера"))
 
         self.menu_show_panel.setTitle(_translate("MainWindow", "Окна"))
+        self.menu_help.setTitle(_translate("MainWindow", "Помощь"))
         self.action_edit_panel.setText(_translate("MainWindow", "Панель редактирования"))
         self.action_object_panel.setText(_translate("MainWindow", "Список объектов"))
         self.action_Toolbar.setText(_translate("MainWindow", "Тулбар"))
