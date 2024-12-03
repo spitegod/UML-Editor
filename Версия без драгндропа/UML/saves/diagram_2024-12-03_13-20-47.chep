@@ -1,0 +1,38 @@
+{
+    "items": [
+        {
+            "type": "Text_into_object",
+            "position": [
+                -407.5,
+                -228.5
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null
+        },
+        {
+            "type": "SignalReceipt",
+            "position": [
+                0.0,
+                0.0
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": 181.0,
+            "height": 61.0,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null
+        }
+    ]
+}
