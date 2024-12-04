@@ -8,7 +8,7 @@ import math
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-
+global_id = 0
 # class Text_Edit(QtWidgets.QGraphicsTextItem):
 #     def __init__(self, x, y, width, height, text=""):
 #         super().__init__(text)  # Инициализация с начальным текстом
