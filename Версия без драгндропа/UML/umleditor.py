@@ -1193,7 +1193,7 @@ QLabel {
         dialog = DialogWindow()
         dialog.exec_()
 
-
+    # Быстрое сохранение в папку saves
     def save_to_file(self, filepath=None):
         # Получаем директорию, где находится исполняемый файл
         base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -1243,6 +1243,7 @@ QLabel {
         except Exception as e:
             QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось сохранить файл: {e}")
 
+    # Сохранение с пользовательским названием в конкретное место
     def save_as(self, filepath=None):
         if not filepath:  # Если путь не задан, запрашиваем его у пользователя
             options = QtWidgets.QFileDialog.Options()
@@ -1276,8 +1277,8 @@ QLabel {
         except Exception as e:
             QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось сохранить файл: {e}")
 
+    # Открытие файла
     def open_file(self):
-        """Открытие файла формата chep."""
         options = QtWidgets.QFileDialog.Options()
         filepath, _ = QtWidgets.QFileDialog.getOpenFileName(
             self, "Открыть файл", "", "CHEP Files (*.chep);;All Files (*)", options=options
@@ -1293,6 +1294,7 @@ QLabel {
         except Exception as e:
             QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось открыть файл: {e}")
 
+    # Сериализация элементов для их дальнейшего сохранения
     def serialize_item(self, item):
         print('Вызвано')
         base_data = {
@@ -1307,12 +1309,12 @@ QLabel {
             "start_node": None,              # Начальная точка (для Arrow)
             "end_node": None,                # Конечная точка (для Arrow)
             "color": None,                   # Цвет линии (для Arrow)
-            "line_width": None,               # Толщина линии (для Arrow)
-            "start_node": None,           # Начальная точка соединения (для Arrow)
-            "end_node": None,             # Конечная точка соединения (для Arrow)
-            "color": None,                # Цвет линии (для Arrow)
-            "line_width": None,
-            "id": None
+            "line_width": None,              # Толщина линии (для Arrow)
+            "start_node": None,              # Начальная точка соединения (для Arrow)
+            "end_node": None,                # Конечная точка соединения (для Arrow)
+            "color": None,                   # Цвет линии (для Arrow)
+            "line_width": None,              # Ширина линии
+            "id": None                       # Идентификатор
         }
 
        
@@ -1396,27 +1398,15 @@ QLabel {
             base_data["width"] = rect.width()
             base_data["height"] = rect.height()
 
-
-
-        # elif hasattr(item, "node1") and hasattr(item, "node2"):  # Стрелка (Arrow)
-        #     base_data["start_node"] = {"x": item.node1.x(), "y": item.node1.y()}
-        #     base_data["end_node"] = {"x": item.node2.x(), "y": item.node2.y()}
-        # Если хотите указать цвет или ширину линии, добавьте сюда
-        
-
         # Возвращаем структуру со всеми ключами
         return base_data
 
-
-    
-
+    # Закрытие приложения
     def close_application(self):
-        """Обработка выхода из приложения через пункт меню."""
         self.close()
 
-
+    # Обработка кнопки 'Выход'
     def closeEvent(self, event):
-        print('Вызвано')
         reply = QtWidgets.QMessageBox.question(
             self,
             "Выход",
@@ -1858,7 +1848,7 @@ QLabel {
     def get_time_for_user(self, last_time):
         return last_time
 
-
+    # Получение элемента ИЗ ПАМЯТИ по идентификатору
     def get_element_by_id(self, id):
         for item in self.objectS_:
             print(f"Checking item: {item}")
@@ -1869,11 +1859,10 @@ QLabel {
                 return item
         return None
     
-
-
+    # Получение данных из открытого файла
     def load_from_data(self, data):
         self.objectS_.clear()
-        self.scene_.clear()  # Очищаем сцену перед загрузкой новых данных
+        self.scene_.clear() 
         elements = {}  # Словарь для хранения элементов по их координатам
         for item_data in data["items"]:
             item_type = item_data["type"]
@@ -1958,8 +1947,6 @@ QLabel {
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 
-            
-
             elif item_type == "QtWidgets.QGraphicsEllipseItem":
                 width = item_data.get("width", 60)
                 height = item_data.get("height", 60)
@@ -1969,43 +1956,33 @@ QLabel {
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 
+        # Вытаскиваем стрелки
         for arrow_data in data.get("arrows", []):
-            
+            # Идентификаторы
             start_node_id = arrow_data["start_node_id"]
             end_node_id = arrow_data["end_node_id"]
-
-
+            # Вытаскиваем по полученным идентификаторам из памяти
             start_node = self.get_element_by_id(start_node_id)
-            print('start_node', start_node)
             end_node = self.get_element_by_id(end_node_id)
-            print(end_node)
-
-
+            #Рисуем стрелки
             if start_node and end_node:
                 node1, node2 = start_node, end_node
-                print(node1)
-
-                
-
                 # Создаем стрелку и привязываем её к выбранным узлам
                 arrow = Arrow(node1, node2)
                 arrow.setZValue(-1)
                 self.scene_.addItem(arrow)  # Добавляем стрелку на сцену
-
-
                 # Привязываем стрелку к обоим узлам
                 node1.add_arrow(arrow)
                 node2.add_arrow(arrow)
-                
-
                 # Обновляем стрелку сразу после добавления
                 arrow.update_arrow()  # Обновляем стрелку вручную, если нужно
-                self.scene_.update()  # Перерисовываем сцену
+                self.scene_.update()
 
         # Добавляем элемент на сцену
         self.scene_.addItem(item)
-        elements[position] = item  # Сохраняем элемент
+        elements[position] = item
 
+    # Обработка кнопки "Создать"
     def create_new(self):
         if len(self.objectS_) != 0:
             reply = QtWidgets.QMessageBox.question(
@@ -2126,9 +2103,6 @@ QLabel {
         self.action_object_panel.setText(_translate("MainWindow", "Список объектов"))
         self.action_Toolbar.setText(_translate("MainWindow", "Тулбар"))
         
-
-        
-
         self.action.setText(_translate("MainWindow", "Открыть"))
         self.action_2.setText(_translate("MainWindow", "Сохранить"))
         self.action_3.setText(_translate("MainWindow", "Сохранить как"))
