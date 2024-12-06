@@ -1,12 +1,18 @@
+import os
+import json
+from PyQt5 import QtWidgets, QtGui
 import sys
 
-from PyQt5 import QtWidgets, QtGui
 
 class LoginWindow(QtWidgets.QDialog):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Вход или регистрация")
         self.setGeometry(100, 100, 300, 200)
+
+        # Папка для хранения данных пользователей
+        self.user_data_folder = "user_data"
+        os.makedirs(self.user_data_folder, exist_ok=True)
 
         # Лейауты
         layout = QtWidgets.QVBoxLayout(self)
@@ -37,12 +43,18 @@ class LoginWindow(QtWidgets.QDialog):
         username = self.username_input.text()
         password = self.password_input.text()
 
-        # Пример проверки (можно заменить на запрос в базу данных)
-        if username == "admin" and password == "1234":
-            QtWidgets.QMessageBox.information(self, "Успех", "Вы вошли в систему!")
-            self.accept()  # Закрыть окно с результатом успешного входа
+        user_file = os.path.join(self.user_data_folder, f"{username}.json")
+        if os.path.exists(user_file):
+            with open(user_file, "r") as f:
+                user_data = json.load(f)
+
+            if user_data.get("password") == password:
+                QtWidgets.QMessageBox.information(self, "Успех", f"Добро пожаловать, {username}!")
+                self.accept()  # Закрыть окно с результатом успешного входа
+            else:
+                QtWidgets.QMessageBox.warning(self, "Ошибка", "Неверный пароль!")
         else:
-            QtWidgets.QMessageBox.warning(self, "Ошибка", "Неверный логин или пароль!")
+            QtWidgets.QMessageBox.warning(self, "Ошибка", "Пользователь не найден!")
 
     def register(self):
         username = self.username_input.text()
@@ -50,16 +62,30 @@ class LoginWindow(QtWidgets.QDialog):
 
         # Простая проверка валидности ввода
         if len(username) > 3 and len(password) > 3:
-            QtWidgets.QMessageBox.information(self, "Регистрация", "Пользователь успешно зарегистрирован!")
+            user_file = os.path.join(self.user_data_folder, f"{username}.json")
+
+            if os.path.exists(user_file):
+                QtWidgets.QMessageBox.warning(self, "Ошибка", "Пользователь с таким именем уже существует!")
+                return
+
+            user_data = {
+                "username": username,
+                "password": password
+            }
+
+            with open(user_file, "w") as f:
+                json.dump(user_data, f)
+
+            QtWidgets.QMessageBox.information(self, "Успех", "Пользователь успешно зарегистрирован!")
         else:
             QtWidgets.QMessageBox.warning(self, "Ошибка", "Логин и пароль должны быть длиннее 3 символов!")
 
+
 if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)  # Создаем экземпляр приложения
-    login_window = LoginWindow()  # Создаем окно авторизации
+    app = QtWidgets.QApplication(sys.argv)
+    login_window = LoginWindow()
 
-    # Показываем окно и проверяем результат
     if login_window.exec_() == QtWidgets.QDialog.Accepted:
-        print("Вход выполнен!")  # Здесь можно запустить главное окно приложения
+        print("Вход выполнен!")
 
-    sys.exit(app.exec_())  # Запускаем цикл обработки событий
+    sys.exit(app.exec_())
