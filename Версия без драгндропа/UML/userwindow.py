@@ -1,7 +1,8 @@
 import os
 import json
-from PyQt5 import QtWidgets, QtGui
 import sys
+import subprocess
+from PyQt5 import QtWidgets
 
 
 class LoginWindow(QtWidgets.QDialog):
@@ -51,6 +52,7 @@ class LoginWindow(QtWidgets.QDialog):
             if user_data.get("password") == password:
                 QtWidgets.QMessageBox.information(self, "Успех", f"Добро пожаловать, {username}!")
                 self.accept()  # Закрыть окно с результатом успешного входа
+                self.launch_editor()  # Запуск редактора после успешного входа
             else:
                 QtWidgets.QMessageBox.warning(self, "Ошибка", "Неверный пароль!")
         else:
@@ -80,12 +82,29 @@ class LoginWindow(QtWidgets.QDialog):
         else:
             QtWidgets.QMessageBox.warning(self, "Ошибка", "Логин и пароль должны быть длиннее 3 символов!")
 
+    def launch_editor(self):
+        try:
+            # Запуск файла uml_editor.py
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            uml_editor_path = os.path.join(current_dir, 'umleditor.py')
+            
+            # Используем subprocess.call() для блокирующего запуска
+            subprocess.call(['python', uml_editor_path])  # Это блокирует программу до завершения редактора
+
+            # После выполнения редактора, завершение приложения
+            QtWidgets.QApplication.quit()
+
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось запустить UML Editor: {e}")
+
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     login_window = LoginWindow()
 
+    # После завершения окна входа, закрываем приложение
     if login_window.exec_() == QtWidgets.QDialog.Accepted:
         print("Вход выполнен!")
-
-    sys.exit(app.exec_())
+    
+    # Завершаем приложение после выполнения всех действий (включая неудачный вход)
+    app.quit()  # Завершаем приложение, независимо от того, был ли успешный вход или нет
