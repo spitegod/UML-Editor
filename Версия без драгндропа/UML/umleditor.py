@@ -1,6 +1,8 @@
 import os
 import sys
 import json
+import subprocess
+import hashlib
 from math import *
 from datetime import datetime
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -13,6 +15,7 @@ from PyQt5.QtCore import Qt, QPointF, QLineF, QRectF
 from PyQt5.QtGui import QPen, QBrush, QPainterPath, QKeySequence
 
 from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5.QtCore import pyqtSlot
 
 # class Hot_keys(QUndoCommand):
 #     def __init__(self, scene, shape, shape_type, parent=None):
@@ -30,6 +33,9 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 #         self.scene.addItem(self.shape)  # Добавляем фигуру обратно на сцену
 #         self.scene.objectS_.append(self.shape)  # Добавляем в список объектов
 #         # print(f"{self.shape_type} добавлен, объектов на сцене:", len(self.scene.objectS_))
+
+global_username = ""
+global_start_time = None
 
 class EditingPanel(QWidget):
     def __init__(self, editable_item, main_window):
@@ -665,6 +671,127 @@ class DialogWindow(QtWidgets.QDialog):
         self.ui = Ui_Dialog()  # Экземпляр класса интерфейса
         self.ui.setupUi(self)  # Настройка интерфейса в окне
 
+
+
+# Окно входа
+class LoginWindow(QtWidgets.QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Вход или регистрация")
+        
+        # Получаем размеры экрана для центрирования окна
+        screen_geometry = QtWidgets.QDesktopWidget().availableGeometry()
+        screen_center = screen_geometry.center()
+
+        # Устанавливаем начальный размер окна
+        self.setFixedSize(300, 400)
+
+        # Центрируем окно, учитывая его размеры
+        window_size = self.size()
+        self.move(screen_center.x() - window_size.width() // 2, screen_center.y() - window_size.height() // 2)
+
+
+        self.user_data_folder = "user_data"
+        os.makedirs(self.user_data_folder, exist_ok=True)
+
+        layout = QtWidgets.QVBoxLayout(self)
+
+        # Добавление изображения
+        self.logo_label = QtWidgets.QLabel(self)
+        self.logo_pixmap = QtGui.QPixmap("imgs/ctuaslogo.jpg")  # Убедись, что путь корректный
+        self.logo_pixmap = self.logo_pixmap.scaled(150, 150, QtCore.Qt.KeepAspectRatio)
+        self.logo_label.setPixmap(self.logo_pixmap)
+        self.logo_label.setAlignment(QtCore.Qt.AlignCenter)
+        layout.addWidget(self.logo_label)
+
+        # Добавление текста
+        self.title_label = QtWidgets.QLabel("UML-Editor", self)
+        font = QtGui.QFont("Arial", 20)  # Шрифт для текста
+        self.title_label.setFont(font)
+        self.title_label.setAlignment(QtCore.Qt.AlignCenter)
+        layout.addWidget(self.title_label)
+
+        # Поля ввода
+        self.username_input = QtWidgets.QLineEdit(self)
+        self.username_input.setPlaceholderText("Введите логин")
+        self.password_input = QtWidgets.QLineEdit(self)
+        self.password_input.setPlaceholderText("Введите пароль")
+        self.password_input.setEchoMode(QtWidgets.QLineEdit.Password)
+
+        # Кнопки
+        self.login_button = QtWidgets.QPushButton("Войти", self)
+        self.register_button = QtWidgets.QPushButton("Зарегистрироваться", self)
+
+        # Добавление виджетов в лейаут
+        layout.addWidget(self.username_input)
+        layout.addWidget(self.password_input)
+        layout.addWidget(self.login_button)
+        layout.addWidget(self.register_button)
+
+        # Связывание кнопок с методами
+        self.login_button.clicked.connect(self.login)
+        self.register_button.clicked.connect(self.register)
+
+    # Хэшируем пароль
+    def hash_password(self, password):
+        return hashlib.sha256(password.encode('utf-8')).hexdigest()
+
+    # Вход
+    def login(self):
+        username = self.username_input.text()
+        password = self.password_input.text()
+        
+
+        user_file = os.path.join(self.user_data_folder, f"{username}.json")
+        if os.path.exists(user_file):
+            with open(user_file, "r") as f:
+                user_data = json.load(f)
+
+            # Если пароли совпадают
+            if user_data.get("password") == self.hash_password(password):
+                global global_start_time # Получаем время начала работы
+                global_start_time = user_data.get("start_time")
+
+                QtWidgets.QMessageBox.information(self, "Успех", f"Добро пожаловать, {username}!")
+                self.accept()  # Закрыть окно с результатом успешного входа
+            else:
+                QtWidgets.QMessageBox.warning(self, "Ошибка", "Неверный пароль!")
+        else:
+            QtWidgets.QMessageBox.warning(self, "Ошибка", "Пользователь не найден!")
+
+    # Регистрация
+    def register(self):
+        username = self.username_input.text()
+        password = self.password_input.text()
+
+        if len(username) > 3 and len(password) > 3:
+            user_file = os.path.join(self.user_data_folder, f"{username}.json")
+
+            if os.path.exists(user_file):
+                QtWidgets.QMessageBox.warning(self, "Ошибка", "Пользователь с таким именем уже существует!")
+                return
+            
+            hashed_password = self.hash_password(password)
+            user_data = {
+                "username": username,
+                "password": hashed_password,
+                "start_time": datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
+                "end_time": None
+            }
+
+            global global_start_time # Получаем время начала работы
+            global_start_time = user_data.get("start_time")
+
+            with open(user_file, "w") as f:
+                json.dump(user_data, f)
+
+            QtWidgets.QMessageBox.information(self, "Успех", "Пользователь успешно зарегистрирован!")
+            self.accept()  # Закрыть окно с результатом успешной регистрации
+        else:
+            QtWidgets.QMessageBox.warning(self, "Ошибка", "Логин и пароль должны быть длиннее 3 символов!")
+
+
+
 class Ui_MainWindow(QtWidgets.QMainWindow):
     time_updated = pyqtSignal(str, str, str)  # Создаем сигнал с параметром типа str для передачи запущенного времени
     update_last_timeSW = pyqtSignal(str, str, str)  # Создаем сигнал для передачи последнего значения времени
@@ -680,11 +807,21 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         self.graphicsView = My_GraphicsView(self.label_x_y)
         self.graphicsView.setMouseTracking(True)
+        self.username = global_username
+        self.start_time = global_start_time
+        # global GLOBAL_USERNAME
+        # self.username = GLOBAL_USERNAME
+        
         
 
+        
+    @pyqtSlot(str)   
+    def set_username(self, username):
+        self.username = username
 
     def setupUi(self, MainWindow):
-
+        #self.username = username
+        #print(self.username)
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1500, 720)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -969,11 +1106,12 @@ QLabel {
 
 
         #Таймер
+        global global_start_time # Глобальная переменная для получения даты начала работы
 
-        self.today = self.get_current_Date()
-        self.time_now = self.get_current_Realtime()
-
-
+        buffer_date, buffer_time = global_start_time.split() # БУферные переменные для передачи данных и разбиение строки
+        #Присваиваем полученные данные
+        self.today = buffer_date
+        self.time_now = buffer_time
         # Настраиваем второй таймер для обновления времени каждую секунду
         self.timer_2 = QTimer(self)
         self.timer_2.timeout.connect(self.increment_time)  # Соединяем таймер с функцией обновления времени
@@ -981,7 +1119,14 @@ QLabel {
 
         #Инициализируем переменные для секундомера
         self.running = False
-        self.elapsed_time = QTime(0, 0)
+        current_time_now = QTime.currentTime()
+        # Преобразуем строку buffer_time в объект QTime
+        buffer_time_obj = QTime()
+        buffer_time_obj.setHMS(*map(int, buffer_time.split(":")))
+        # Вычисляем разницу в секундах
+        elapsed_seconds = current_time_now.secsTo(buffer_time_obj)
+        # Преобразуем разницу в формате HH:MM:SS
+        self.elapsed_time = QTime(0, 0).addSecs(abs(elapsed_seconds))
 
         self.timer = QTimer()
 
@@ -1106,8 +1251,8 @@ QLabel {
         # self.connect_objectS.activated.connect(self.disconnect_nodes)
 
 
-        self.user_ = User("User1", 0, self.time_now, self.get_time_for_user(self.last_time))
-        self.user_.add_action("Создана диаграмма UML", self.get_current_Realtime())
+        self.user_ = User(self.username, 0, self.start_time, self.get_time_for_user(self.last_time))
+        self.user_.add_action("Создана диаграмма UML", self.start_time)
         self.button.setContextMenuPolicy(Qt.CustomContextMenu)
         self.button.customContextMenuRequested.connect(self.open_dialog)
 
@@ -2076,6 +2221,7 @@ QLabel {
         self.update_last_timeSW.connect(self.static_ui.update_last_timeSW)
         self.count_objectS.connect(self.static_ui.get_count_objectS)
 
+        # self.static_ui.accept_today(self.today, self.time_now, self.last_time)
         self.static_ui.accept_today(self.today, self.time_now, self.last_time)
 
         # Обновляем интерфейс через сигналы
@@ -2117,11 +2263,29 @@ QLabel {
         self.action_time_stop.setText(_translate("MainWindow", "Остановить таймер"))
         self.action_time_reset.setText(_translate("MainWindow", "Сбросить таймер"))
 
+        def set_username(self, username):
+            self.username = username
+            self.update_ui()  # Обновляем интерфейс
+
+
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec_())
+
+    # Открытие окна входа
+    login_window = LoginWindow()
+    main_window = Ui_MainWindow()
+
+    
+    if login_window.exec_() == QtWidgets.QDialog.Accepted:
+        global_username = login_window.username_input.text()
+        
+        # Создаем и показываем основное окно
+        main_window = QtWidgets.QMainWindow()  # Создаем объект для основного окна
+        ui = Ui_MainWindow()  # Сюда можно вставить UI для основного окна
+        ui.setupUi(main_window)  # Настроим интерфейс с UI
+        main_window.show()
+
+        sys.exit(app.exec_())  # Запуск основного цикла приложения
+    else:
+        sys.exit(app.quit())  # Завершаем приложение, если вход не был успешным
