@@ -295,16 +295,172 @@ class EditingPanel(QWidget):
         self.editable_item.setOpacity(opacity)
 
 
-
-
-
-
-
-
 class DraggableButton(QtWidgets.QPushButton):
     def __init__(self, element_type, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.element_type = element_type  # Тип элемента, который будет создаваться
+
+        self.setFixedSize(120, 65)
+
+        #Объекты, рисуемые в тулбаре
+        self.decision = self.create_desicion_in_tulbar()
+        self.start_event = self.create_start_event_in_tulbar()
+        self.end_event = self.create_end_event_in_tulbar()
+        self.slitter_merge_horizontal = self.create_splitter_merge_horizontal_in_tulbar()
+        self.slitter_merge_vertical = self.create_splitter_merge_vertical_in_tulbar()
+        self.sending_signal = self.create_sending_signal_in_tulbar()
+        self.sending_receipt = self.create_sending_receipt_in_tulbar()
+        self.active_state = self.create_active_state_in_tulbar()
+
+        self.text_edit = self.create_text_edit_in_tulbar()
+
+    def create_desicion_in_tulbar(self):
+        # В зависимости от element_type создаем соответствующий объект Decision
+        if self.element_type == "Decision":
+            return Decision(7, 0, 50, QtCore.Qt.white)
+
+    def create_start_event_in_tulbar(self):
+        # В зависимости от element_type создаем соответствующий объект Decision
+        if self.element_type == "StartEvent":
+            return StartEvent(0, 0, 30)
+
+    def create_end_event_in_tulbar(self):
+        if self.element_type == "EndEvent":
+            return EndEvent(0, 0, 30, 0.5)
+
+    def create_sending_signal_in_tulbar(self):
+        if self.element_type == "SignalSending":
+            return SignalSending(0, 25, 80, 50)
+
+    def create_sending_receipt_in_tulbar(self):
+        if self.element_type == "SignalReceipt":
+            return SignalReceipt(0, 25, 100, 50)
+
+    def create_splitter_merge_horizontal_in_tulbar(self):
+        if self.element_type == "Splitter_Merge_Horizontal":
+            return Splitter_Merge(0, 10, 100, 30)
+
+    def create_splitter_merge_vertical_in_tulbar(self):
+        if self.element_type == "Splitter_Merge_Vertical":
+            return Splitter_Merge(0, 0, 60, 30)
+
+    def create_active_state_in_tulbar(self):
+        if self.element_type == "ActiveState":
+            return ActiveState(-50, -30, 100, 60, 15)
+
+    def create_text_edit_in_tulbar(self):
+        if self.element_type == "Text_Edit":
+            return Text_Edit(0, 0, 100, 30, text="Текст", max_length=250)
+
+
+    def paintEvent(self, event):
+        super().paintEvent(event)  # Вызовем родительский метод для отрисовки обычного вида кнопки
+
+        painter = QtGui.QPainter(self)
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+
+        # Рисуем объект Decision
+        if self.decision:
+            painter.save()
+            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+            painter.setBrush(self.decision.brush())  # Задаем цвет заливки
+            painter.drawPolygon(self.decision.polygon())  # Рисуем полигон объекта Decision
+            painter.restore()  # Восстанавливаем состояние рисования
+
+        if self.start_event:
+            painter.save()
+            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+
+            # Получаем границы эллипса и рисуем его
+            rect = self.start_event.boundingRect()
+            painter.setBrush(self.start_event.brush())  # Задаем цвет заливки
+            painter.drawEllipse(rect)  # Рисуем эллипс
+            painter.restore()
+
+        if self.end_event:
+            painter.save()
+            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+
+            # Рисование внешнего круга
+            outer_rect = self.end_event.boundingRect()
+            painter.setBrush(self.end_event.brush())  # Задаем цвет заливки для внешнего круга
+            painter.drawEllipse(outer_rect)  # Рисуем внешний круг
+
+            # Рисование внутреннего круга
+            inner_radius = self.end_event.radius * self.end_event.inner_radius_ratio
+            inner_rect = QtCore.QRectF(  # Здесь исправлено
+                self.end_event.x_center - inner_radius,
+                self.end_event.y_center - inner_radius,
+                2 * inner_radius,
+                2 * inner_radius
+            )
+            painter.setBrush(QtGui.QBrush(QtGui.QColor(0, 0, 0)))  # Цвет внутреннего круга
+            painter.drawEllipse(inner_rect)  # Рисуем внутренний круг
+
+            painter.restore()  # Восстанавливаем состояние рисования
+
+        if self.sending_signal:
+            painter.save()
+            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+            painter.setBrush(self.sending_signal.brush())  # Задаем цвет заливки
+            painter.drawPolygon(self.sending_signal.polygon())  # Рисуем полигон объекта sending_signal
+            painter.restore()  # Восстанавливаем состояние рисования
+
+        if self.sending_receipt:
+            painter.save()
+            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+            painter.setBrush(self.sending_receipt.brush())  # Задаем цвет заливки
+            painter.drawPolygon(self.sending_receipt.polygon())  # Рисуем полигон объекта sending_receipt
+            painter.restore()  # Восстанавливаем состояние рисования
+
+        if self.slitter_merge_horizontal:
+            painter.save()
+            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+            painter.setBrush(self.slitter_merge_horizontal.brush())  # Задаем цвет заливки
+            painter.drawPolygon(self.slitter_merge_horizontal.polygon())  # Рисуем полигон объекта slitter_merge_h
+            painter.restore()  # Восстанавливаем состояние 
+            
+        if self.slitter_merge_vertical:
+            painter.save()
+            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+            painter.rotate(90) #Поскольку объект изначально рисуется горизонтально, мы его поворачиваем
+            painter.setBrush(self.slitter_merge_vertical.brush())  # Задаем цвет заливки
+            painter.drawPolygon(self.slitter_merge_vertical.polygon())  # Рисуем полигон объекта slitter_merge_v
+            painter.restore()  # Восстанавливаем состояние рисования
+
+        if self.active_state:
+            painter.save()
+            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+
+            # Получаем границы закругленного прямоугольника
+            rect = self.active_state.boundingRect()  # Убедитесь, что этот прямоугольник соответствует ожиданиям
+
+            painter.setBrush(self.active_state.brush())  # Задаем цвет заливки
+
+            # Получаем радиус
+            radius = self.active_state.radius  # Убедитесь, что это значение корректное
+
+            # Проверка, чтобы минимальный размер прямоугольника соответствовал радиусу
+            effective_radius = min(radius, min(rect.width(), rect.height()) / 2)
+
+            # Рисуем закругленный прямоугольник
+            painter.drawRoundedRect(rect, effective_radius, effective_radius)  # Рисуем закругленный прямоугольник
+
+            painter.restore()
+
+
+        if self.text_edit:
+            painter.save()
+            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+            painter.setPen(QtGui.QPen(QtCore.Qt.black))  # Устанавливаем цвет текста
+            
+            # Получаем текст из Text_Edit
+            text = self.text_edit.toPlainText()  # Здесь текст извлекается из Text_Edit
+
+            # Рисуем текст, центрируем его
+            text_rect = QtCore.QRectF(-self.width() // 2, -self.height() // 2, self.width(), self.height())
+            painter.drawText(text_rect, QtCore.Qt.AlignCenter, text)  # Рисуем текст
+            painter.restore()
 
     def mouseMoveEvent(self, event):
         # Проверяем, находится ли курсор внутри Text_Edit, если да, то игнорируем drag-and-drop
@@ -313,13 +469,130 @@ class DraggableButton(QtWidgets.QPushButton):
 
         if event.buttons() == Qt.LeftButton:
             mime_data = QtCore.QMimeData()
+            #Перед отрисовкой объекта, определяем какой объект мы вообще собираемся вытащить из тулбара
             mime_data.setText(self.element_type)
 
+            #Здесь создается перетаскиваемый объект из кнопки
             drag = QtGui.QDrag(self)
             drag.setMimeData(mime_data)
+
+            pixmap = self.create_pixmap_for_drag() #Рисуем временный объект
+            drag.setPixmap(pixmap)
+
             drag.setHotSpot(event.pos() - self.rect().topLeft())
 
             drag.exec_(Qt.MoveAction)
+
+    def create_pixmap_for_drag(self):
+        pixmap = QtGui.QPixmap(self.size())  # Создаем отображениу временного объекта во время перетаскивания размером с кнопку
+        pixmap.fill(QtCore.Qt.transparent)  # Делаем фон прозрачным
+
+        painter = QtGui.QPainter(pixmap)
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+
+        # Рисуем объект в Pixmap аналогично paintEvent
+        if self.decision:
+            painter.save()
+            painter.translate(self.rect().center())
+            painter.setBrush(self.decision.brush())
+            painter.drawPolygon(self.decision.polygon())
+            painter.restore()
+
+        if self.start_event:
+            painter.save()
+            painter.translate(self.rect().center())
+            rect = self.start_event.boundingRect()
+            painter.setBrush(self.start_event.brush())
+            painter.drawEllipse(rect)
+            painter.restore()
+
+        if self.end_event:
+            painter.save()
+            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+
+            # Рисование внешнего круга
+            outer_rect = self.end_event.boundingRect()
+            painter.setBrush(self.end_event.brush())  # Задаем цвет заливки для внешнего круга
+            painter.drawEllipse(outer_rect)  # Рисуем внешний круг
+
+            # Рисование внутреннего круга
+            inner_radius = self.end_event.radius * self.end_event.inner_radius_ratio
+            inner_rect = QtCore.QRectF(  # Здесь исправлено
+                self.end_event.x_center - inner_radius,
+                self.end_event.y_center - inner_radius,
+                2 * inner_radius,
+                2 * inner_radius
+            )
+            painter.setBrush(QtGui.QBrush(QtGui.QColor(0, 0, 0)))  # Цвет внутреннего круга
+            painter.drawEllipse(inner_rect)  # Рисуем внутренний круг
+
+            painter.restore()  # Восстанавливаем состояние рисования
+
+        if self.sending_signal:
+            painter.save()
+            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+            painter.setBrush(self.sending_signal.brush())  # Задаем цвет заливки
+            painter.drawPolygon(self.sending_signal.polygon())  # Рисуем полигон объекта sending_signal
+            painter.restore()  # Восстанавливаем состояние рисования
+
+        if self.sending_receipt:
+            painter.save()
+            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+            painter.setBrush(self.sending_receipt.brush())  # Задаем цвет заливки
+            painter.drawPolygon(self.sending_receipt.polygon())  # Рисуем полигон объекта sending_receipt
+            painter.restore()  # Восстанавливаем состояние рисования
+
+        if self.slitter_merge_horizontal:
+            painter.save()
+            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+            painter.setBrush(self.slitter_merge_horizontal.brush())  # Задаем цвет заливки
+            painter.drawPolygon(self.slitter_merge_horizontal.polygon())  # Рисуем полигон объекта slitter_merge_h
+            painter.restore()  # Восстанавливаем состояние 
+            
+        if self.slitter_merge_vertical:
+            painter.save()
+            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+            painter.rotate(90) #Поскольку объект изначально рисуется горизонтально, мы его поворачиваем
+            painter.setBrush(self.slitter_merge_vertical.brush())  # Задаем цвет заливки
+            painter.drawPolygon(self.slitter_merge_vertical.polygon())  # Рисуем полигон объекта slitter_merge_v
+            painter.restore()  # Восстанавливаем состояние рисования
+
+        if self.active_state:
+            painter.save()
+            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+
+            # Получаем границы закругленного прямоугольника
+            rect = self.active_state.boundingRect()  # Убедитесь, что этот прямоугольник соответствует ожиданиям
+
+            painter.setBrush(self.active_state.brush())  # Задаем цвет заливки
+
+            # Получаем радиус
+            radius = self.active_state.radius  # Убедитесь, что это значение корректное
+
+            # Проверка, чтобы минимальный размер прямоугольника соответствовал радиусу
+            effective_radius = min(radius, min(rect.width(), rect.height()) / 2)
+
+            # Рисуем закругленный прямоугольник
+            painter.drawRoundedRect(rect, effective_radius, effective_radius)  # Рисуем закругленный прямоугольник
+
+            painter.restore()
+
+
+        if self.text_edit:
+            painter.save()
+            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+            painter.setPen(QtGui.QPen(QtCore.Qt.black))  # Устанавливаем цвет текста
+            
+            # Получаем текст из Text_Edit
+            text = self.text_edit.toPlainText()  # Здесь текст извлекается из Text_Edit
+
+            # Рисуем текст, центрируем его
+            text_rect = QtCore.QRectF(-self.width() // 2, -self.height() // 2, self.width(), self.height())
+            painter.drawText(text_rect, QtCore.Qt.AlignCenter, text)  # Рисуем текст
+            painter.restore()
+
+        painter.end()
+        return pixmap
 
 
 class My_GraphicsView(QtWidgets.QGraphicsView):
@@ -445,8 +718,12 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
             item = SignalSending(position.x(), position.y(), 160, 60)
         elif element_type == "SignalReceipt":
             item = SignalReceipt(position.x(), position.y(), 180, 60)
-        elif element_type == "Splitter_Merge":
+        elif element_type == "Splitter_Merge_Horizontal":
             item = Splitter_Merge(position.x(), position.y(), 120, 40)
+        elif element_type == "Splitter_Merge_Vertical":
+            item = Splitter_Merge(position.x(), position.y(), 120, 40)
+        elif element_type == "Text_Edit":
+            item = Text_Edit(position.x(), position.y(), 100, 30, text="Текст", max_length=250)
 
         if item:
             self.addItem(item)
@@ -846,7 +1123,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         
         # Создание QLabel и добавление в gridLayout
         self.button = DraggableButton("Decision", self.ToolBarBox)
-        self.button.setIcon(QtGui.QIcon("imgs/decison.png"))
         self.button.setIconSize(QtCore.QSize(100, 100))  # Установка размера иконки (при необходимости)
         self.button.setObjectName("button")
         self.gridLayout.addWidget(self.button, 0, 0, 1, 1)
@@ -855,7 +1131,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         # startstate.png
         self.button_2 = DraggableButton("StartEvent", self.ToolBarBox)
-        self.button_2.setIcon(QtGui.QIcon("imgs/startstate.png"))
         self.button_2.setIconSize(QtCore.QSize(100, 100))
         self.button_2.setObjectName("button_2")
         self.gridLayout.addWidget(self.button_2, 0, 1, 1, 1)
@@ -866,7 +1141,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         # finalstate.png
         self.button_3 = DraggableButton("EndEvent", self.ToolBarBox)
-        self.button_3.setIcon(QtGui.QIcon("imgs/finalstate.png"))
         self.button_3.setIconSize(QtCore.QSize(100, 100))
         self.button_3.setObjectName("button_3")
         self.gridLayout.addWidget(self.button_3, 0, 2, 1, 1)
@@ -875,9 +1149,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             border:none;                      }
 """)
 
-        # merge.png
-        self.button_4 = DraggableButton("Splitter_Merge", self.ToolBarBox)
-        self.button_4.setIcon(QtGui.QIcon("imgs/merge.png"))
+        # Horizontal
+        self.button_4 = DraggableButton("Splitter_Merge_Horizontal", self.ToolBarBox)
         self.button_4.setIconSize(QtCore.QSize(100, 100))
         self.button_4.setObjectName("button_4")
         self.gridLayout.addWidget(self.button_4, 1, 1, 1, 1)
@@ -888,7 +1161,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         # Signal-sending.png
         self.button_5 = DraggableButton("SignalSending", self.ToolBarBox)
-        self.button_5.setIcon(QtGui.QIcon("imgs/Signal-sending.png"))
         self.button_5.setIconSize(QtCore.QSize(100, 100))
         self.button_5.setObjectName("button_5")
         self.gridLayout.addWidget(self.button_5, 2, 0, 1, 1)
@@ -899,7 +1171,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         # Signal-receipt.png
         self.button_6 = DraggableButton("SignalReceipt", self.ToolBarBox)
-        self.button_6.setIcon(QtGui.QIcon("imgs/Signal-receipt.png"))
         self.button_6.setIconSize(QtCore.QSize(100, 100))
         self.button_6.setObjectName("button_6")
         self.gridLayout.addWidget(self.button_6, 2, 1, 1, 1)
@@ -910,8 +1181,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
 
         # arrowsolid.png
-        self.button_7 = QtWidgets.QPushButton(self.ToolBarBox)
-        self.button_7.setIcon(QtGui.QIcon("imgs/arrowsolid.png"))
+        self.button_7 = DraggableButton("Text_Edit", self.ToolBarBox)
         self.button_7.setIconSize(QtCore.QSize(100, 100))
         self.button_7.setObjectName("button_7")
         self.gridLayout.addWidget(self.button_7, 2, 2, 1, 1)
@@ -920,9 +1190,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             border:none;                      }
 """)
 
-        # synchronize.png
-        self.button_8 = DraggableButton("Splitter_Merge", self.ToolBarBox)
-        self.button_8.setIcon(QtGui.QIcon("imgs/synchronize.png"))
+        # Vertical
+        self.button_8 = DraggableButton("Splitter_Merge_Vertical", self.ToolBarBox)
         self.button_8.setIconSize(QtCore.QSize(100, 100))
         self.button_8.setObjectName("button_8")
         self.gridLayout.addWidget(self.button_8, 1, 0, 1, 1)
@@ -934,7 +1203,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         # ativestate.png
         self.button_9 = DraggableButton("ActiveState", self.ToolBarBox)
-        self.button_9.setIcon(QtGui.QIcon("imgs/activestate.png"))
         self.button_9.setIconSize(QtCore.QSize(100, 100))
         self.button_9.setObjectName("button_9")
         self.gridLayout.addWidget(self.button_9, 1, 2, 1, 1)
@@ -1169,6 +1437,7 @@ QLabel {
         self.button_6.clicked.connect(self.draw_pentagon_reverse)
         self.button_8.clicked.connect(self.draw_spliter)
         self.button_4.clicked.connect(self.draw_merge)
+        self.button_7.clicked.connect(self.add_text)
 
         #Проверка превышение количества объектов на сцене
         self.button.clicked.connect(self.message_overcrowed_objectS)
@@ -1179,6 +1448,7 @@ QLabel {
         self.button_6.clicked.connect(self.message_overcrowed_objectS)
         self.button_8.clicked.connect(self.message_overcrowed_objectS)
         self.button_4.clicked.connect(self.message_overcrowed_objectS)
+        self.button_7.clicked.connect(self.message_overcrowed_objectS)
         self.action_add_image.triggered.connect(self.message_overcrowed_objectS)
 
         
@@ -1187,12 +1457,12 @@ QLabel {
         self.button.setToolTip("Decision - '1'")
         self.button_2.setToolTip("Start event - '2'")
         self.button_3.setToolTip("End event - '3'")
-        self.button_8.setToolTip("Splitter - '4'")
-        self.button_4.setToolTip("Merge - '5'")
+        self.button_8.setToolTip("Splitter/Merge вертикальный - '4'")
+        self.button_4.setToolTip("Splitter/Merge горизонатльный - '5'")
         self.button_9.setToolTip("Active state - '6'")
         self.button_5.setToolTip("Sending signal - '7'")
         self.button_6.setToolTip("Signal receipt - '8'")
-        self.button_7.setToolTip("Transition - '9'")
+        self.button_7.setToolTip("Текстовое поле - '9'")
 
 
         msg = QMessageBox()
@@ -1244,8 +1514,12 @@ QLabel {
         self.connect_objectS.activated.connect(self.draw_pentagon_reverse)
         self.connect_objectS.activated.connect(self.message_overcrowed_objectS)
 
-        self.connect_objectS = QShortcut(QKeySequence("0"), self.graphicsView)
+        self.connect_objectS = QShortcut(QKeySequence("9"), self.graphicsView)
         self.connect_objectS.activated.connect(self.add_text)
+        self.connect_objectS.activated.connect(self.message_overcrowed_objectS)
+
+        self.connect_objectS = QShortcut(QKeySequence("0"), self.graphicsView)
+        self.connect_objectS.activated.connect(self.insert_image)
         self.connect_objectS.activated.connect(self.message_overcrowed_objectS)
         # self.connect_objectS = QShortcut(QKeySequence("T"), self.graphicsView)
         # self.connect_objectS.activated.connect(self.disconnect_nodes)
@@ -1600,7 +1874,7 @@ QLabel {
     #     self.scene_.addItem(text_item)  # Добавляем текстовое поле на сцену
 
     def add_text(self):
-        text_item = Text_Edit(0,0,200,200, "Текст")
+        text_item = Text_Edit(0, 0, 100, 30, "Текст")
         self.scene_.addItem(text_item)
         self.objectS_.append(text_item)
         self.populate_object_list()
