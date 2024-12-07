@@ -125,6 +125,42 @@ class EditingPanel(QWidget):
             layout.addWidget(self.height_spinbox, 2, 1, 1, 1)
             layout.addWidget(self.text_label, 3, 0, 1, 1)
             layout.addWidget(self.text_input, 3, 1, 1, 1)
+
+        elif isinstance(self.editable_item, (Splitter_Merge)):
+
+            self.color_button = QPushButton("Изменить цвет фона объекта")
+            self.color_button.clicked.connect(self.change_color)
+
+            self.width_label = QLabel("Длинна:")
+            self.width_spinbox = QSpinBox(self)
+            self.width_spinbox.setValue(int(self.editable_item.boundingRect().width()))
+            self.width_spinbox.valueChanged.connect(self.update_width)
+
+            self.height_label = QLabel("Толщина:")
+            self.height_spinbox = QSpinBox(self)
+            self.height_spinbox.setValue(int(self.editable_item.boundingRect().height()))
+            self.height_spinbox.valueChanged.connect(self.update_height)
+
+            
+            self.orint_label = QLabel("Положение:")
+            self.orint_combo = QComboBox(self)
+            self.orint_combo.addItem("Вериткально")
+            self.orint_combo.addItem("Горизонатльно")
+            self.orint_combo.currentTextChanged.connect(self.update_orientation)
+
+            r_ = self.editable_item.rotation() #Считываем в каком положении находится сейчас объект
+            if r_ == 0: # Если горизонатльно, значит в combobox установится значение горизонатльно
+                self.orint_combo.setCurrentIndex(1)
+            else: # иначе вертикально
+                self.orint_combo.setCurrentIndex(0)  
+
+            layout.addWidget(self.color_button, 0, 0, 1, 2)
+            layout.addWidget(self.width_label, 1, 0, 1, 1)
+            layout.addWidget(self.width_spinbox, 1, 1, 1, 1)
+            layout.addWidget(self.height_label, 2, 0, 1, 1)
+            layout.addWidget(self.height_spinbox, 2, 1, 1, 1)
+            layout.addWidget(self.orint_label, 3, 0)
+            layout.addWidget(self.orint_combo, 3, 1)
         
         elif isinstance(self.editable_item, (ImageItem)):
 
@@ -226,6 +262,23 @@ class EditingPanel(QWidget):
         if hasattr(self.editable_item, 'text_item'):
             self.editable_item.text_item.setPlainText(self.text_input.text())
 
+    def update_orientation(self):
+        if isinstance(self.editable_item, Splitter_Merge):
+            orientation = self.orint_combo.currentText()  # Получаем выбранный текст
+            if orientation == "Вериткально":
+                width, height = self.editable_item.height, self.editable_item.width
+                temp_s = width #Перед поротом меняем ширину и высоту местами
+                width = height
+                height = temp_s
+                rotation = 90
+            elif orientation == "Горизонатльно":
+                width, height = self.editable_item.width, self.editable_item.height
+                rotation = 0
+            else:
+                return
+            self.editable_item.update_size_and_orientation(width, height, rotation)
+
+
     def update_width(self):
         new_width = self.width_spinbox.value()
         if hasattr(self.editable_item, 'setRect'):
@@ -290,11 +343,13 @@ class EditingPanel(QWidget):
 
 
 class DraggableButton(QtWidgets.QPushButton):
-    def __init__(self, element_type, *args, **kwargs):
+    def __init__(self, element_type, mainwindow, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.element_type = element_type  # Тип элемента, который будет создаваться
 
         self.setFixedSize(120, 65)
+
+        self.mainwindow = mainwindow
 
         #Объекты, рисуемые в тулбаре
         self.decision = self.create_desicion_in_tulbar()
@@ -588,6 +643,9 @@ class DraggableButton(QtWidgets.QPushButton):
         painter.end()
         return pixmap
 
+    def mousePressEvent(self, event):
+        super().mousePressEvent(event)
+
 
 class My_GraphicsView(QtWidgets.QGraphicsView):
     def __init__(self, label, *args, **kwargs):
@@ -627,12 +685,12 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
 
     def mousePressEvent(self, event):
 
-        self.reset_time.reset_inaction()
         # self.clicks.append(event.scenePos())
 
         selected_item = self.itemAt(event.scenePos(), QtGui.QTransform())  # Находим элемент под курсором
   
         if selected_item:
+            self.reset_time.stop_inaction()
             self.is_dragging = True
             self.reset_time.show_editing_panel(selected_item)
             # Устанавливаем текст в label_x_y с названием класса элемента
@@ -666,7 +724,7 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
     def mouseMoveEvent(self, event):
         mouse_pos = event.scenePos()
         self.label.setText(f"({mouse_pos.x():.1f}, {mouse_pos.y():.1f})")
-        self.reset_time.reset_inaction()
+        self.reset_time.stop_inaction()
         if not self.is_dragging:  # Обновляем прямоугольник выделения только если не перетаскиваем
             if self.selection_rect and self.start_pos:
                 rect = QtCore.QRectF(self.start_pos, event.scenePos()).normalized()
@@ -714,8 +772,10 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
             item = SignalReceipt(position.x(), position.y(), 180, 60)
         elif element_type == "Splitter_Merge_Horizontal":
             item = Splitter_Merge(position.x(), position.y(), 120, 40)
+            item.setRotation(0)
         elif element_type == "Splitter_Merge_Vertical":
             item = Splitter_Merge(position.x(), position.y(), 120, 40)
+            item.setRotation(90)
         elif element_type == "Text_Edit":
             item = Text_Edit(position.x(), position.y(), 100, 30, text="Текст", max_length=250)
 
@@ -958,6 +1018,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.graphicsView = My_GraphicsView(self.label_x_y)
         self.graphicsView.setMouseTracking(True)
         
+        
 
 
     def setupUi(self, MainWindow):
@@ -985,7 +1046,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.gridLayout.setObjectName("gridLayout")
         
         # Создание QLabel и добавление в gridLayout
-        self.button = DraggableButton("Decision", self.ToolBarBox)
+        self.button = DraggableButton("Decision", self, self.ToolBarBox)
         self.button.setIconSize(QtCore.QSize(100, 100))  # Установка размера иконки (при необходимости)
         self.button.setObjectName("button")
         self.gridLayout.addWidget(self.button, 0, 0, 1, 1)
@@ -993,7 +1054,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             border:none;                      }""")
 
         # startstate.png
-        self.button_2 = DraggableButton("StartEvent", self.ToolBarBox)
+        self.button_2 = DraggableButton("StartEvent", self, self.ToolBarBox)
         self.button_2.setIconSize(QtCore.QSize(100, 100))
         self.button_2.setObjectName("button_2")
         self.gridLayout.addWidget(self.button_2, 0, 1, 1, 1)
@@ -1003,7 +1064,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 """)
 
         # finalstate.png
-        self.button_3 = DraggableButton("EndEvent", self.ToolBarBox)
+        self.button_3 = DraggableButton("EndEvent", self, self.ToolBarBox)
         self.button_3.setIconSize(QtCore.QSize(100, 100))
         self.button_3.setObjectName("button_3")
         self.gridLayout.addWidget(self.button_3, 0, 2, 1, 1)
@@ -1013,7 +1074,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 """)
 
         # Horizontal
-        self.button_4 = DraggableButton("Splitter_Merge_Horizontal", self.ToolBarBox)
+        self.button_4 = DraggableButton("Splitter_Merge_Horizontal", self, self.ToolBarBox)
         self.button_4.setIconSize(QtCore.QSize(100, 100))
         self.button_4.setObjectName("button_4")
         self.gridLayout.addWidget(self.button_4, 1, 1, 1, 1)
@@ -1023,7 +1084,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 """)
 
         # Signal-sending.png
-        self.button_5 = DraggableButton("SignalSending", self.ToolBarBox)
+        self.button_5 = DraggableButton("SignalSending", self, self.ToolBarBox)
         self.button_5.setIconSize(QtCore.QSize(100, 100))
         self.button_5.setObjectName("button_5")
         self.gridLayout.addWidget(self.button_5, 2, 0, 1, 1)
@@ -1033,7 +1094,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 """)
 
         # Signal-receipt.png
-        self.button_6 = DraggableButton("SignalReceipt", self.ToolBarBox)
+        self.button_6 = DraggableButton("SignalReceipt", self, self.ToolBarBox)
         self.button_6.setIconSize(QtCore.QSize(100, 100))
         self.button_6.setObjectName("button_6")
         self.gridLayout.addWidget(self.button_6, 2, 1, 1, 1)
@@ -1044,7 +1105,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
 
         # arrowsolid.png
-        self.button_7 = DraggableButton("Text_Edit", self.ToolBarBox)
+        self.button_7 = DraggableButton("Text_Edit", self, self.ToolBarBox)
         self.button_7.setIconSize(QtCore.QSize(100, 100))
         self.button_7.setObjectName("button_7")
         self.gridLayout.addWidget(self.button_7, 2, 2, 1, 1)
@@ -1054,7 +1115,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 """)
 
         # Vertical
-        self.button_8 = DraggableButton("Splitter_Merge_Vertical", self.ToolBarBox)
+        self.button_8 = DraggableButton("Splitter_Merge_Vertical", self, self.ToolBarBox)
         self.button_8.setIconSize(QtCore.QSize(100, 100))
         self.button_8.setObjectName("button_8")
         self.gridLayout.addWidget(self.button_8, 1, 0, 1, 1)
@@ -1065,7 +1126,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
 
         # ativestate.png
-        self.button_9 = DraggableButton("ActiveState", self.ToolBarBox)
+        self.button_9 = DraggableButton("ActiveState", self, self.ToolBarBox)
         self.button_9.setIconSize(QtCore.QSize(100, 100))
         self.button_9.setObjectName("button_9")
         self.gridLayout.addWidget(self.button_9, 1, 2, 1, 1)
@@ -1260,6 +1321,13 @@ QLabel {
         self.today_uptadet = self.today
         self.time_now_uptadet = self.time_now
 
+        self.running_inaction = False
+        self.timer_inaction = QTimer()
+        self.elapsed_Time_inaction = QTime(0, 0)
+
+
+        # self.timer_inaction.timeout.connect(self.update_time)
+
         self.start()
 
         #Второй таймер для остановки основного таймера если пользователь бездействует
@@ -1269,12 +1337,6 @@ QLabel {
         self.Time_inaction.setText("00:00:00")  # Устанавливаем начальное значение времени
         self.Time_inaction.setReadOnly(True)
         self.Time_inaction.setVisible(False) #По умолчанию всегда невиден
-
-        self.running_inaction = False
-        self.elapsed_Time_inaction = QTime(0, 0)
-
-        self.timer_inaction = QTimer()
-        self.timer_inaction.timeout.connect(self.update_time)
 
 
 
@@ -1290,8 +1352,8 @@ QLabel {
         self.button_9.clicked.connect(self.draw_rounded_rectangle)
         self.button_5.clicked.connect(self.draw_pentagon_signal)
         self.button_6.clicked.connect(self.draw_pentagon_reverse)
-        self.button_8.clicked.connect(self.draw_spliter)
-        self.button_4.clicked.connect(self.draw_merge)
+        self.button_8.clicked.connect(self.draw_splitter_merge_v)
+        self.button_4.clicked.connect(self.draw_splitter_merge_h)
         self.button_7.clicked.connect(self.add_text)
 
         #Проверка превышение количества объектов на сцене
@@ -1350,11 +1412,11 @@ QLabel {
         self.connect_objectS.activated.connect(self.message_overcrowed_objectS)
 
         self.connect_objectS = QShortcut(QKeySequence("4"), self.graphicsView)
-        self.connect_objectS.activated.connect(self.draw_spliter)
+        self.connect_objectS.activated.connect(self.draw_splitter_merge_v)
         self.connect_objectS.activated.connect(self.message_overcrowed_objectS)
 
         self.connect_objectS = QShortcut(QKeySequence("5"), self.graphicsView)
-        self.connect_objectS.activated.connect(self.draw_merge)
+        self.connect_objectS.activated.connect(self.draw_splitter_merge_h)
         self.connect_objectS.activated.connect(self.message_overcrowed_objectS)
 
         self.connect_objectS = QShortcut(QKeySequence("6"), self.graphicsView)
@@ -1852,28 +1914,32 @@ QLabel {
         self.user_.add_action(f"Добавлен элемент '{pentagon.__class__.__name__}'", self.get_current_Realtime())
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())), self.user_.action_history)
 
-    def draw_splitter_merge(self):
+    def draw_splitter_merge_h(self):
         # self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
         x, y = 0, 0  # Пример координат, размера и радиуса
         stick = Splitter_Merge(x, y, 120, 40)
-        stick.setFlags(QtWidgets.QGraphicsItem.ItemIsMovable | QtWidgets.QGraphicsItem.ItemIsSelectable)
+        stick.setRotation(0)
         self.scene_.addItem(stick) 
         self.objectS_.append(stick)
         self.populate_object_list()
+        self.user_.add_action(f"Добавлена конструкция Spliter_Merge'", self.get_current_Realtime())
         print("Количество объектов на сцене - ", len(self.objectS_))
         self.count_objectS.emit(len(self.objectS_))
 
+    def draw_splitter_merge_v(self):
+        # self.reset_inaction() #Сбрасыем второй таймер
+        # Координаты центра, ширина, высота и радиус закругления
+        x, y = 0, 0  # Пример координат, размера и радиуса
+        stick = Splitter_Merge(x, y, 120, 40)
+        stick.setRotation(90)
+        self.scene_.addItem(stick) 
+        self.objectS_.append(stick)
+        self.populate_object_list()
+        self.user_.add_action(f"Добавлена конструкция Spliter_Merge'", self.get_current_Realtime())
+        print("Количество объектов на сцене - ", len(self.objectS_))
+        self.count_objectS.emit(len(self.objectS_))
 
-    def draw_spliter(self):
-        self.draw_splitter_merge()
-        self.user_.add_action(f"Добавлена конструкция Spliter'", self.get_current_Realtime())
-        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())), self.user_.action_history)
-
-    def draw_merge(self):
-        self.draw_splitter_merge()
-        self.user_.add_action(f"Добавлена конструкция Merge'", self.get_current_Realtime())
-        self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())), self.user_.action_history)
 
 
     def add_edge(self):
@@ -2040,13 +2106,16 @@ QLabel {
             self.running = True
             self.timer.start(1000)  # Интервал 1000 мс (1 секунда)
             self.timer_2.start(1000)  # Запускаем таймер с интервалом в 1 секунду
+            # self.timer_inaction(1000)
+        # if not self.running_inaction:
+            self.timer_inaction.start(1000)
 
 
     def stop(self):
         if self.running:  # Останавливаем таймер
             self.running = False
             self.timer.stop()
-            self.timer_2.stop()
+            # self.timer_2.stop()
             self.last_time = self.Start_Time.text()  # Сохраняем текущее значение времени перед остановкой
 
             self.today_uptadet = self.get_current_Date()
@@ -2070,6 +2139,11 @@ QLabel {
             if returnValue == QMessageBox.Ok:
                 self.reset_inaction()
 
+    def stop_inaction(self): #Остановка таймера бездействия (к примеру останавливате таймер)
+        if self.running_inaction:     #когда пользователь вытаскивает элемент из тулбара
+            self.running_inaction = False
+            self.timer_inaction.stop()
+
     def reset(self):
         self.elapsed_time = QTime(0, 0)  # Сбрасываем время
         #self.lineEdit_timework.setText(self.elapsed_time.toString("hh:mm:ss"))  # Отображаем сброшенное время
@@ -2085,7 +2159,7 @@ QLabel {
 
         if self.Time_inaction.text() == "00:00:30":
             self.stop()
-
+    
     def reset_inaction(self):
         self.elapsed_Time_inaction = QTime(0, 0)  # Сбрасываем время
         self.start()

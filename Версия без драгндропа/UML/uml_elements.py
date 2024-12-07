@@ -700,7 +700,7 @@ class EndEvent(QtWidgets.QGraphicsEllipseItem):
         super().mouseReleaseEvent(event)
 
     # Сглаживание отрисовки объекта
-    def paint(self, painter, option, widget=None):
+    def paint(self, painter, option, widget):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
         super().paint(painter, option, widget)
 
@@ -1319,6 +1319,10 @@ class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
         self.setAcceptHoverEvents(True)
 
+        rect = self.boundingRect()
+        self.setTransformOriginPoint(self.center_x, self.center_y) #Центируем точки при смене ориентации
+
+
         self.is_resizing = False # Флаг, указывающий, идет ли изменение размера
         self.resize_side = None # Определяем, с какой стороны идет изменение размера
         self.resize_margin = 10 # Чувствительная область для изменения размера
@@ -1346,7 +1350,11 @@ class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
 
         return sm
 
-
+    #Обновляем ориентацию объекта через панель редактирования
+    def update_size_and_orientation(self, width, height, rotation):
+        self.setPolygon(self.create_SM(self.center_x, self.center_y, width, height))
+        self.setRotation(rotation)
+        self.update()
 
 
     def hoverMoveEvent(self, event):
@@ -1401,6 +1409,7 @@ class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
     def paint(self, painter, option, widget=None):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
         super().paint(painter, option, widget)
+
 
     def itemChange(self, change, value):
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
