@@ -289,12 +289,6 @@ class EditingPanel(QWidget):
         self.editable_item.setOpacity(opacity)
 
 
-
-
-
-
-
-
 class DraggableButton(QtWidgets.QPushButton):
     def __init__(self, element_type, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -403,21 +397,21 @@ class DraggableButton(QtWidgets.QPushButton):
             painter.save()
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
             painter.setBrush(self.sending_signal.brush())  # Задаем цвет заливки
-            painter.drawPolygon(self.sending_signal.polygon())  # Рисуем полигон объекта Decision
+            painter.drawPolygon(self.sending_signal.polygon())  # Рисуем полигон объекта sending_signal
             painter.restore()  # Восстанавливаем состояние рисования
 
         if self.sending_receipt:
             painter.save()
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
             painter.setBrush(self.sending_receipt.brush())  # Задаем цвет заливки
-            painter.drawPolygon(self.sending_receipt.polygon())  # Рисуем полигон объекта Decision
+            painter.drawPolygon(self.sending_receipt.polygon())  # Рисуем полигон объекта sending_receipt
             painter.restore()  # Восстанавливаем состояние рисования
 
         if self.slitter_merge_horizontal:
             painter.save()
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
             painter.setBrush(self.slitter_merge_horizontal.brush())  # Задаем цвет заливки
-            painter.drawPolygon(self.slitter_merge_horizontal.polygon())  # Рисуем полигон объекта Decision
+            painter.drawPolygon(self.slitter_merge_horizontal.polygon())  # Рисуем полигон объекта slitter_merge_h
             painter.restore()  # Восстанавливаем состояние 
             
         if self.slitter_merge_vertical:
@@ -425,7 +419,7 @@ class DraggableButton(QtWidgets.QPushButton):
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
             painter.rotate(90) #Поскольку объект изначально рисуется горизонтально, мы его поворачиваем
             painter.setBrush(self.slitter_merge_vertical.brush())  # Задаем цвет заливки
-            painter.drawPolygon(self.slitter_merge_vertical.polygon())  # Рисуем полигон объекта Decision
+            painter.drawPolygon(self.slitter_merge_vertical.polygon())  # Рисуем полигон объекта slitter_merge_v
             painter.restore()  # Восстанавливаем состояние рисования
 
         if self.active_state:
@@ -462,10 +456,6 @@ class DraggableButton(QtWidgets.QPushButton):
             painter.drawText(text_rect, QtCore.Qt.AlignCenter, text)  # Рисуем текст
             painter.restore()
 
-        
-
-
-
     def mouseMoveEvent(self, event):
         # Проверяем, находится ли курсор внутри Text_Edit, если да, то игнорируем drag-and-drop
         if not self.underMouse():
@@ -473,13 +463,130 @@ class DraggableButton(QtWidgets.QPushButton):
 
         if event.buttons() == Qt.LeftButton:
             mime_data = QtCore.QMimeData()
+            #Перед отрисовкой объекта, определяем какой объект мы вообще собираемся вытащить из тулбара
             mime_data.setText(self.element_type)
 
+            #Здесь создается перетаскиваемый объект из кнопки
             drag = QtGui.QDrag(self)
             drag.setMimeData(mime_data)
+
+            pixmap = self.create_pixmap_for_drag() #Рисуем временный объект
+            drag.setPixmap(pixmap)
+
             drag.setHotSpot(event.pos() - self.rect().topLeft())
 
             drag.exec_(Qt.MoveAction)
+
+    def create_pixmap_for_drag(self):
+        pixmap = QtGui.QPixmap(self.size())  # Создаем отображениу временного объекта во время перетаскивания размером с кнопку
+        pixmap.fill(QtCore.Qt.transparent)  # Делаем фон прозрачным
+
+        painter = QtGui.QPainter(pixmap)
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+
+        # Рисуем объект в Pixmap аналогично paintEvent
+        if self.decision:
+            painter.save()
+            painter.translate(self.rect().center())
+            painter.setBrush(self.decision.brush())
+            painter.drawPolygon(self.decision.polygon())
+            painter.restore()
+
+        if self.start_event:
+            painter.save()
+            painter.translate(self.rect().center())
+            rect = self.start_event.boundingRect()
+            painter.setBrush(self.start_event.brush())
+            painter.drawEllipse(rect)
+            painter.restore()
+
+        if self.end_event:
+            painter.save()
+            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+
+            # Рисование внешнего круга
+            outer_rect = self.end_event.boundingRect()
+            painter.setBrush(self.end_event.brush())  # Задаем цвет заливки для внешнего круга
+            painter.drawEllipse(outer_rect)  # Рисуем внешний круг
+
+            # Рисование внутреннего круга
+            inner_radius = self.end_event.radius * self.end_event.inner_radius_ratio
+            inner_rect = QtCore.QRectF(  # Здесь исправлено
+                self.end_event.x_center - inner_radius,
+                self.end_event.y_center - inner_radius,
+                2 * inner_radius,
+                2 * inner_radius
+            )
+            painter.setBrush(QtGui.QBrush(QtGui.QColor(0, 0, 0)))  # Цвет внутреннего круга
+            painter.drawEllipse(inner_rect)  # Рисуем внутренний круг
+
+            painter.restore()  # Восстанавливаем состояние рисования
+
+        if self.sending_signal:
+            painter.save()
+            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+            painter.setBrush(self.sending_signal.brush())  # Задаем цвет заливки
+            painter.drawPolygon(self.sending_signal.polygon())  # Рисуем полигон объекта sending_signal
+            painter.restore()  # Восстанавливаем состояние рисования
+
+        if self.sending_receipt:
+            painter.save()
+            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+            painter.setBrush(self.sending_receipt.brush())  # Задаем цвет заливки
+            painter.drawPolygon(self.sending_receipt.polygon())  # Рисуем полигон объекта sending_receipt
+            painter.restore()  # Восстанавливаем состояние рисования
+
+        if self.slitter_merge_horizontal:
+            painter.save()
+            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+            painter.setBrush(self.slitter_merge_horizontal.brush())  # Задаем цвет заливки
+            painter.drawPolygon(self.slitter_merge_horizontal.polygon())  # Рисуем полигон объекта slitter_merge_h
+            painter.restore()  # Восстанавливаем состояние 
+            
+        if self.slitter_merge_vertical:
+            painter.save()
+            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+            painter.rotate(90) #Поскольку объект изначально рисуется горизонтально, мы его поворачиваем
+            painter.setBrush(self.slitter_merge_vertical.brush())  # Задаем цвет заливки
+            painter.drawPolygon(self.slitter_merge_vertical.polygon())  # Рисуем полигон объекта slitter_merge_v
+            painter.restore()  # Восстанавливаем состояние рисования
+
+        if self.active_state:
+            painter.save()
+            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+
+            # Получаем границы закругленного прямоугольника
+            rect = self.active_state.boundingRect()  # Убедитесь, что этот прямоугольник соответствует ожиданиям
+
+            painter.setBrush(self.active_state.brush())  # Задаем цвет заливки
+
+            # Получаем радиус
+            radius = self.active_state.radius  # Убедитесь, что это значение корректное
+
+            # Проверка, чтобы минимальный размер прямоугольника соответствовал радиусу
+            effective_radius = min(radius, min(rect.width(), rect.height()) / 2)
+
+            # Рисуем закругленный прямоугольник
+            painter.drawRoundedRect(rect, effective_radius, effective_radius)  # Рисуем закругленный прямоугольник
+
+            painter.restore()
+
+
+        if self.text_edit:
+            painter.save()
+            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+            painter.setPen(QtGui.QPen(QtCore.Qt.black))  # Устанавливаем цвет текста
+            
+            # Получаем текст из Text_Edit
+            text = self.text_edit.toPlainText()  # Здесь текст извлекается из Text_Edit
+
+            # Рисуем текст, центрируем его
+            text_rect = QtCore.QRectF(-self.width() // 2, -self.height() // 2, self.width(), self.height())
+            painter.drawText(text_rect, QtCore.Qt.AlignCenter, text)  # Рисуем текст
+            painter.restore()
+
+        painter.end()
+        return pixmap
 
 
 class My_GraphicsView(QtWidgets.QGraphicsView):
