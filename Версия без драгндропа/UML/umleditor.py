@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import subprocess
+import hashlib
 from math import *
 from datetime import datetime
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -671,9 +672,8 @@ class DialogWindow(QtWidgets.QDialog):
         self.ui.setupUi(self)  # Настройка интерфейса в окне
 
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import pyqtSignal
 
+# Окно входа
 class LoginWindow(QtWidgets.QDialog):
     def __init__(self):
         super().__init__()
@@ -732,6 +732,11 @@ class LoginWindow(QtWidgets.QDialog):
         self.login_button.clicked.connect(self.login)
         self.register_button.clicked.connect(self.register)
 
+    # Хэшируем пароль
+    def hash_password(self, password):
+        return hashlib.sha256(password.encode('utf-8')).hexdigest()
+
+    # Вход
     def login(self):
         username = self.username_input.text()
         password = self.password_input.text()
@@ -743,7 +748,7 @@ class LoginWindow(QtWidgets.QDialog):
                 user_data = json.load(f)
 
             # Если пароли совпадают
-            if user_data.get("password") == password:
+            if user_data.get("password") == self.hash_password(password):
                 global global_start_time # Получаем время начала работы
                 global_start_time = user_data.get("start_time")
 
@@ -754,6 +759,7 @@ class LoginWindow(QtWidgets.QDialog):
         else:
             QtWidgets.QMessageBox.warning(self, "Ошибка", "Пользователь не найден!")
 
+    # Регистрация
     def register(self):
         username = self.username_input.text()
         password = self.password_input.text()
@@ -765,9 +771,10 @@ class LoginWindow(QtWidgets.QDialog):
                 QtWidgets.QMessageBox.warning(self, "Ошибка", "Пользователь с таким именем уже существует!")
                 return
             
+            hashed_password = self.hash_password(password)
             user_data = {
                 "username": username,
-                "password": password,
+                "password": hashed_password,
                 "start_time": datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
                 "end_time": None
             }
