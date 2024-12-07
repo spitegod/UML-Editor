@@ -33,7 +33,8 @@ from PyQt5.QtCore import pyqtSlot
 #         self.scene.objectS_.append(self.shape)  # Добавляем в список объектов
 #         # print(f"{self.shape_type} добавлен, объектов на сцене:", len(self.scene.objectS_))
 
-usernamez = ""
+global_username = ""
+global_start_time = None
 
 class EditingPanel(QWidget):
     def __init__(self, editable_item, main_window):
@@ -674,60 +675,81 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
 
 class LoginWindow(QtWidgets.QDialog):
-    # Сигнал для передачи логина
-    login_signal = pyqtSignal(str)
-
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Вход или регистрация")
         self.setGeometry(100, 100, 300, 200)
 
-        # Лейауты
+        self.user_data_folder = "user_data"
+        os.makedirs(self.user_data_folder, exist_ok=True)
+
         layout = QtWidgets.QVBoxLayout(self)
 
-        # Поля ввода
         self.username_input = QtWidgets.QLineEdit(self)
         self.username_input.setPlaceholderText("Введите логин")
         self.password_input = QtWidgets.QLineEdit(self)
         self.password_input.setPlaceholderText("Введите пароль")
         self.password_input.setEchoMode(QtWidgets.QLineEdit.Password)
 
-        # Кнопки
         self.login_button = QtWidgets.QPushButton("Войти", self)
         self.register_button = QtWidgets.QPushButton("Зарегистрироваться", self)
 
-        # Добавление виджетов в лейаут
         layout.addWidget(QtWidgets.QLabel("Авторизация", self))
         layout.addWidget(self.username_input)
         layout.addWidget(self.password_input)
         layout.addWidget(self.login_button)
         layout.addWidget(self.register_button)
 
-        # Связывание кнопок с методами
         self.login_button.clicked.connect(self.login)
         self.register_button.clicked.connect(self.register)
 
     def login(self):
         username = self.username_input.text()
         password = self.password_input.text()
+        
 
-        # Здесь проверка логина и пароля
-        # Если вход успешен
-        QtWidgets.QMessageBox.information(self, "Успех", f"Добро пожаловать, {username}!")
-        self.login_signal.emit(username)  # Отправляем сигнал с логином
-        self.accept()  # Закрываем окно входа
+        user_file = os.path.join(self.user_data_folder, f"{username}.json")
+        if os.path.exists(user_file):
+            with open(user_file, "r") as f:
+                user_data = json.load(f)
+
+            if user_data.get("password") == password:
+                global global_start_time
+                global_start_time = user_data.get("start_time")
+                print(user_data.get("start_time"))
+                QtWidgets.QMessageBox.information(self, "Успех", f"Добро пожаловать, {username}!")
+                self.accept()  # Закрыть окно с результатом успешного входа
+            else:
+                QtWidgets.QMessageBox.warning(self, "Ошибка", "Неверный пароль!")
+        else:
+            QtWidgets.QMessageBox.warning(self, "Ошибка", "Пользователь не найден!")
 
     def register(self):
         username = self.username_input.text()
         password = self.password_input.text()
 
         if len(username) > 3 and len(password) > 3:
-            # Логика регистрации
+            user_file = os.path.join(self.user_data_folder, f"{username}.json")
+
+            if os.path.exists(user_file):
+                QtWidgets.QMessageBox.warning(self, "Ошибка", "Пользователь с таким именем уже существует!")
+                return
+            
+            user_data = {
+                "username": username,
+                "password": password,
+                "start_time": datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
+                "end_time": None
+            }
+
+            with open(user_file, "w") as f:
+                json.dump(user_data, f)
+
             QtWidgets.QMessageBox.information(self, "Успех", "Пользователь успешно зарегистрирован!")
-            self.login_signal.emit(username)  # Отправляем сигнал с логином
-            self.accept()  # Закрываем окно регистрации
+            self.accept()  # Закрыть окно с результатом успешной регистрации
         else:
             QtWidgets.QMessageBox.warning(self, "Ошибка", "Логин и пароль должны быть длиннее 3 символов!")
+
 
 
 class Ui_MainWindow(QtWidgets.QMainWindow):
@@ -745,7 +767,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         self.graphicsView = My_GraphicsView(self.label_x_y)
         self.graphicsView.setMouseTracking(True)
-        self.username = usernamez
+        self.username = global_username
+        self.start_time = global_start_time
         # global GLOBAL_USERNAME
         # self.username = GLOBAL_USERNAME
         
@@ -1043,9 +1066,12 @@ QLabel {
 
 
         #Таймер
+        global global_start_time # Глобальная переменная для получения даты начала работы
 
-        self.today = self.get_current_Date()
-        self.time_now = self.get_current_Realtime()
+        buffer_date, buffer_time = global_start_time.split() # БУферные переменные для передачи данных и разбиение строки
+        #Присваиваем полученные данные
+        self.today = buffer_date
+        self.time_now = buffer_time
 
         
 
@@ -1182,8 +1208,8 @@ QLabel {
         # self.connect_objectS.activated.connect(self.disconnect_nodes)
 
 
-        self.user_ = User(self.username, 0, self.time_now, self.get_time_for_user(self.last_time))
-        self.user_.add_action("Создана диаграмма UML", self.get_current_Realtime())
+        self.user_ = User(self.username, 0, self.start_time, self.get_time_for_user(self.last_time))
+        self.user_.add_action("Создана диаграмма UML", self.start_time)
         self.button.setContextMenuPolicy(Qt.CustomContextMenu)
         self.button.customContextMenuRequested.connect(self.open_dialog)
 
@@ -2152,6 +2178,7 @@ QLabel {
         self.update_last_timeSW.connect(self.static_ui.update_last_timeSW)
         self.count_objectS.connect(self.static_ui.get_count_objectS)
 
+        # self.static_ui.accept_today(self.today, self.time_now, self.last_time)
         self.static_ui.accept_today(self.today, self.time_now, self.last_time)
 
         # Обновляем интерфейс через сигналы
@@ -2205,10 +2232,11 @@ if __name__ == "__main__":
     # Открытие окна входа
     login_window = LoginWindow()
     main_window = Ui_MainWindow()
-    login_window.login_signal.connect(main_window.set_username)
+
     
     if login_window.exec_() == QtWidgets.QDialog.Accepted:
-        usernamez = login_window.username_input.text()
+        global_username = login_window.username_input.text()
+        
         # Создаем и показываем основное окно
         main_window = QtWidgets.QMainWindow()  # Создаем объект для основного окна
         ui = Ui_MainWindow()  # Сюда можно вставить UI для основного окна
