@@ -678,28 +678,57 @@ class LoginWindow(QtWidgets.QDialog):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Вход или регистрация")
-        self.setGeometry(100, 100, 300, 200)
+        
+        # Получаем размеры экрана для центрирования окна
+        screen_geometry = QtWidgets.QDesktopWidget().availableGeometry()
+        screen_center = screen_geometry.center()
+
+        # Устанавливаем начальный размер окна
+        self.setFixedSize(300, 400)
+
+        # Центрируем окно, учитывая его размеры
+        window_size = self.size()
+        self.move(screen_center.x() - window_size.width() // 2, screen_center.y() - window_size.height() // 2)
+
 
         self.user_data_folder = "user_data"
         os.makedirs(self.user_data_folder, exist_ok=True)
 
         layout = QtWidgets.QVBoxLayout(self)
 
+        # Добавление изображения
+        self.logo_label = QtWidgets.QLabel(self)
+        self.logo_pixmap = QtGui.QPixmap("imgs/ctuaslogo.jpg")  # Убедись, что путь корректный
+        self.logo_pixmap = self.logo_pixmap.scaled(150, 150, QtCore.Qt.KeepAspectRatio)
+        self.logo_label.setPixmap(self.logo_pixmap)
+        self.logo_label.setAlignment(QtCore.Qt.AlignCenter)
+        layout.addWidget(self.logo_label)
+
+        # Добавление текста
+        self.title_label = QtWidgets.QLabel("UML-Editor", self)
+        font = QtGui.QFont("Arial", 20)  # Шрифт для текста
+        self.title_label.setFont(font)
+        self.title_label.setAlignment(QtCore.Qt.AlignCenter)
+        layout.addWidget(self.title_label)
+
+        # Поля ввода
         self.username_input = QtWidgets.QLineEdit(self)
         self.username_input.setPlaceholderText("Введите логин")
         self.password_input = QtWidgets.QLineEdit(self)
         self.password_input.setPlaceholderText("Введите пароль")
         self.password_input.setEchoMode(QtWidgets.QLineEdit.Password)
 
+        # Кнопки
         self.login_button = QtWidgets.QPushButton("Войти", self)
         self.register_button = QtWidgets.QPushButton("Зарегистрироваться", self)
 
-        layout.addWidget(QtWidgets.QLabel("Авторизация", self))
+        # Добавление виджетов в лейаут
         layout.addWidget(self.username_input)
         layout.addWidget(self.password_input)
         layout.addWidget(self.login_button)
         layout.addWidget(self.register_button)
 
+        # Связывание кнопок с методами
         self.login_button.clicked.connect(self.login)
         self.register_button.clicked.connect(self.register)
 
