@@ -713,10 +713,11 @@ class LoginWindow(QtWidgets.QDialog):
             with open(user_file, "r") as f:
                 user_data = json.load(f)
 
+            # Если пароли совпадают
             if user_data.get("password") == password:
-                global global_start_time
+                global global_start_time # Получаем время начала работы
                 global_start_time = user_data.get("start_time")
-                print(user_data.get("start_time"))
+
                 QtWidgets.QMessageBox.information(self, "Успех", f"Добро пожаловать, {username}!")
                 self.accept()  # Закрыть окно с результатом успешного входа
             else:
@@ -741,6 +742,9 @@ class LoginWindow(QtWidgets.QDialog):
                 "start_time": datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
                 "end_time": None
             }
+
+            global global_start_time # Получаем время начала работы
+            global_start_time = user_data.get("start_time")
 
             with open(user_file, "w") as f:
                 json.dump(user_data, f)
@@ -1072,10 +1076,6 @@ QLabel {
         #Присваиваем полученные данные
         self.today = buffer_date
         self.time_now = buffer_time
-
-        
-
-
         # Настраиваем второй таймер для обновления времени каждую секунду
         self.timer_2 = QTimer(self)
         self.timer_2.timeout.connect(self.increment_time)  # Соединяем таймер с функцией обновления времени
@@ -1083,7 +1083,14 @@ QLabel {
 
         #Инициализируем переменные для секундомера
         self.running = False
-        self.elapsed_time = QTime(0, 0)
+        current_time_now = QTime.currentTime()
+        # Преобразуем строку buffer_time в объект QTime
+        buffer_time_obj = QTime()
+        buffer_time_obj.setHMS(*map(int, buffer_time.split(":")))
+        # Вычисляем разницу в секундах
+        elapsed_seconds = current_time_now.secsTo(buffer_time_obj)
+        # Преобразуем разницу в формате HH:MM:SS
+        self.elapsed_time = QTime(0, 0).addSecs(abs(elapsed_seconds))
 
         self.timer = QTimer()
 
