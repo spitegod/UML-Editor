@@ -173,6 +173,41 @@ class EditingPanel(QWidget):
             layout.addWidget(self.opacity_label, 0, 0, 1, 1)
             layout.addWidget(self.opacity_slider, 0, 1, 1, 1)
 
+        elif isinstance(self.editable_item, (Text_Edit)): 
+            self.text_label = QLabel("Текст:")
+
+            # Создаем QTextEdit для отображения текста
+            self.text_area = QTextEdit(self)
+
+            # Устанавливаем начальный текст из editable_item.text_item в text_area
+            self.text_area.setText(self.editable_item.toPlainText())
+
+            # Подключаем сигнал textChanged от text_area, чтобы обновить текст в editable_item
+            self.text_area.textChanged.connect(self.update_text)
+
+            # Считываем и отображаем количество символов
+            self.count_sim_label1 = QLabel("Количество символов - ")
+            self.count_sim_input2 = QLineEdit("")
+            self.count_sim_input2.setText(str(len(self.editable_item.toPlainText())))
+            self.text_area.textChanged.connect(self.update_len_count)
+            self.count_sim_input2.setReadOnly(True)
+            self.count_sim_input2.setStyleSheet("""
+                QLineEdit {
+                    border: none;
+                    background: transparent;
+                                                }
+""")
+            self.max_length = 250  # Максимальная длина текста
+
+        # Подключаем сигнал textChanged для отслеживания изменений
+            self.text_area.textChanged.connect(self.max_length_text_area)
+            # Добавляем виджеты в layout
+            layout.addWidget(self.text_label, 0, 0, 1, 1)
+            layout.addWidget(self.text_area, 1, 0, 1, 0)
+            layout.addWidget(self.count_sim_label1, 2, 0, 1, 1)
+            layout.addWidget(self.count_sim_input2, 2, 1, 1, 1)
+
+
         else:
             self.message_label = QLabel("В разработке")
             layout.addWidget(self.message_label, 0, 0, 1, 2)
@@ -188,6 +223,10 @@ class EditingPanel(QWidget):
         self.y_spinbox.setRange(-1000, 1000)  # Диапазон значений
         self.y_spinbox.setValue(editable_item.scenePos().y())
         # self.y_spinbox.valueChanged.connect(self.update_position)
+
+        self.x_spinbox.valueChanged.connect(self.update_position_from_spinbox)
+        self.y_spinbox.valueChanged.connect(self.update_position_from_spinbox)
+        self.is_position_updating = False
 
         self.main_window.scene_.coordinates_updated.connect(self.update_coordinates)
 
@@ -230,12 +269,34 @@ class EditingPanel(QWidget):
             self.x_spinbox.setValue(new_x)
             self.y_spinbox.setValue(new_y)
 
-            print(f"Глобальные координаты объекта: X={new_x}, Y={new_y}")
-
     def update_coordinates(self, x, y):
-        """Обновление координат в QSpinBox."""
+        if self.is_position_updating:
+            return  # Прерываем, если уже идет обновление позиции
+        self.is_position_updating = True  # Устанавливаем флаг
         self.x_spinbox.setValue(x)
-        self.y_spinbox.setValue(y)
+        self.y_spinbox.setValue(-y)  # Инвертируем Y перед обновлением SpinBox
+        self.is_position_updating = False
+
+    #Если пользователь хочет поменять позицию объекта через панель редактирования
+    def update_position_from_spinbox(self):
+        if self.is_position_updating:
+            return  # Прерываем, если уже идет обновление позиции
+        self.is_position_updating = True  # Устанавливаем флаг
+
+        if self.editable_item:
+            new_x = self.x_spinbox.value()
+            new_y = -self.y_spinbox.value()  # Инвертируем значение Y только для SpinBox
+
+            # Обновляем позицию объекта на сцене
+            self.editable_item.setPos(new_x, new_y)
+
+            # Передаем новые координаты центра объекта (если требуется)
+            global_center = self.editable_item.mapToScene(self.editable_item.boundingRect().center())
+            self.main_window.scene_.coordinates_updated.emit(global_center.x(), -global_center.y())  # Инвертируем Y только для передачи
+
+        self.is_position_updating = False  # Сбрасываем флаг
+
+
 
 
     def change_arrow_color(self):
@@ -274,6 +335,29 @@ class EditingPanel(QWidget):
     def update_text(self):
         if hasattr(self.editable_item, 'text_item'):
             self.editable_item.text_item.setPlainText(self.text_input.text())
+        if isinstance(self.editable_item, Text_Edit):
+            new_text = self.text_area.toPlainText()
+            self.editable_item.setPlainText(new_text)
+
+    def update_len_count(self):
+        self.count_sim_input2.setText(str(len(self.editable_item.toPlainText())))
+
+    def max_length_text_area(self):
+        current_text = self.text_area.toPlainText()
+
+        # Если длина текста превышает максимальную длину, запрещаем ввод
+        if len(current_text) > self.max_length:
+           current_text = self.text_area.toPlainText()
+
+        # Если длина текста превышает максимальную длину, запрещаем ввод
+        if len(current_text) > self.max_length:
+            # Отключаем добавление символов в текст
+            cursor = self.text_area.textCursor()
+            cursor.deletePreviousChar()  # Удаляем последний введенный символ
+            self.text_area.setTextCursor(cursor)  # Применяем курсор
+
+        # Обновляем количество символов в count_sim_input2
+        self.update_len_count()
 
     def update_orientation(self):
         if isinstance(self.editable_item, Splitter_Merge):
@@ -704,18 +788,18 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
             # Устанавливаем текст в label_x_y с названием класса элемента
             element_name = type(selected_item).__name__
             mouse_pos = event.scenePos()
-            self.label.setText(f"Выбрано: {element_name} ({mouse_pos.x():.1f}, {mouse_pos.y():.1f})")
+            self.label.setText(f"Выбрано: {element_name} ({mouse_pos.x():.1f}, {-mouse_pos.y():.1f})")
 
             # self.reset_time.on_object_selected(selected_item)
 
             item_rect = selected_item.sceneBoundingRect()
             item_center = item_rect.center()  # Центр объекта
-            print(f"Выбран объект {element_name} с центром координат: ({item_center.x():.1f}, {item_center.y():.1f})")
+            print(f"Выбран объект {element_name} с центром координат: ({item_center.x():.1f}, {-item_center.y():.1f})")
         else:
             self.reset_time.on_selection_changed()
             self.is_dragging = False
             mouse_pos = event.scenePos()
-            self.label.setText(f"({mouse_pos.x():.1f}, {mouse_pos.y():.1f})")
+            self.label.setText(f"({mouse_pos.x():.1f}, {-mouse_pos.y():.1f})")
 
 
         if not self.is_dragging:  # Начинаем рисовать прямоугольник выделения is_dragging = True
@@ -731,7 +815,7 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
         
     def mouseMoveEvent(self, event):
         mouse_pos = event.scenePos()
-        self.label.setText(f"({mouse_pos.x():.1f}, {mouse_pos.y():.1f})")
+        self.label.setText(f"({mouse_pos.x():.1f}, {-mouse_pos.y():.1f})")
         self.reset_time.stop_inaction()
         if not self.is_dragging:  # Обновляем прямоугольник выделения только если не перетаскиваем
             if self.selection_rect and self.start_pos:

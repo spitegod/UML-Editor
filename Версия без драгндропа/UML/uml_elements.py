@@ -1644,10 +1644,4 @@ class Text_Edit(Text_into_object):
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
             for arrow in self.arrows:
                 arrow.update_arrow()
-        return super().itemChange(change, value)
-
-
-
-
-
-
+        return super().itemChange(change, value)    
