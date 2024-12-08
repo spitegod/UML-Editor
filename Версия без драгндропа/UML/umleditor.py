@@ -181,13 +181,15 @@ class EditingPanel(QWidget):
         self.x_spinbox = QDoubleSpinBox(self)
         self.x_spinbox.setRange(-1000, 1000)  # Диапазон значений
         self.x_spinbox.setValue(editable_item.scenePos().x())
-        self.x_spinbox.valueChanged.connect(self.update_position)
+        # self.x_spinbox.valueChanged.connect(self.update_position)
 
         self.y_label = QLabel("Y:")
         self.y_spinbox = QDoubleSpinBox(self)
         self.y_spinbox.setRange(-1000, 1000)  # Диапазон значений
         self.y_spinbox.setValue(editable_item.scenePos().y())
-        self.y_spinbox.valueChanged.connect(self.update_position)
+        # self.y_spinbox.valueChanged.connect(self.update_position)
+
+        self.main_window.scene_.coordinates_updated.connect(self.update_coordinates)
 
         self.mainwin = Ui_MainWindow()
 
@@ -220,9 +222,20 @@ class EditingPanel(QWidget):
 
     def update_position(self):
         if self.editable_item:
-            new_x = self.x_spinbox.value()
-            new_y = self.y_spinbox.value()
-            self.editable_item.setPos(new_x, new_y)
+            # Получаем глобальные координаты объекта на сцене
+            scene_pos = self.editable_item.mapToScene(self.editable_item.pos())  # Преобразуем в глобальные координаты
+            new_x = scene_pos.x()  # Глобальная X-координата
+            new_y = scene_pos.y()  # Глобальная Y-координата
+
+            self.x_spinbox.setValue(new_x)
+            self.y_spinbox.setValue(new_y)
+
+            print(f"Глобальные координаты объекта: X={new_x}, Y={new_y}")
+
+    def update_coordinates(self, x, y):
+        """Обновление координат в QSpinBox."""
+        self.x_spinbox.setValue(x)
+        self.y_spinbox.setValue(y)
 
 
     def change_arrow_color(self):
@@ -658,6 +671,7 @@ class My_GraphicsView(QtWidgets.QGraphicsView):
 
 
 class My_GraphicsScene(QtWidgets.QGraphicsScene):
+    coordinates_updated = pyqtSignal(float, float) #Сигнал, для отображения глобальныъ координат на панели редактирования
     def __init__(self, reset_time, objectS, user_, label, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.selection_rect = None  # Прямоугольник для выделения
@@ -668,14 +682,8 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
         self.objectS = objectS
         self.user_ = user_
         self.label = label
-        # self.setAcceptDrops(True)
-        # self.selected_order = []
-        # self.undo_stack = QUndoStack()
-
-        
 
 
-    
     def drawBackground(self, painter, rect):
         # Включаем сглаживание
         painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
@@ -756,28 +764,41 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
 
         if element_type == "Decision":
             item = Decision(position.x(), position.y(), 50)
+            print(f"Created {item.__class__.__name__} with unique_id: {item.unique_id}")
+
         elif element_type == "StartEvent":
             item = StartEvent(position.x(), position.y(), 30)
+            print(f"Created {item.__class__.__name__} with unique_id: {item.unique_id}")
+
         elif element_type == "EndEvent":
             item = EndEvent(position.x(), position.y(), 30, 0.5)
-            if isinstance(item, EndEvent):
-                print(f"Created EndEvent with unique_id: {item.unique_id}")
-            else:
-                print("Created object is not of type EndEvent.")
+            print(f"Created {item.__class__.__name__} with unique_id: {item.unique_id}")
+
         elif element_type == "ActiveState":
             item = ActiveState(position.x(), position.y(), 100, 60, 15)
+            print(f"Created {item.__class__.__name__} with unique_id: {item.unique_id}")
+
         elif element_type == "SignalSending":
             item = SignalSending(position.x(), position.y(), 160, 60)
+            print(f"Created {item.__class__.__name__} with unique_id: {item.unique_id}")
+
         elif element_type == "SignalReceipt":
             item = SignalReceipt(position.x(), position.y(), 180, 60)
+            print(f"Created {item.__class__.__name__} with unique_id: {item.unique_id}")
+
         elif element_type == "Splitter_Merge_Horizontal":
             item = Splitter_Merge(position.x(), position.y(), 120, 40)
             item.setRotation(0)
+            print(f"Created {item.__class__.__name__} with unique_id: {item.unique_id}")
+
         elif element_type == "Splitter_Merge_Vertical":
             item = Splitter_Merge(position.x(), position.y(), 120, 40)
             item.setRotation(90)
+            print(f"Created {item.__class__.__name__} with unique_id: {item.unique_id}")
+
         elif element_type == "Text_Edit":
             item = Text_Edit(position.x(), position.y(), 100, 30, text="Текст", max_length=250)
+            print(f"Created {item.__class__.__name__} with unique_id: {item.unique_id}")
 
         if item:
             self.addItem(item)
@@ -801,15 +822,15 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
             self.reset_time.populate_object_list()
             event.acceptProposedAction()
 
+            global_pos = item.mapToScene(item.pos())
+            self.coordinates_updated.emit(global_pos.x(), global_pos.y()) #Передача глобальных координатов в панель редактирования
+
             # Проверяем переполнение
             if len(self.objectS) > 10:
                 self.reset_time.message_overcrowed_objectS()
         else:
             # Если item (например фрагмент Text_Edit)не распознан, отклоняем событие
             event.ignore()
-
-
-
 
     def dragMoveEvent(self, event):
         event.acceptProposedAction()
@@ -1519,9 +1540,46 @@ QLabel {
         self.editing_dock.setVisible(False)
 
     def show_editing_panel(self, item):
-        panel = EditingPanel(item, self)
-        self.editing_dock.setWidget(panel)
+        # Создание и отображение панели редактирования для выбранного объекта
+        self.editing_panel = EditingPanel(item, self)
+        self.editing_dock.setWidget(self.editing_panel)
         self.editing_dock.setVisible(True)
+
+        # Обновление панели с координатами
+            # Универсальная обработка центра объекта
+        if isinstance(item, QtWidgets.QGraphicsPolygonItem):
+            # Центр полигона (Splitter_Merge, SignalSending и SignalReceip)
+            polygon = item.polygon()
+            x = sum(point.x() for point in polygon) / len(polygon)
+            y = sum(point.y() for point in polygon) / len(polygon)
+            local_center = QtCore.QPointF(x, y)
+        elif isinstance(item, QtWidgets.QGraphicsEllipseItem):
+            # Центр круга
+            local_center = item.rect().center()
+        elif isinstance(item, QtWidgets.QGraphicsRectItem):
+            # Центр прямоугольника
+            local_center = item.rect().center()
+        elif isinstance(item, QtWidgets.QGraphicsTextItem):
+            # Центр текста
+            local_center = item.boundingRect().center()
+        elif isinstance(item, QtWidgets.QGraphicsPixmapItem):
+            # Центр изображения
+            local_center = item.pixmap().rect().center()
+        else:
+            print(f"Неизвестный тип объекта: {type(item).__name__}")
+            return
+
+        # Преобразуем центр в глобальные координаты сцены
+        global_center = item.mapToScene(local_center)
+
+            # Передаем координаты центра в панель редактирования
+        self.scene_.coordinates_updated.emit(global_center.x(), global_center.y())
+
+
+    def update_coordinates_in_panel(self, x, y):
+       # обновление координат в панели редактирования
+        if self.editing_panel:
+            self.editing_panel.update_coordinates(x, y)
 
     def open_dialog(self):
         print('')
