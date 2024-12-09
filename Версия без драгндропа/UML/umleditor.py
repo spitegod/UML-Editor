@@ -2003,8 +2003,8 @@ QLabel {
             self.objectS_.clear()
             self.scene_.clear()
 
+    # Вставка изображения
     def insert_image(self):
-        
         # Открываем диалог для выбора изображения
         options = QtWidgets.QFileDialog.Options()
         filepath, _ = QtWidgets.QFileDialog.getOpenFileName(
