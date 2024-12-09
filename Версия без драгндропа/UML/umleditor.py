@@ -2148,8 +2148,8 @@ QLabel {
             self.objectS_.clear()
             self.scene_.clear()
 
+    # Вставка изображения
     def insert_image(self):
-        
         # Открываем диалог для выбора изображения
         options = QtWidgets.QFileDialog.Options()
         filepath, _ = QtWidgets.QFileDialog.getOpenFileName(
@@ -2196,6 +2196,7 @@ QLabel {
             next(reversed(self.user_.action_history.values())),
             self.user_.action_history
         )
+        
     #Отображение окна статистики
     def show_static_widget(self):
         # Создаем виджет статистики
