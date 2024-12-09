@@ -83,6 +83,27 @@ class EditingPanel(QWidget):
             layout.addWidget(self.left_arrow_checkbox, 3, 1)
             layout.addWidget(self.show_points_checkbox, 4, 0)
 
+        elif isinstance(self.editable_item, Decision):
+            self.color_button = QPushButton("Изменить цвет фона объекта")
+            self.color_button.clicked.connect(self.change_color)
+
+            self.line_type_label = QLabel("Тип линии:")
+            self.line_type_combo = QComboBox(self)
+            self.line_type_combo.addItem("Сплошная")
+            self.line_type_combo.addItem("Пунктирная")
+            self.line_type_combo.addItem("Точечная")
+            self.line_type_combo.addItem("Чередующая")
+
+            self.thickness_label = QLabel("Толщина линии:")
+            self.thickness_spinbox = QSpinBox(self)
+            self.thickness_spinbox.setRange(2, 5)
+
+            layout.addWidget(self.color_button, 0, 0, 1, 2)
+            layout.addWidget(self.line_type_label, 1, 0)
+            layout.addWidget(self.line_type_combo, 1, 1)
+            layout.addWidget(self.thickness_label, 2, 0)
+            layout.addWidget(self.thickness_spinbox, 2, 1)
+
         
         elif isinstance(self.editable_item, (StartEvent, EndEvent)):
             self.radius_label = QLabel("Радиус:")
@@ -296,9 +317,6 @@ class EditingPanel(QWidget):
 
         self.is_position_updating = False  # Сбрасываем флаг
 
-
-
-
     def change_arrow_color(self):
         color = QColorDialog.getColor()
         if color.isValid():
@@ -434,6 +452,7 @@ class EditingPanel(QWidget):
         if color.isValid():
             self.editable_item.setBrush(QBrush(color))
 
+    #Прозрачность для ImageItem
     def update_opacity(self):
         opacity = self.opacity_slider.value() / 100
         self.editable_item.setOpacity(opacity)
@@ -449,17 +468,17 @@ class DraggableButton(QtWidgets.QPushButton):
         self.mainwindow = mainwindow
 
         #Объекты, рисуемые в тулбаре
-        self.decision = self.create_desicion_in_tulbar()
-        self.start_event = self.create_start_event_in_tulbar()
-        self.end_event = self.create_end_event_in_tulbar()
-        self.slitter_merge_horizontal = self.create_splitter_merge_horizontal_in_tulbar()
-        self.slitter_merge_vertical = self.create_splitter_merge_vertical_in_tulbar()
-        self.sending_signal = self.create_sending_signal_in_tulbar()
-        self.sending_receipt = self.create_sending_receipt_in_tulbar()
-        self.active_state = self.create_active_state_in_tulbar()
+        self.decision_in_tulbar = self.create_desicion_in_tulbar()
+        self.start_event_in_tulbar = self.create_start_event_in_tulbar()
+        self.end_event_in_tulbar = self.create_end_event_in_tulbar()
+        self.slitter_merge_h_in_tulbar = self.create_splitter_merge_horizontal_in_tulbar()
+        self.slitter_merge_v_in_tulbar = self.create_splitter_merge_vertical_in_tulbar()
+        self.sending_signal_in_tulbar = self.create_sending_signal_in_tulbar()
+        self.sending_receipt_in_tulbar = self.create_sending_receipt_in_tulbar()
+        self.active_state_in_tulbar = self.create_active_state_in_tulbar()
+        self.text_edit_in_tulbar = self.create_text_edit_in_tulbar()
 
-        self.text_edit = self.create_text_edit_in_tulbar()
-
+    #Рисуем объекты в тулбаре
     def create_desicion_in_tulbar(self):
         # В зависимости от element_type создаем соответствующий объект Decision
         if self.element_type == "Decision":
@@ -499,6 +518,7 @@ class DraggableButton(QtWidgets.QPushButton):
             return Text_Edit(0, 0, 100, 30, text="Текст", max_length=250)
 
 
+
     def paintEvent(self, event):
         super().paintEvent(event)  # Вызовем родительский метод для отрисовки обычного вида кнопки
 
@@ -506,37 +526,37 @@ class DraggableButton(QtWidgets.QPushButton):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
 
         # Рисуем объект Decision
-        if self.decision:
+        if self.decision_in_tulbar:
             painter.save()
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
-            painter.setBrush(self.decision.brush())  # Задаем цвет заливки
-            painter.drawPolygon(self.decision.polygon())  # Рисуем полигон объекта Decision
+            painter.setBrush(self.decision_in_tulbar.brush())  # Задаем цвет заливки
+            painter.drawPolygon(self.decision_in_tulbar.polygon())  # Рисуем полигон объекта Decision
             painter.restore()  # Восстанавливаем состояние рисования
 
-        if self.start_event:
+        if self.start_event_in_tulbar:
             painter.save()
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
 
             # Получаем границы эллипса и рисуем его
-            rect = self.start_event.boundingRect()
-            painter.setBrush(self.start_event.brush())  # Задаем цвет заливки
+            rect = self.start_event_in_tulbar.boundingRect()
+            painter.setBrush(self.start_event_in_tulbar.brush())  # Задаем цвет заливки
             painter.drawEllipse(rect)  # Рисуем эллипс
             painter.restore()
 
-        if self.end_event:
+        if self.end_event_in_tulbar:
             painter.save()
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
 
             # Рисование внешнего круга
-            outer_rect = self.end_event.boundingRect()
-            painter.setBrush(self.end_event.brush())  # Задаем цвет заливки для внешнего круга
+            outer_rect = self.end_event_in_tulbar.boundingRect()
+            painter.setBrush(self.end_event_in_tulbar.brush())  # Задаем цвет заливки для внешнего круга
             painter.drawEllipse(outer_rect)  # Рисуем внешний круг
 
             # Рисование внутреннего круга
-            inner_radius = self.end_event.radius * self.end_event.inner_radius_ratio
+            inner_radius = self.end_event_in_tulbar.radius * self.end_event_in_tulbar.inner_radius_ratio
             inner_rect = QtCore.QRectF(  # Здесь исправлено
-                self.end_event.x_center - inner_radius,
-                self.end_event.y_center - inner_radius,
+                self.end_event_in_tulbar.x_center - inner_radius,
+                self.end_event_in_tulbar.y_center - inner_radius,
                 2 * inner_radius,
                 2 * inner_radius
             )
@@ -545,46 +565,46 @@ class DraggableButton(QtWidgets.QPushButton):
 
             painter.restore()  # Восстанавливаем состояние рисования
 
-        if self.sending_signal:
+        if self.sending_signal_in_tulbar:
             painter.save()
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
-            painter.setBrush(self.sending_signal.brush())  # Задаем цвет заливки
-            painter.drawPolygon(self.sending_signal.polygon())  # Рисуем полигон объекта sending_signal
+            painter.setBrush(self.sending_signal_in_tulbar.brush())  # Задаем цвет заливки
+            painter.drawPolygon(self.sending_signal_in_tulbar.polygon())  # Рисуем полигон объекта sending_signal
             painter.restore()  # Восстанавливаем состояние рисования
 
-        if self.sending_receipt:
+        if self.sending_receipt_in_tulbar:
             painter.save()
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
-            painter.setBrush(self.sending_receipt.brush())  # Задаем цвет заливки
-            painter.drawPolygon(self.sending_receipt.polygon())  # Рисуем полигон объекта sending_receipt
+            painter.setBrush(self.sending_receipt_in_tulbar.brush())  # Задаем цвет заливки
+            painter.drawPolygon(self.sending_receipt_in_tulbar.polygon())  # Рисуем полигон объекта sending_receipt
             painter.restore()  # Восстанавливаем состояние рисования
 
-        if self.slitter_merge_horizontal:
+        if self.slitter_merge_h_in_tulbar:
             painter.save()
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
-            painter.setBrush(self.slitter_merge_horizontal.brush())  # Задаем цвет заливки
-            painter.drawPolygon(self.slitter_merge_horizontal.polygon())  # Рисуем полигон объекта slitter_merge_h
+            painter.setBrush(self.slitter_merge_h_in_tulbar.brush())  # Задаем цвет заливки
+            painter.drawPolygon(self.slitter_merge_h_in_tulbar.polygon())  # Рисуем полигон объекта slitter_merge_h
             painter.restore()  # Восстанавливаем состояние 
             
-        if self.slitter_merge_vertical:
+        if self.slitter_merge_v_in_tulbar:
             painter.save()
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
             painter.rotate(90) #Поскольку объект изначально рисуется горизонтально, мы его поворачиваем
-            painter.setBrush(self.slitter_merge_vertical.brush())  # Задаем цвет заливки
-            painter.drawPolygon(self.slitter_merge_vertical.polygon())  # Рисуем полигон объекта slitter_merge_v
+            painter.setBrush(self.slitter_merge_v_in_tulbar.brush())  # Задаем цвет заливки
+            painter.drawPolygon(self.slitter_merge_v_in_tulbar.polygon())  # Рисуем полигон объекта slitter_merge_v
             painter.restore()  # Восстанавливаем состояние рисования
 
-        if self.active_state:
+        if self.active_state_in_tulbar:
             painter.save()
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
 
             # Получаем границы закругленного прямоугольника
-            rect = self.active_state.boundingRect()  # Убедитесь, что этот прямоугольник соответствует ожиданиям
+            rect = self.active_state_in_tulbar.boundingRect()  # Убедитесь, что этот прямоугольник соответствует ожиданиям
 
-            painter.setBrush(self.active_state.brush())  # Задаем цвет заливки
+            painter.setBrush(self.active_state_in_tulbar.brush())  # Задаем цвет заливки
 
             # Получаем радиус
-            radius = self.active_state.radius  # Убедитесь, что это значение корректное
+            radius = self.active_state_in_tulbar.radius  # Убедитесь, что это значение корректное
 
             # Проверка, чтобы минимальный размер прямоугольника соответствовал радиусу
             effective_radius = min(radius, min(rect.width(), rect.height()) / 2)
@@ -594,14 +614,13 @@ class DraggableButton(QtWidgets.QPushButton):
 
             painter.restore()
 
-
-        if self.text_edit:
+        if self.text_edit_in_tulbar:
             painter.save()
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
             painter.setPen(QtGui.QPen(QtCore.Qt.black))  # Устанавливаем цвет текста
             
             # Получаем текст из Text_Edit
-            text = self.text_edit.toPlainText()  # Здесь текст извлекается из Text_Edit
+            text = self.text_edit_in_tulbar.toPlainText()  # Здесь текст извлекается из Text_Edit
 
             # Рисуем текст, центрируем его
             text_rect = QtCore.QRectF(-self.width() // 2, -self.height() // 2, self.width(), self.height())
@@ -636,105 +655,223 @@ class DraggableButton(QtWidgets.QPushButton):
         painter = QtGui.QPainter(pixmap)
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
 
-        # Рисуем объект в Pixmap аналогично paintEvent
-        if self.decision:
+        if self.decision_in_tulbar:
             painter.save()
-            painter.translate(self.rect().center())
-            painter.setBrush(self.decision.brush())
-            painter.drawPolygon(self.decision.polygon())
+            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+
+            # Создаем кисть с прозрачным цветом
+            original_brush = self.decision_in_tulbar.brush()
+            color = original_brush.color()
+            color.setAlphaF(0.7)
+
+            transparent_brush = QtGui.QBrush(color)
+            painter.setBrush(transparent_brush)  # Устанавливаем прозрачную кисть
+            
+            # Устанавливаем прозрачную обводку
+            pen_decision_color = color.darker(150)  
+            pen_decision_color.setAlpha(200)  #сама обводка
+            pen_decision = QtGui.QPen(pen_decision_color)  # Создаем перо с прозрачным цветом
+            pen_decision.setWidth(2)  # Устанавливаем ширину обводки
+            painter.setPen(pen_decision)  # Устанавливаем прозрачную обводку
+
+            painter.drawPolygon(self.decision_in_tulbar.polygon())
             painter.restore()
 
-        if self.start_event:
+        if self.start_event_in_tulbar:
             painter.save()
             painter.translate(self.rect().center())
-            rect = self.start_event.boundingRect()
-            painter.setBrush(self.start_event.brush())
+
+            # Получаем текущую кисть и её цвет
+            brush = self.start_event_in_tulbar.brush()
+            color = brush.color()
+            color.setAlphaF(0.7) 
+            
+            # Создаём новую кисть с прозрачным цветом
+            transparent_brush = QtGui.QBrush(color) 
+            painter.setBrush(transparent_brush)
+
+            # Устанавливаем прозрачную обводку
+            pen_start_color = color.darker(150)
+            pen_start_color.setAlpha(200)
+            pen_start = QtGui.QPen(pen_start_color)  # Создаем перо с прозрачным цветом
+            pen_start.setWidth(2)  # Устанавливаем ширину обводки
+            painter.setPen(pen_start)  # Устанавливаем прозрачную обводку
+
+            rect = self.start_event_in_tulbar.boundingRect()
             painter.drawEllipse(rect)
             painter.restore()
 
-        if self.end_event:
+        if self.end_event_in_tulbar:
             painter.save()
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
 
-            # Рисование внешнего круга
-            outer_rect = self.end_event.boundingRect()
-            painter.setBrush(self.end_event.brush())  # Задаем цвет заливки для внешнего круга
-            painter.drawEllipse(outer_rect)  # Рисуем внешний круг
+            # Рисование внешнего круга с прозрачностью
+            outer_radius = self.end_event_in_tulbar.radius  # Радиус внешнего круга
+            outer_color = self.end_event_in_tulbar.brush().color()
+            outer_color.setAlphaF(0.7)  # Устанавливаем прозрачность 30% для внешнего круга
+            painter.setBrush(QtGui.QBrush(outer_color))  # Устанавливаем кисть с прозрачностью
 
-            # Рисование внутреннего круга
-            inner_radius = self.end_event.radius * self.end_event.inner_radius_ratio
-            inner_rect = QtCore.QRectF(  # Здесь исправлено
-                self.end_event.x_center - inner_radius,
-                self.end_event.y_center - inner_radius,
-                2 * inner_radius,
-                2 * inner_radius
-            )
-            painter.setBrush(QtGui.QBrush(QtGui.QColor(0, 0, 0)))  # Цвет внутреннего круга
-            painter.drawEllipse(inner_rect)  # Рисуем внутренний круг
+            # Установка пера для обводки
+            pen_outer = QtGui.QPen(outer_color.darker(150))
+            pen_outer.setWidth(2)
+            painter.setPen(pen_outer)
+            painter.drawEllipse(-int(outer_radius), -int(outer_radius), int(2 * outer_radius), int(2 * outer_radius))  # Рисуем внешний круг
+
+            # Рисование внутреннего круга с прозрачностью
+            inner_radius = outer_radius * self.end_event_in_tulbar.inner_radius_ratio  # Внутренний радиус
+            inner_color = QtGui.QColor(0, 0, 0, 100)
+            painter.setBrush(QtGui.QBrush(inner_color))  # Устанавливаем кисть для внутреннего круга
+            painter.setPen(QtCore.Qt.NoPen)  # Убираем обводку для внутреннего круга
+
+            # Рисуем внутренний круг, который должен находиться в том же центре
+            painter.drawEllipse(-int(inner_radius), -int(inner_radius), int(2 * inner_radius), int(2 * inner_radius))
+            painter.restore()
+
+        if self.sending_signal_in_tulbar:
+            painter.save()
+            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+
+            # Задаем цвет заливки с прозрачностью
+            original_brush = self.sending_signal_in_tulbar.brush()
+            color = original_brush.color()
+            color.setAlphaF(0.5)
+            painter.setBrush(QtGui.QBrush(color))  # Устанавливаем прозрачную кисть
+
+            # Рисуем полигон объекта sending_receipt
+            painter.drawPolygon(self.sending_signal_in_tulbar.polygon())
+
+            # Создаем прозрачную обводку
+            pen_color = color.darker(150)
+            pen_color.setAlpha(200)
+            pen = QtGui.QPen(pen_color)  # Создаем перо с прозрачным цветом
+            pen.setWidth(2)  # Устанавливаем ширину обводки
+            painter.setPen(pen)
+
+            # Рисуем тот же полигон с обводкой
+            painter.drawPolygon(self.sending_signal_in_tulbar.polygon())
 
             painter.restore()  # Восстанавливаем состояние рисования
 
-        if self.sending_signal:
+        if self.sending_receipt_in_tulbar:
             painter.save()
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
-            painter.setBrush(self.sending_signal.brush())  # Задаем цвет заливки
-            painter.drawPolygon(self.sending_signal.polygon())  # Рисуем полигон объекта sending_signal
+
+            # Задаем цвет заливки с прозрачностью
+            original_brush = self.sending_receipt_in_tulbar.brush()
+            color = original_brush.color()
+            color.setAlphaF(0.5)
+            painter.setBrush(QtGui.QBrush(color))  # Устанавливаем прозрачную кисть
+
+            # Рисуем полигон объекта sending_receipt
+            painter.drawPolygon(self.sending_receipt_in_tulbar.polygon())
+
+            # Создаем прозрачную обводку
+            pen_color = color.darker(150)
+            pen_color.setAlpha(200)
+            pen = QtGui.QPen(pen_color)  # Создаем перо с прозрачным цветом
+            pen.setWidth(2)  # Устанавливаем ширину обводки
+            painter.setPen(pen)
+
+            # Рисуем тот же полигон с обводкой
+            painter.drawPolygon(self.sending_receipt_in_tulbar.polygon())
             painter.restore()  # Восстанавливаем состояние рисования
 
-        if self.sending_receipt:
+        if self.slitter_merge_h_in_tulbar:
             painter.save()
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
-            painter.setBrush(self.sending_receipt.brush())  # Задаем цвет заливки
-            painter.drawPolygon(self.sending_receipt.polygon())  # Рисуем полигон объекта sending_receipt
-            painter.restore()  # Восстанавливаем состояние рисования
+            original_brush = self.slitter_merge_h_in_tulbar.brush()
+            color = original_brush.color()
+            color.setAlphaF(0.4)
+            painter.setBrush(QtGui.QBrush(color))  # Устанавливаем прозрачную кисть
 
-        if self.slitter_merge_horizontal:
-            painter.save()
-            painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
-            painter.setBrush(self.slitter_merge_horizontal.brush())  # Задаем цвет заливки
-            painter.drawPolygon(self.slitter_merge_horizontal.polygon())  # Рисуем полигон объекта slitter_merge_h
-            painter.restore()  # Восстанавливаем состояние 
+            # Рисуем полигон объекта slitter_merge_horizontal
+            painter.drawPolygon(self.slitter_merge_h_in_tulbar.polygon())
+
+            # Создаем прозрачную обводку
+            pen_color = color.darker(150)
+            pen_color.setAlpha(50)  
+            pen = QtGui.QPen(pen_color)
+            pen.setWidth(2) 
+            painter.setPen(pen)  # Устанавливаем прозрачную обводку
+
+            # Рисуем тот же полигон с обводкой
+            painter.drawPolygon(self.slitter_merge_h_in_tulbar.polygon())
+
+            painter.restore()
             
-        if self.slitter_merge_vertical:
+        if self.slitter_merge_v_in_tulbar:
             painter.save()
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
-            painter.rotate(90) #Поскольку объект изначально рисуется горизонтально, мы его поворачиваем
-            painter.setBrush(self.slitter_merge_vertical.brush())  # Задаем цвет заливки
-            painter.drawPolygon(self.slitter_merge_vertical.polygon())  # Рисуем полигон объекта slitter_merge_v
-            painter.restore()  # Восстанавливаем состояние рисования
+            painter.rotate(90)  # Поворачиваем на 90 градусов 
+            original_brush = self.slitter_merge_v_in_tulbar.brush()
+            color = original_brush.color()
+            color.setAlphaF(0.4)
+            painter.setBrush(QtGui.QBrush(color))  # Устанавливаем прозрачную кисть
 
-        if self.active_state:
+            # Рисуем полигон объекта slitter_merge_vertical
+            painter.drawPolygon(self.slitter_merge_v_in_tulbar.polygon())
+
+            # Создаем прозрачную обводку
+            pen_color = color.darker(150)
+            pen_color.setAlpha(50)  
+            pen = QtGui.QPen(pen_color)
+            pen.setWidth(2) 
+            painter.setPen(pen)  # Устанавливаем прозрачную обводку
+
+            # Рисуем тот же полигон с обводкой
+            painter.drawPolygon(self.slitter_merge_v_in_tulbar.polygon())
+
+            painter.restore()
+
+
+        if self.active_state_in_tulbar:
             painter.save()
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
 
-            # Получаем границы закругленного прямоугольника
-            rect = self.active_state.boundingRect()  # Убедитесь, что этот прямоугольник соответствует ожиданиям
+            rect = self.active_state_in_tulbar.boundingRect()
 
-            painter.setBrush(self.active_state.brush())  # Задаем цвет заливки
+            # Устанавливаем цвет заливки с прозрачностью
+            original_brush = self.active_state_in_tulbar.brush()
+            color = original_brush.color()
+            color.setAlphaF(0.5) 
+            painter.setBrush(QtGui.QBrush(color))  # Устанавливаем прозрачную кисть
 
-            # Получаем радиус
-            radius = self.active_state.radius  # Убедитесь, что это значение корректное
+            # Получаем радиус закргуленных углов
+            radius = self.active_state_in_tulbar.radius
 
             # Проверка, чтобы минимальный размер прямоугольника соответствовал радиусу
             effective_radius = min(radius, min(rect.width(), rect.height()) / 2)
 
             # Рисуем закругленный прямоугольник
-            painter.drawRoundedRect(rect, effective_radius, effective_radius)  # Рисуем закругленный прямоугольник
+            painter.drawRoundedRect(rect, effective_radius, effective_radius)
+            
+            # Создаем прозрачную обводку
+            pen_color = color.darker(150)
+            pen_color.setAlpha(200) 
+            pen = QtGui.QPen(pen_color)  # Создаем перо с прозрачным цветом
+            pen.setWidth(2) 
+            painter.setPen(pen)  # Устанавливаем прозрачную обводку
+
+            # Рисуем закругленный прямоугольник с обводкой
+            painter.drawRoundedRect(rect, effective_radius, effective_radius)
 
             painter.restore()
 
-
-        if self.text_edit:
+        if self.text_edit_in_tulbar:
             painter.save()
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
-            painter.setPen(QtGui.QPen(QtCore.Qt.black))  # Устанавливаем цвет текста
             
-            # Получаем текст из Text_Edit
-            text = self.text_edit.toPlainText()  # Здесь текст извлекается из Text_Edit
+            # Устанавливаем цвет текста с прозрачностью
+            text_color = QtGui.QColor(QtCore.Qt.black)
+            text_color.setAlpha(127)  # Устанавливаем прозрачность 50%
+            painter.setPen(QtGui.QPen(text_color))  # Устанавливаем цвет текста
 
-            # Рисуем текст, центрируем его
+            # Получаем текст из Text_Edit (по умолчанию как "Текст")
+            text = self.text_edit_in_tulbar.toPlainText()
+
+            # Рисуем текст
             text_rect = QtCore.QRectF(-self.width() // 2, -self.height() // 2, self.width(), self.height())
-            painter.drawText(text_rect, QtCore.Qt.AlignCenter, text)  # Рисуем текст
+            painter.drawText(text_rect, QtCore.Qt.AlignCenter, text)
             painter.restore()
 
         painter.end()
@@ -2110,21 +2247,14 @@ QLabel {
             arrow.setZValue(-1)
             self.scene_.addItem(arrow)  # Добавляем стрелку на сцену
 
-
             # Привязываем стрелку к обоим узлам
             node1.add_arrow(arrow)
             node2.add_arrow(arrow)
-            
 
             # Обновляем стрелку сразу после добавления
             arrow.update_arrow()  # Обновляем стрелку вручную, если нужно
             self.scene_.update()  # Перерисовываем сцену
             self.user_.add_action(f"Соединены '{node1.__class__.__name__}' и '{node2.__class__.__name__}'", self.get_current_Realtime())
-
-
-
-
-
     
     def select_all_item(self):
         # self.reset_inaction()

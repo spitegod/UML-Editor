@@ -1445,7 +1445,7 @@ class ImageItem(QtWidgets.QGraphicsPixmapItem):
 
     def clone(self):
         cloned_item = ImageItem(self.pixmap(), self.x_center, self.y_center)
-        
+        cloned_item.setOpacity(self.opacity())
         return cloned_item
 
     def hoverMoveEvent(self, event):
