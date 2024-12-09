@@ -2014,6 +2014,22 @@ QLabel {
     def add_edge(self):
         # self.reset_inaction() #Сбрасыем второй таймер
         selected_nodes = [object_ for object_ in self.objectS_ if object_.isSelected()]
+        # Обработка случая, когда пользователь хочет соединить более двух элементов
+        if len(selected_nodes) > 2:
+            warn = QMessageBox()
+            warn.setIcon(QMessageBox.Warning)
+            warn.setWindowTitle('Внимание')
+            warn.setText('Нельзя соединить более двух элементов одновременно.')
+            warn.setStandardButtons(QMessageBox.Ok)
+            warn.exec_()
+        # Обработка случая, когда пользователь хочет соединить менее двух элементов
+        if len(selected_nodes) < 2:
+            warn = QMessageBox()
+            warn.setIcon(QMessageBox.Warning)
+            warn.setWindowTitle('Внимание')
+            warn.setText('Выберите два элемента для соединения.')
+            warn.setStandardButtons(QMessageBox.Ok)
+            warn.exec_()
 
         if len(selected_nodes) == 2:
             node1, node2 = selected_nodes
