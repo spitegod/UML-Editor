@@ -1467,19 +1467,19 @@ class ImageItem(QtWidgets.QGraphicsPixmapItem):
             self.is_resizing = False
         super().mousePressEvent(event)
 
-    def mouseMoveEvent(self, event):
-        if self.is_resizing:
-            rect = self.boundingRect()
-            delta = event.pos() - rect.center()
-            new_width = max(10, rect.width() + delta.x() * 2)  # Минимальная ширина 10
-            new_height = max(10, rect.height() + delta.y() * 2)  # Минимальная высота 10
+    # def mouseMoveEvent(self, event):
+    #     if self.is_resizing:
+    #         rect = self.boundingRect()
+    #         delta = event.pos() - rect.center()
+    #         new_width = max(10, rect.width() + delta.x() * 2)  # Минимальная ширина 10
+    #         new_height = max(10, rect.height() + delta.y() * 2)  # Минимальная высота 10
 
-            # Обновляем размер изображения
-            self.setPixmap(
-                self.pixmap().scaled(int(new_width), int(new_height), QtCore.Qt.KeepAspectRatio)
-            )
-        else:
-            super().mouseMoveEvent(event)
+    #         # Обновляем размер изображения
+    #         self.setPixmap(
+    #             self.pixmap().scaled(int(new_width), int(new_height), QtCore.Qt.KeepAspectRatio)
+    #         )
+    #     else:
+    #         super().mouseMoveEvent(event)
 
         # Обновляем стрелки
         for arrow in self.arrows:
