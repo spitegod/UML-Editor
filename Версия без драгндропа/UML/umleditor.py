@@ -2198,19 +2198,22 @@ QLabel {
 
     # Обработка кнопки 'Выход'
     def closeEvent(self, event):
-        reply = QtWidgets.QMessageBox.question(
-            self,
-            "Выход",
-            "Вы уверены, что хотите выйти? Изменения не будут сохранены.",
-            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-            QtWidgets.QMessageBox.No,
-        )
+        if len(self.objectS_) > 0:
+            reply = QtWidgets.QMessageBox.question(
+                self,
+                "Выход",
+                "Вы уверены, что хотите выйти? Изменения не будут сохранены.",
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                QtWidgets.QMessageBox.No,
+            )
 
-        if reply == QtWidgets.QMessageBox.Yes:
-            print('egre')
-            QtWidgets.QApplication.quit()
+            if reply == QtWidgets.QMessageBox.Yes:
+                print('egre')
+                QtWidgets.QApplication.quit()
+            else:
+                event.ignore()
         else:
-            event.ignore()
+            QtWidgets.QApplication.quit()
     
     def message_overcrowed_objectS(self):
         if len(self.objectS_) > 10:
