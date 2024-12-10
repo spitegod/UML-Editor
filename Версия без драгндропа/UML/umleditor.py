@@ -112,7 +112,7 @@ class EditingPanel(QWidget):
             layout.addWidget(self.radius_spinbox, 1, 1, 1, 1)
 
 
-        elif isinstance(self.editable_item, (ActiveState, SignalSending, SignalReceipt)):
+        elif isinstance(self.editable_item, (ActiveState)):
             self.width_label = QLabel("Ширина:")
             self.width_spinbox = QSpinBox(self)
             self.width_spinbox.setValue(int(self.editable_item.boundingRect().width()))
@@ -144,6 +144,53 @@ class EditingPanel(QWidget):
             layout.addWidget(self.height_spinbox, 2, 1, 1, 1)
             layout.addWidget(self.text_label, 3, 0, 1, 1)
             layout.addWidget(self.text_input, 3, 1, 1, 1)
+
+        if isinstance(self.editable_item, (SignalSending, SignalReceipt)):
+            self.width_label = QLabel("Ширина:")
+            self.width_spinbox = QSpinBox(self)
+            self.width_spinbox.setValue(int(self.editable_item.boundingRect().width()))
+            self.width_spinbox.valueChanged.connect(self.update_width)
+            self.width_spinbox.setRange(10, 1000)
+
+            self.height_label = QLabel("Высота:")
+            self.height_spinbox = QSpinBox(self)
+            self.height_spinbox.setValue(int(self.editable_item.boundingRect().height()))
+            self.height_spinbox.valueChanged.connect(self.update_height)
+            self.height_spinbox.setRange(10, 1000)
+
+            self.text_label = QLabel("Текст:")
+            self.text_input = QLineEdit(self)
+            self.text_input.setText(self.editable_item.text_item.toPlainText())
+            self.text_input.setMaxLength(15)
+            self.text_input.textChanged.connect(self.update_text)
+
+            self.label_color = QLabel("Цвет заливки")
+            self.color_button = QPushButton("")
+            self.color_button.clicked.connect(self.change_color)
+            self.update_button_color()
+
+            self.label_mirrow = QLabel("Отражение")
+            self.mirrow_combo = QComboBox(self)
+            self.mirrow_combo.addItem("Слева")
+            self.mirrow_combo.addItem("Справа")
+            # self.mirrow_combo.setItemText(str(self.editable_item.current_reflection))
+            self.mirrow_combo.currentTextChanged.connect(self.change_mirror)
+
+            if self.editable_item.current_reflection == "Слева":
+                self.mirrow_combo.setCurrentIndex(0)
+            else:
+                self.mirrow_combo.setCurrentIndex(1)
+
+            layout.addWidget(self.label_color, 0, 0 , 1, 1)
+            layout.addWidget(self.color_button, 0, 1, 1, 1)
+            layout.addWidget(self.width_label, 1, 0, 1, 1)
+            layout.addWidget(self.width_spinbox, 1, 1, 1, 1)
+            layout.addWidget(self.height_label, 2, 0, 1, 1)
+            layout.addWidget(self.height_spinbox, 2, 1, 1, 1)
+            layout.addWidget(self.label_mirrow, 3, 0, 1, 1)
+            layout.addWidget(self.mirrow_combo, 3, 1, 1, 1)
+            layout.addWidget(self.text_label, 4, 0, 1, 1)
+            layout.addWidget(self.text_input, 4, 1, 1, 1)
 
         elif isinstance(self.editable_item, (Splitter_Merge)):
 
@@ -230,10 +277,6 @@ class EditingPanel(QWidget):
             layout.addWidget(self.count_sim_label1, 2, 0, 1, 1)
             layout.addWidget(self.count_sim_input2, 2, 1, 1, 1)
 
-
-        else:
-            self.message_label = QLabel("В разработке")
-            layout.addWidget(self.message_label, 0, 0, 1, 2)
 
         self.x_label = QLabel("X:")
         self.x_spinbox = QDoubleSpinBox(self)
@@ -425,6 +468,14 @@ class EditingPanel(QWidget):
             self.editable_item.update_size(rect.width(), new_height)
         else:
             print(f"Cannot update height for {type(self.editable_item).__name__}")
+
+    def change_mirror(self, direction):
+        if isinstance(self.editable_item, QGraphicsPolygonItem):
+            if direction == "Слева":
+                self.editable_item.reflect("Слева")
+            elif direction == "Справа":
+                self.editable_item.reflect("Справа")
+
 
     def update_radius(self):
         if isinstance(self.editable_item, (StartEvent, EndEvent)):
@@ -969,7 +1020,6 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
             mouse_pos = event.scenePos()
             self.label.setText(f"({mouse_pos.x():.1f}, {-mouse_pos.y():.1f})")
 
-
         if not self.is_dragging:  # Начинаем рисовать прямоугольник выделения is_dragging = True
             if event.button() == QtCore.Qt.LeftButton:
                 self.start_pos = event.scenePos()  # Запоминаем начальную точку выделения
@@ -1032,10 +1082,12 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
 
         elif element_type == "SignalSending":
             item = SignalSending(position.x(), position.y(), 160, 60)
+            item.reflect("Справа")
             print(f"Created {item.__class__.__name__} with unique_id: {item.unique_id}")
 
         elif element_type == "SignalReceipt":
             item = SignalReceipt(position.x(), position.y(), 180, 60)
+            item.reflect("Слева")
             print(f"Created {item.__class__.__name__} with unique_id: {item.unique_id}")
 
         elif element_type == "Splitter_Merge_Horizontal":
@@ -1145,8 +1197,6 @@ class UserManager:
             if user.user_id == _id:
                 return user
         raise ValueError(f"Пользователя с id: {_id} нет!")
-
-
 
 
 
@@ -1727,6 +1777,7 @@ QLabel {
         self.editing_dock.setObjectName("editing_dock")
         editing_widget = QtWidgets.QWidget()
         self.editing_dock.setWidget(editing_widget)
+        self.editing_dock.setFloating(True)  # Устанавливаем состояние "вытянутого" окна
         MainWindow.addDockWidget(Qt.RightDockWidgetArea, self.editing_dock)
         self.editing_dock.setVisible(True)
         self.on_selection_changed()
@@ -1823,8 +1874,17 @@ QLabel {
 
         # Преобразуем центр в глобальные координаты сцены
         global_center = item.mapToScene(local_center)
+        view_center = self.scene_.views()[0].mapToGlobal(self.scene_.views()[0].mapFromScene(global_center))
 
-            # Передаем координаты центра в панель редактирования
+        # Смещение для панели относительно объекта
+        offset_x, offset_y = 30, 30
+        dock_x = view_center.x() + offset_x
+        dock_y = view_center.y() + offset_y
+
+        # Устанавливаем позицию панели
+        self.editing_dock.move(dock_x, dock_y)
+
+        # Передаем координаты центра в панель редактирования
         self.scene_.coordinates_updated.emit(global_center.x(), global_center.y())
 
 
@@ -2196,13 +2256,11 @@ QLabel {
 
     def draw_pentagon_signal(self):
         # self.reset_inaction() #Сбрасыем второй таймер
-        # Координаты центра, ширина, высота и радиус закругления
-        x, y, size = 0, 0, 100  # Пример координат, размера и радиуса
-        pentagon = SignalSending(x, y, 160, 60)
+        pentagon = SignalSending(0, 0, 160, 60)
+        pentagon.reflect("Справа")
         self.scene_.addItem(pentagon)  # Добавляем закругленный прямоугольник на сцену
         self.objectS_.append(pentagon)
         self.populate_object_list()
-
         print("Количество объектов на сцене - ", len(self.objectS_))
         self.count_objectS.emit(len(self.objectS_))
 
@@ -2211,11 +2269,9 @@ QLabel {
 
     def draw_pentagon_reverse(self):
         # self.reset_inaction() #Сбрасыем второй таймер
-        # Координаты центра, ширина, высота и радиус закругления
-        x, y, size = 0, 0, 100  # Пример координат, размера и радиуса
-        pentagon = SignalReceipt(x, y, 180, 60)
-        pentagon.setFlags(QtWidgets.QGraphicsItem.ItemIsMovable | QtWidgets.QGraphicsItem.ItemIsSelectable)
-        self.scene_.addItem(pentagon)  # Добавляем закругленный прямоугольник на сцену
+        pentagon = SignalReceipt(0, 0, 180, 60)
+        pentagon.reflect("Слева")
+        self.scene_.addItem(pentagon)
         self.objectS_.append(pentagon)
         self.populate_object_list()
         print("Количество объектов на сцене - ", len(self.objectS_))
