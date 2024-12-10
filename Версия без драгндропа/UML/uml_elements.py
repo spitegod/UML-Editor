@@ -589,6 +589,18 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
         # Добавляем стрелку в список стрелок, привязанных к этому кругу
         if arrow not in self.arrows:
             self.arrows.append(arrow)
+
+#Дочерний элемент(внтуренний круг) EndEvent
+class InnerCircle(QtWidgets.QGraphicsEllipseItem):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setBrush(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
+        print(f"Родитель - {self.parentItem()}")
+
+    def paint(self, painter, option, widget):
+        # Включаем сглаживание
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        super().paint(painter, option, widget)
             
 
 class EndEvent(QtWidgets.QGraphicsEllipseItem):
@@ -615,7 +627,7 @@ class EndEvent(QtWidgets.QGraphicsEllipseItem):
 
         # Создаем внутренний круг
         self.inner_radius_ratio = inner_radius_ratio  # Доля от внешнего радиуса
-        self.inner_circle = QtWidgets.QGraphicsEllipseItem(self)
+        self.inner_circle = InnerCircle(self)
         self.update_inner_circle()
 
     def clone(self):
@@ -632,7 +644,6 @@ class EndEvent(QtWidgets.QGraphicsEllipseItem):
         self.radius = new_radius
         self.setRect(self.x(), self.y(), new_radius * 2, new_radius * 2)
 
-
     def update_inner_circle(self):
         rect = self.rect()
         x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
@@ -640,7 +651,6 @@ class EndEvent(QtWidgets.QGraphicsEllipseItem):
         inner_radius = min(w, h) * self.inner_radius_ratio / 2
         cx, cy = x + w / 2, y + h / 2  # Центр внешнего круга
         self.inner_circle.setRect(cx - inner_radius, cy - inner_radius, 2 * inner_radius, 2 * inner_radius)
-        self.inner_circle.setBrush(QtGui.QBrush(QtGui.QColor(0, 0, 0)))  # Цвет внутреннего круга
 
     def hoverMoveEvent(self, event):
         rect = self.rect()

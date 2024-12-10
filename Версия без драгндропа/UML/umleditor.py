@@ -97,8 +97,8 @@ class EditingPanel(QWidget):
         elif isinstance(self.editable_item, (StartEvent, EndEvent)):
             self.radius_label = QLabel("Радиус:")
             self.radius_spinbox = QSpinBox(self)
-            self.radius_spinbox.setValue(int(self.editable_item.radius)) 
             self.radius_spinbox.setRange(5, 1000)
+            self.radius_spinbox.setValue(int(self.editable_item.radius)) 
             self.radius_spinbox.valueChanged.connect(self.update_radius)
             
             self.label_color = QLabel("Цвет заливки")
@@ -111,19 +111,18 @@ class EditingPanel(QWidget):
             layout.addWidget(self.radius_label, 1, 0, 1, 1)
             layout.addWidget(self.radius_spinbox, 1, 1, 1, 1)
 
-
         elif isinstance(self.editable_item, (ActiveState)):
             self.width_label = QLabel("Ширина:")
             self.width_spinbox = QSpinBox(self)
+            self.width_spinbox.setRange(10, 1000)
             self.width_spinbox.setValue(int(self.editable_item.boundingRect().width()))
             self.width_spinbox.valueChanged.connect(self.update_width)
-            self.width_spinbox.setRange(10, 1000)
 
             self.height_label = QLabel("Высота:")
             self.height_spinbox = QSpinBox(self)
+            self.height_spinbox.setRange(10, 1000)
             self.height_spinbox.setValue(int(self.editable_item.boundingRect().height()))
             self.height_spinbox.valueChanged.connect(self.update_height)
-            self.height_spinbox.setRange(10, 1000)
 
             self.text_label = QLabel("Текст:")
             self.text_input = QLineEdit(self)
@@ -148,15 +147,15 @@ class EditingPanel(QWidget):
         if isinstance(self.editable_item, (SignalSending, SignalReceipt)):
             self.width_label = QLabel("Ширина:")
             self.width_spinbox = QSpinBox(self)
+            self.width_spinbox.setRange(10, 1000)
             self.width_spinbox.setValue(int(self.editable_item.boundingRect().width()))
             self.width_spinbox.valueChanged.connect(self.update_width)
-            self.width_spinbox.setRange(10, 1000)
 
             self.height_label = QLabel("Высота:")
             self.height_spinbox = QSpinBox(self)
+            self.height_spinbox.setRange(10, 1000)
             self.height_spinbox.setValue(int(self.editable_item.boundingRect().height()))
             self.height_spinbox.valueChanged.connect(self.update_height)
-            self.height_spinbox.setRange(10, 1000)
 
             self.text_label = QLabel("Текст:")
             self.text_input = QLineEdit(self)
@@ -201,15 +200,15 @@ class EditingPanel(QWidget):
 
             self.width_label = QLabel("Длинна:")
             self.width_spinbox = QSpinBox(self)
+            self.width_spinbox.setRange(10, 1000)
             self.width_spinbox.setValue(int(self.editable_item.boundingRect().width()))
             self.width_spinbox.valueChanged.connect(self.update_width)
-            self.width_spinbox.setRange(10, 1000)
 
             self.height_label = QLabel("Толщина:")
             self.height_spinbox = QSpinBox(self)
+            self.height_spinbox.setRange(10, 1000)
             self.height_spinbox.setValue(int(self.editable_item.boundingRect().height()))
             self.height_spinbox.valueChanged.connect(self.update_height)
-            self.height_spinbox.setRange(10, 1000)
 
             
             self.orint_label = QLabel("Положение:")
@@ -313,7 +312,6 @@ class EditingPanel(QWidget):
         layout.addWidget(self.y_spinbox, 7, 1)
         layout.addWidget(self.delete_item, 8, 0)
         layout.addWidget(self.copy_item, 8, 1)
-
 
         self.setLayout(layout)
 
@@ -449,25 +447,58 @@ class EditingPanel(QWidget):
 
     def update_width(self):
         new_width = self.width_spinbox.value()
+        old_height = self.height_spinbox.value()
         if hasattr(self.editable_item, 'setRect'):
             rect = self.editable_item.boundingRect()
-            self.editable_item.setRect(rect.x(), rect.y(), new_width, rect.height())
+            self.editable_item.setRect(rect.x(), rect.y(), new_width, old_height)
+            self.editable_item.update_text_position()
         elif hasattr(self.editable_item, 'update_size'):
             rect = self.editable_item.boundingRect()
-            self.editable_item.update_size(new_width, rect.height())
+            self.editable_item.update_size(new_width, old_height)
+            self.editable_item.update_text_position()
+        if isinstance(self.editable_item, QtWidgets.QGraphicsPolygonItem):
+            self.update_polygon_size(new_width, old_height)
+            if isinstance(self.editable_item, (SignalSending, SignalReceipt)):
+                self.editable_item.reflect(self.mirrow_combo.currentText())
+                self.editable_item.update_text_position()
         else:
             print(f"Cannot update width for {type(self.editable_item).__name__}")
 
     def update_height(self):
+        old_width = self.width_spinbox.value()
         new_height = self.height_spinbox.value()
         if hasattr(self.editable_item, 'setRect'):
             rect = self.editable_item.boundingRect()
-            self.editable_item.setRect(rect.x(), rect.y(), rect.width(), new_height)
+            self.editable_item.setRect(rect.x(), rect.y(), old_width, new_height)
+            self.editable_item.update_text_position()
         elif hasattr(self.editable_item, 'update_size'):
             rect = self.editable_item.boundingRect()
-            self.editable_item.update_size(rect.width(), new_height)
+            self.editable_item.update_size(old_width, new_height)
+            self.editable_item.update_text_position()
+        elif isinstance(self.editable_item, QtWidgets.QGraphicsPolygonItem):
+            self.update_polygon_size(old_width, new_height)
+            if isinstance(self.editable_item, (SignalSending, SignalReceipt)):
+                self.editable_item.reflect(self.mirrow_combo.currentText())
+                self.editable_item.update_text_position()
         else:
             print(f"Cannot update height for {type(self.editable_item).__name__}")
+
+    def update_polygon_size(self, new_width, new_height):
+        polygon = self.editable_item.polygon()
+        bounding_rect = polygon.boundingRect()
+
+        # Коэффициенты масштабирования
+        scale_x = new_width / bounding_rect.width() if bounding_rect.width() > 0 else 1
+        scale_y = new_height / bounding_rect.height() if bounding_rect.height() > 0 else 1
+
+        # Масштабируем каждую точку в многоугольнике
+        new_polygon = QtGui.QPolygonF()
+        for point in polygon:
+            new_x = bounding_rect.x() + (point.x() - bounding_rect.x()) * scale_x
+            new_y = bounding_rect.y() + (point.y() - bounding_rect.y()) * scale_y
+            new_polygon.append(QtCore.QPointF(new_x, new_y))
+
+        self.editable_item.setPolygon(new_polygon)
 
     def change_mirror(self, direction):
         if isinstance(self.editable_item, QGraphicsPolygonItem):
@@ -476,11 +507,14 @@ class EditingPanel(QWidget):
             elif direction == "Справа":
                 self.editable_item.reflect("Справа")
 
-
     def update_radius(self):
-        if isinstance(self.editable_item, (StartEvent, EndEvent)):
+        if isinstance(self.editable_item, (StartEvent)):
             new_radius = self.radius_spinbox.value()
             self.editable_item.setRadius(new_radius)  # Обновляем радиус
+        if isinstance(self.editable_item, (EndEvent)):
+            new_radius = self.radius_spinbox.value()
+            self.editable_item.setRadius(new_radius)  # Обновляем радиус
+            self.editable_item.update_inner_circle()
 
     def duplicate_current_item(self):
         if isinstance(self.editable_item, (StartEvent, Decision, EndEvent, ActiveState, SignalSending, SignalReceipt, Splitter_Merge, ImageItem, Text_Edit)):
@@ -1003,7 +1037,6 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
         if selected_item:
             self.reset_time.stop_inaction()
             self.is_dragging = True
-            self.reset_time.show_editing_panel(selected_item)
             # Устанавливаем текст в label_x_y с названием класса элемента
             element_name = type(selected_item).__name__
             mouse_pos = event.scenePos()
@@ -1014,6 +1047,15 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
             item_rect = selected_item.sceneBoundingRect()
             item_center = item_rect.center()  # Центр объекта
             print(f"Выбран объект {element_name} с центром координат: ({item_center.x():.1f}, {-item_center.y():.1f})")
+
+            # Показ панели редактирования
+            if isinstance(selected_item, (InnerCircle, Text_into_object)): #Проверяем нажал ли пользователь на дочерний элемент
+                parent_item = selected_item.parentItem()  # Получаем родителя
+                if isinstance(parent_item, (EndEvent, ActiveState, SignalReceipt, SignalSending)):
+                    self.reset_time.show_editing_panel(parent_item) # Окно редактирования будет отоброжать информацию для родительского элемента
+            else: # Если нет, по умолчанию отобразим информацию о selected_item
+                self.reset_time.show_editing_panel(selected_item)
+
         else:
             self.reset_time.on_selection_changed()
             self.is_dragging = False
