@@ -41,8 +41,10 @@ class EditingPanel(QWidget):
         layout = QGridLayout()
 
         if isinstance(self.editable_item, Arrow):
-            self.color_button = QPushButton("Изменить цвет стрелки")
+            self.label_color = QLabel("Цвет стрекли")
+            self.color_button = QPushButton("")
             self.color_button.clicked.connect(self.change_arrow_color)
+            self.update_color_button_arrow()
 
             self.line_type_label = QLabel("Тип линии:")
             self.line_type_combo = QComboBox(self)
@@ -72,9 +74,8 @@ class EditingPanel(QWidget):
             self.show_points_checkbox.setChecked(self.editable_item.show_points)
             self.show_points_checkbox.stateChanged.connect(self.toggle_points_visibility)
 
-
-            
-            layout.addWidget(self.color_button, 0, 0, 1, 2)
+            layout.addWidget(self.label_color, 0, 0, 1, 1)
+            layout.addWidget(self.color_button, 0, 1, 1, 1)
             layout.addWidget(self.line_type_label, 1, 0)
             layout.addWidget(self.line_type_combo, 1, 1)
             layout.addWidget(self.thickness_label, 2, 0)
@@ -84,37 +85,29 @@ class EditingPanel(QWidget):
             layout.addWidget(self.show_points_checkbox, 4, 0)
 
         elif isinstance(self.editable_item, Decision):
-            self.color_button = QPushButton("Изменить цвет фона объекта")
+            self.label_color = QLabel("Цвет заливки")
+            self.color_button = QPushButton("")
             self.color_button.clicked.connect(self.change_color)
-
-            self.line_type_label = QLabel("Тип линии:")
-            self.line_type_combo = QComboBox(self)
-            self.line_type_combo.addItem("Сплошная")
-            self.line_type_combo.addItem("Пунктирная")
-            self.line_type_combo.addItem("Точечная")
-            self.line_type_combo.addItem("Чередующая")
-
-            self.thickness_label = QLabel("Толщина линии:")
-            self.thickness_spinbox = QSpinBox(self)
-            self.thickness_spinbox.setRange(2, 5)
-
-            layout.addWidget(self.color_button, 0, 0, 1, 2)
-            layout.addWidget(self.line_type_label, 1, 0)
-            layout.addWidget(self.line_type_combo, 1, 1)
-            layout.addWidget(self.thickness_label, 2, 0)
-            layout.addWidget(self.thickness_spinbox, 2, 1)
+            
+            layout.addWidget(self.label_color, 0, 0, 1, 1)
+            layout.addWidget(self.color_button, 0, 1, 1, 1)
+            self.update_button_color()
 
         
         elif isinstance(self.editable_item, (StartEvent, EndEvent)):
             self.radius_label = QLabel("Радиус:")
             self.radius_spinbox = QSpinBox(self)
-            self.radius_spinbox.setValue(int(self.editable_item.radius))  
+            self.radius_spinbox.setValue(int(self.editable_item.radius)) 
+            self.radius_spinbox.setRange(5, 1000)
             self.radius_spinbox.valueChanged.connect(self.update_radius)
             
-            self.color_button = QPushButton("Изменить цвет фона объекта")
+            self.label_color = QLabel("Цвет заливки")
+            self.color_button = QPushButton("")
             self.color_button.clicked.connect(self.change_color)
+            self.update_button_color()
 
-            layout.addWidget(self.color_button, 0, 0, 1, 2)
+            layout.addWidget(self.label_color, 0, 0, 1, 1)
+            layout.addWidget(self.color_button, 0, 1, 1, 1)
             layout.addWidget(self.radius_label, 1, 0, 1, 1)
             layout.addWidget(self.radius_spinbox, 1, 1, 1, 1)
 
@@ -124,11 +117,13 @@ class EditingPanel(QWidget):
             self.width_spinbox = QSpinBox(self)
             self.width_spinbox.setValue(int(self.editable_item.boundingRect().width()))
             self.width_spinbox.valueChanged.connect(self.update_width)
+            self.width_spinbox.setRange(10, 1000)
 
             self.height_label = QLabel("Высота:")
             self.height_spinbox = QSpinBox(self)
             self.height_spinbox.setValue(int(self.editable_item.boundingRect().height()))
             self.height_spinbox.valueChanged.connect(self.update_height)
+            self.height_spinbox.setRange(10, 1000)
 
             self.text_label = QLabel("Текст:")
             self.text_input = QLineEdit(self)
@@ -136,10 +131,13 @@ class EditingPanel(QWidget):
             self.text_input.setMaxLength(15)
             self.text_input.textChanged.connect(self.update_text)
 
-            self.color_button = QPushButton("Изменить цвет фона объекта")
+            self.label_color = QLabel("Цвет заливки")
+            self.color_button = QPushButton("")
             self.color_button.clicked.connect(self.change_color)
+            self.update_button_color()
 
-            layout.addWidget(self.color_button, 0, 0, 1, 2)
+            layout.addWidget(self.label_color, 0, 0 , 1, 1)
+            layout.addWidget(self.color_button, 0, 1, 1, 1)
             layout.addWidget(self.width_label, 1, 0, 1, 1)
             layout.addWidget(self.width_spinbox, 1, 1, 1, 1)
             layout.addWidget(self.height_label, 2, 0, 1, 1)
@@ -149,18 +147,22 @@ class EditingPanel(QWidget):
 
         elif isinstance(self.editable_item, (Splitter_Merge)):
 
-            self.color_button = QPushButton("Изменить цвет фона объекта")
+            self.label_color = QLabel("Цвет заливки")
+            self.color_button = QPushButton("")
             self.color_button.clicked.connect(self.change_color)
+            self.update_button_color()
 
             self.width_label = QLabel("Длинна:")
             self.width_spinbox = QSpinBox(self)
             self.width_spinbox.setValue(int(self.editable_item.boundingRect().width()))
             self.width_spinbox.valueChanged.connect(self.update_width)
+            self.width_spinbox.setRange(10, 1000)
 
             self.height_label = QLabel("Толщина:")
             self.height_spinbox = QSpinBox(self)
             self.height_spinbox.setValue(int(self.editable_item.boundingRect().height()))
             self.height_spinbox.valueChanged.connect(self.update_height)
+            self.height_spinbox.setRange(10, 1000)
 
             
             self.orint_label = QLabel("Положение:")
@@ -169,13 +171,13 @@ class EditingPanel(QWidget):
             self.orint_combo.addItem("Горизонатльно")
             self.orint_combo.currentTextChanged.connect(self.update_orientation)
 
-            r_ = self.editable_item.rotation() #Считываем в каком положении находится сейчас объект
-            if r_ == 0: # Если горизонатльно, значит в combobox установится значение горизонатльно
+            if self.editable_item.rotation() == 0: # Если горизонатльно, значит в combobox установится значение горизонатльно
                 self.orint_combo.setCurrentIndex(1)
             else: # иначе вертикально
                 self.orint_combo.setCurrentIndex(0)  
 
-            layout.addWidget(self.color_button, 0, 0, 1, 2)
+            layout.addWidget(self.label_color, 0, 0, 1, 1)
+            layout.addWidget(self.color_button, 0, 1, 1, 1)
             layout.addWidget(self.width_label, 1, 0, 1, 1)
             layout.addWidget(self.width_spinbox, 1, 1, 1, 1)
             layout.addWidget(self.height_label, 2, 0, 1, 1)
@@ -220,7 +222,7 @@ class EditingPanel(QWidget):
 """)
             self.max_length = 250  # Максимальная длина текста
 
-        # Подключаем сигнал textChanged для отслеживания изменений
+             # Подключаем сигнал textChanged для отслеживания изменений
             self.text_area.textChanged.connect(self.max_length_text_area)
             # Добавляем виджеты в layout
             layout.addWidget(self.text_label, 0, 0, 1, 1)
@@ -262,12 +264,12 @@ class EditingPanel(QWidget):
         self.copy_item.clicked.connect(self.duplicate_current_item)
 
 
-        layout.addWidget(self.x_label, 5, 0)
-        layout.addWidget(self.x_spinbox, 5, 1)
-        layout.addWidget(self.y_label, 6, 0)
-        layout.addWidget(self.y_spinbox, 6, 1)
-        layout.addWidget(self.delete_item, 7, 0)
-        layout.addWidget(self.copy_item, 7, 1)
+        layout.addWidget(self.x_label, 6, 0)
+        layout.addWidget(self.x_spinbox, 6, 1)
+        layout.addWidget(self.y_label, 7, 0)
+        layout.addWidget(self.y_spinbox, 7, 1)
+        layout.addWidget(self.delete_item, 8, 0)
+        layout.addWidget(self.copy_item, 8, 1)
 
 
         self.setLayout(layout)
@@ -321,6 +323,14 @@ class EditingPanel(QWidget):
         color = QColorDialog.getColor()
         if color.isValid():
             self.editable_item.change_color(color)
+            self.update_color_button_arrow()
+
+    def update_color_button_arrow(self):
+        current_color = self.editable_item.pen.color()  # Получаем цвет из pen у стрелки
+        self.color_button.setStyleSheet(f"""
+                background-color: {current_color.name()};
+                border: 2px solid rgb(173, 173, 173);
+""")
 
     def update_line_type(self):
         line_type = self.line_type_combo.currentText()
@@ -451,6 +461,19 @@ class EditingPanel(QWidget):
         color = QColorDialog.getColor()
         if color.isValid():
             self.editable_item.setBrush(QBrush(color))
+            self.update_button_color()
+
+    def update_button_color(self):
+        # Получение цвета из editable_item и установка его как цвет фона кнопки
+        brush = self.editable_item.brush()
+        if brush and brush.color().isValid():
+            color = brush.color()
+            self.color_button.setStyleSheet(f"""
+                background-color: {color.name()};
+                border: 2px solid rgb(173, 173, 173);
+""")
+        else:
+            self.color_button.setStyleSheet("")
 
     #Прозрачность для ImageItem
     def update_opacity(self):
@@ -530,12 +553,14 @@ class DraggableButton(QtWidgets.QPushButton):
             painter.save()
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
             painter.setBrush(self.decision_in_tulbar.brush())  # Задаем цвет заливки
+            painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
             painter.drawPolygon(self.decision_in_tulbar.polygon())  # Рисуем полигон объекта Decision
             painter.restore()  # Восстанавливаем состояние рисования
 
         if self.start_event_in_tulbar:
             painter.save()
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+            painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
 
             # Получаем границы эллипса и рисуем его
             rect = self.start_event_in_tulbar.boundingRect()
@@ -546,6 +571,7 @@ class DraggableButton(QtWidgets.QPushButton):
         if self.end_event_in_tulbar:
             painter.save()
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
+            painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
 
             # Рисование внешнего круга
             outer_rect = self.end_event_in_tulbar.boundingRect()
@@ -569,6 +595,7 @@ class DraggableButton(QtWidgets.QPushButton):
             painter.save()
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
             painter.setBrush(self.sending_signal_in_tulbar.brush())  # Задаем цвет заливки
+            painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
             painter.drawPolygon(self.sending_signal_in_tulbar.polygon())  # Рисуем полигон объекта sending_signal
             painter.restore()  # Восстанавливаем состояние рисования
 
@@ -576,6 +603,7 @@ class DraggableButton(QtWidgets.QPushButton):
             painter.save()
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
             painter.setBrush(self.sending_receipt_in_tulbar.brush())  # Задаем цвет заливки
+            painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
             painter.drawPolygon(self.sending_receipt_in_tulbar.polygon())  # Рисуем полигон объекта sending_receipt
             painter.restore()  # Восстанавливаем состояние рисования
 
@@ -583,6 +611,7 @@ class DraggableButton(QtWidgets.QPushButton):
             painter.save()
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
             painter.setBrush(self.slitter_merge_h_in_tulbar.brush())  # Задаем цвет заливки
+            painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
             painter.drawPolygon(self.slitter_merge_h_in_tulbar.polygon())  # Рисуем полигон объекта slitter_merge_h
             painter.restore()  # Восстанавливаем состояние 
             
@@ -591,6 +620,7 @@ class DraggableButton(QtWidgets.QPushButton):
             painter.translate(self.rect().center())  # Перемещаем начало координат в центр кнопки
             painter.rotate(90) #Поскольку объект изначально рисуется горизонтально, мы его поворачиваем
             painter.setBrush(self.slitter_merge_v_in_tulbar.brush())  # Задаем цвет заливки
+            painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
             painter.drawPolygon(self.slitter_merge_v_in_tulbar.polygon())  # Рисуем полигон объекта slitter_merge_v
             painter.restore()  # Восстанавливаем состояние рисования
 
@@ -602,6 +632,7 @@ class DraggableButton(QtWidgets.QPushButton):
             rect = self.active_state_in_tulbar.boundingRect()  # Убедитесь, что этот прямоугольник соответствует ожиданиям
 
             painter.setBrush(self.active_state_in_tulbar.brush())  # Задаем цвет заливки
+            painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
 
             # Получаем радиус
             radius = self.active_state_in_tulbar.radius  # Убедитесь, что это значение корректное

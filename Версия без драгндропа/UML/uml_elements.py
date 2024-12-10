@@ -478,7 +478,8 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
         self.x_center = x
         self.y_center = y
         self.radius = radius
-        self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
+        self.setBrush(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
+        self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать элемент
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
         self.setAcceptHoverEvents(True)  # Для отслеживания наведения
@@ -601,6 +602,7 @@ class EndEvent(QtWidgets.QGraphicsEllipseItem):
         self.radius = radius
         self.inner_radius_ratio = inner_radius_ratio
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))  # Основной круг
+        self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать элемент
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
         self.setAcceptHoverEvents(True)  # Для отслеживания наведения
@@ -776,6 +778,7 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
         self.radius = radius  # Радиус закругления
         self.setRect(self.x_center, self.y_center, width, height)
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
+        self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
         self.setAcceptHoverEvents(True)  # Для отслеживания наведения
@@ -1025,6 +1028,7 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
         self.setPolygon(self.create_pentagon(self.center_x, self.center_y, self.width, self.height))
 
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
+        self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
         self.setAcceptHoverEvents(True)
@@ -1173,6 +1177,7 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
         self.setPolygon(self.create_pentagon(self.center_x, self.center_y, self.width, self.height))
 
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
+        self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
         self.setAcceptHoverEvents(True)
@@ -1315,6 +1320,7 @@ class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
         self.setPolygon(self.create_SM(self.center_x, self.center_y, self.width, self.height))
 
         self.setBrush(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
+        self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
         self.setAcceptHoverEvents(True)
