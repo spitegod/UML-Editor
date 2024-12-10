@@ -478,7 +478,8 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
         self.x_center = x
         self.y_center = y
         self.radius = radius
-        self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
+        self.setBrush(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
+        self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать элемент
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
         self.setAcceptHoverEvents(True)  # Для отслеживания наведения
@@ -601,6 +602,7 @@ class EndEvent(QtWidgets.QGraphicsEllipseItem):
         self.radius = radius
         self.inner_radius_ratio = inner_radius_ratio
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))  # Основной круг
+        self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать элемент
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
         self.setAcceptHoverEvents(True)  # Для отслеживания наведения
@@ -700,7 +702,7 @@ class EndEvent(QtWidgets.QGraphicsEllipseItem):
         super().mouseReleaseEvent(event)
 
     # Сглаживание отрисовки объекта
-    def paint(self, painter, option, widget=None):
+    def paint(self, painter, option, widget):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
         super().paint(painter, option, widget)
 
@@ -776,6 +778,7 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
         self.radius = radius  # Радиус закругления
         self.setRect(self.x_center, self.y_center, width, height)
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
+        self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
         self.setAcceptHoverEvents(True)  # Для отслеживания наведения
@@ -1025,6 +1028,7 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
         self.setPolygon(self.create_pentagon(self.center_x, self.center_y, self.width, self.height))
 
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
+        self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
         self.setAcceptHoverEvents(True)
@@ -1173,6 +1177,7 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
         self.setPolygon(self.create_pentagon(self.center_x, self.center_y, self.width, self.height))
 
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
+        self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
         self.setAcceptHoverEvents(True)
@@ -1315,9 +1320,14 @@ class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
         self.setPolygon(self.create_SM(self.center_x, self.center_y, self.width, self.height))
 
         self.setBrush(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
+        self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
         self.setAcceptHoverEvents(True)
+
+        rect = self.boundingRect()
+        self.setTransformOriginPoint(self.center_x, self.center_y) #Центируем точки при смене ориентации
+
 
         self.is_resizing = False # Флаг, указывающий, идет ли изменение размера
         self.resize_side = None # Определяем, с какой стороны идет изменение размера
@@ -1346,7 +1356,11 @@ class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
 
         return sm
 
-
+    #Обновляем ориентацию объекта через панель редактирования
+    def update_size_and_orientation(self, width, height, rotation):
+        self.setPolygon(self.create_SM(self.center_x, self.center_y, width, height))
+        self.setRotation(rotation)
+        self.update()
 
 
     def hoverMoveEvent(self, event):
@@ -1402,6 +1416,7 @@ class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
         super().paint(painter, option, widget)
 
+
     def itemChange(self, change, value):
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
             # Если изменяется позиция, обновляем стрелки
@@ -1436,7 +1451,7 @@ class ImageItem(QtWidgets.QGraphicsPixmapItem):
 
     def clone(self):
         cloned_item = ImageItem(self.pixmap(), self.x_center, self.y_center)
-        
+        cloned_item.setOpacity(self.opacity())
         return cloned_item
 
     def hoverMoveEvent(self, event):
@@ -1635,10 +1650,4 @@ class Text_Edit(Text_into_object):
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
             for arrow in self.arrows:
                 arrow.update_arrow()
-        return super().itemChange(change, value)
-
-
-
-
-
-
+        return super().itemChange(change, value)    
