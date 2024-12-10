@@ -1731,7 +1731,16 @@ QLabel {
         self.connect_objectS = QShortcut(QKeySequence("Ctrl+S"), self.graphicsView)
         self.connect_objectS.activated.connect(self.save_to_file)
 
+
+        self.connect_objectS = QShortcut(QKeySequence("Alt+T"), self.graphicsView)
+        self.connect_objectS.activated.connect(self.show_toolbar2)
+
+        self.connect_objectS = QShortcut(QKeySequence("Alt+O"), self.graphicsView)
+        self.connect_objectS.activated.connect(self.show_object_panel)
         
+        self.connect_objectS = QShortcut(QKeySequence("Alt+E"), self.graphicsView)
+        self.connect_objectS.activated.connect(self.show_edit_panel)
+
         self.connect_objectS = QShortcut(QKeySequence("Ctrl+N"), self.graphicsView)
         self.connect_objectS.activated.connect(self.create_new)
 
@@ -1818,6 +1827,8 @@ QLabel {
 
 
     def show_toolbar(self):
+        self.dock_widget.setVisible(True)
+    def show_toolbar2(self):
         self.dock_widget.setVisible(True)
     def show_edit_panel(self):
         self.editing_dock.setVisible(True)
