@@ -1728,6 +1728,17 @@ QLabel {
         self.connect_objectS = QShortcut(QKeySequence("Ctrl+D"), self.graphicsView)
         self.connect_objectS.activated.connect(self.duplicate_selected_item)
 
+        self.connect_objectS = QShortcut(QKeySequence("Ctrl+S"), self.graphicsView)
+        self.connect_objectS.activated.connect(self.save_to_file)
+
+        
+        self.connect_objectS = QShortcut(QKeySequence("Ctrl+N"), self.graphicsView)
+        self.connect_objectS.activated.connect(self.create_new)
+
+        
+        self.connect_objectS = QShortcut(QKeySequence("Ctrl+M"), self.graphicsView)
+        self.connect_objectS.activated.connect(self.show_static_widget)
+
         self.connect_objectS = QShortcut(QKeySequence("1"), self.graphicsView)
         self.connect_objectS.activated.connect(self.draw_diamond)
         self.connect_objectS.activated.connect(self.message_overcrowed_objectS)
