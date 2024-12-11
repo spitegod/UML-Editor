@@ -1,5 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QPen, QPainterPath, QColor, QPolygonF, QBrush
+from PyQt5.QtGui import QPen, QPainterPath, QColor, QPolygonF, QBrush, QTransform
 from PyQt5.QtCore import QPointF, Qt, QLineF
 from PyQt5.QtWidgets import QGraphicsItem, QGraphicsEllipseItem, QGraphicsRectItem, QGraphicsPolygonItem
 
@@ -589,6 +589,18 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
         # Добавляем стрелку в список стрелок, привязанных к этому кругу
         if arrow not in self.arrows:
             self.arrows.append(arrow)
+
+#Дочерний элемент(внтуренний круг) EndEvent
+class InnerCircle(QtWidgets.QGraphicsEllipseItem):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setBrush(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
+        print(f"Родитель - {self.parentItem()}")
+
+    def paint(self, painter, option, widget):
+        # Включаем сглаживание
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        super().paint(painter, option, widget)
             
 
 class EndEvent(QtWidgets.QGraphicsEllipseItem):
@@ -615,7 +627,7 @@ class EndEvent(QtWidgets.QGraphicsEllipseItem):
 
         # Создаем внутренний круг
         self.inner_radius_ratio = inner_radius_ratio  # Доля от внешнего радиуса
-        self.inner_circle = QtWidgets.QGraphicsEllipseItem(self)
+        self.inner_circle = InnerCircle(self)
         self.update_inner_circle()
 
     def clone(self):
@@ -632,7 +644,6 @@ class EndEvent(QtWidgets.QGraphicsEllipseItem):
         self.radius = new_radius
         self.setRect(self.x(), self.y(), new_radius * 2, new_radius * 2)
 
-
     def update_inner_circle(self):
         rect = self.rect()
         x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
@@ -640,7 +651,6 @@ class EndEvent(QtWidgets.QGraphicsEllipseItem):
         inner_radius = min(w, h) * self.inner_radius_ratio / 2
         cx, cy = x + w / 2, y + h / 2  # Центр внешнего круга
         self.inner_circle.setRect(cx - inner_radius, cy - inner_radius, 2 * inner_radius, 2 * inner_radius)
-        self.inner_circle.setBrush(QtGui.QBrush(QtGui.QColor(0, 0, 0)))  # Цвет внутреннего круга
 
     def hoverMoveEvent(self, event):
         rect = self.rect()
@@ -1026,21 +1036,24 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
 
         # Создаем пентагон
         self.setPolygon(self.create_pentagon(self.center_x, self.center_y, self.width, self.height))
-
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
         self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
         self.setAcceptHoverEvents(True)
 
         self.is_resizing = False # Флаг, указывающий, идет ли изменение размера
         self.resize_side = None # Определяем, с какой стороны идет изменение размера
         self.resize_margin = 10 # Чувствительная область для изменения размера
+        self.current_reflection = "None" #Отражение объекта
+        self.current_reflection = "Справа"
 
         self.arrows = []
         self.text_item = Text_into_object(15, self)
         self.text_item.setPlainText("Signal Sending")
         self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+        self.text_item.setFlag(QtWidgets.QGraphicsItem.ItemIgnoresTransformations, True)
         self.update_text_wrap()
         self.update_text_position()
 
@@ -1090,7 +1103,45 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
         text_width = text_rect.width()
         text_height = text_rect.height()
 
-        self.text_item.setPos(center_x - text_width / 2, center_y - text_height / 2)
+        if self.current_reflection == "Справа":
+            self.text_item.setPos(
+                center_x - text_width / 2,
+                center_y + text_height / 2
+            )
+        else:
+            self.text_item.setPos(
+                center_x + text_width / 2,
+                center_y - text_height / 2
+            )
+
+    def reflect(self, direction):
+        # Устанавливаем текущее направление отражения
+        self.current_reflection = direction
+
+        # Получаем текущий центр объекта в сцене
+        original_scene_center = self.sceneBoundingRect().center()
+
+        # Создаем трансформацию для отражения
+        transform = QTransform()
+        if direction == "Слева":  # Отразить по вертикальной оси
+            transform.scale(-1, 1)  # Инвертировать по оси X
+        elif direction == "Справа":  # Отразить по горизонтальной оси
+            transform.scale(1, -1)  # Инвертировать по оси Y
+        else:
+            return  # Не менять ничего
+
+        # Применяем трансформацию
+        self.setTransform(transform, combine=False)
+
+        # Корректируем положение объекта, чтобы сохранить его центр
+        new_scene_center = self.sceneBoundingRect().center()
+        delta_x = original_scene_center.x() - new_scene_center.x()
+        delta_y = original_scene_center.y() - new_scene_center.y()
+        self.moveBy(delta_x, delta_y)
+
+        # Принудительно обновляем текстовую позицию
+        self.text_item.setTransform(QTransform())  # Сбрасываем влияние трансформации
+        self.update_text_position()
 
     def hoverMoveEvent(self, event):
         rect = self.boundingRect()
@@ -1142,7 +1193,7 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
     def mouseReleaseEvent(self, event):
         self.is_resizing = False
         super().mouseReleaseEvent(event)
-
+        
     #Сглаживаине отрисовки объекта
     def paint(self, painter, option, widget=None):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
@@ -1175,22 +1226,25 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
 
         # Создаем пентагон
         self.setPolygon(self.create_pentagon(self.center_x, self.center_y, self.width, self.height))
-
         self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
         self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении 
         self.setAcceptHoverEvents(True)
 
         self.is_resizing = False # Флаг, указывающий, идет ли изменение размера
         self.resize_side = None # Определяем, с какой стороны идет изменение размера
         self.resize_margin = 10 # Чувствительная область для изменения размера
+        self.current_reflection = "None" #Отражение объекта
+        self.current_reflection = "Слева"
 
         self.arrows = []
 
         self.text_item = Text_into_object(15, self)
         self.text_item.setPlainText("Signal receipt")
         self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+        self.text_item.setFlag(QtWidgets.QGraphicsItem.ItemIgnoresTransformations, True)
         self.update_text_wrap()
         self.update_text_position()
 
@@ -1234,10 +1288,45 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
         text_width = text_rect.width()
         text_height = text_rect.height()
 
-        self.text_item.setPos(center_x - text_width / 2, center_y - text_height / 2)
+        if self.current_reflection == "Слева":
+            self.text_item.setPos(
+                center_x - text_width / 2,
+                center_y + text_height / 2
+            )
+        else:
+            self.text_item.setPos(
+                center_x + text_width / 2,
+                center_y - text_height / 2
+            )
 
+    def reflect(self, direction):
+        # Устанавливаем текущее направление отражения
+        self.current_reflection = direction
 
+        # Получаем текущий центр объекта в сцене
+        original_scene_center = self.sceneBoundingRect().center()
 
+        # Создаем трансформацию для отражения
+        transform = QTransform()
+        if direction == "Слева":  # Отразить по вертикальной оси
+            transform.scale(1, -1)  # Инвертировать по оси X
+        elif direction == "Справа":  # Отразить по горизонтальной оси
+            transform.scale(-1, 1)  # Инвертировать по оси Y
+        else:
+            return  # Не менять ничего
+
+        # Применяем трансформацию
+        self.setTransform(transform, combine=False)
+
+        # Корректируем положение объекта, чтобы сохранить его центр
+        new_scene_center = self.sceneBoundingRect().center()
+        delta_x = original_scene_center.x() - new_scene_center.x()
+        delta_y = original_scene_center.y() - new_scene_center.y()
+        self.moveBy(delta_x, delta_y)
+
+        # Принудительно обновляем текстовую позицию
+        # self.text_item.setTransform(QTransform())  # Сбрасываем влияние трансформации
+        self.update_text_position()
 
     def hoverMoveEvent(self, event):
         rect = self.boundingRect()
