@@ -119,6 +119,7 @@ class Arrow(QGraphicsItem):
 
         self.pen_width = 3
         self.pen = QPen(Qt.darkRed, self.pen_width, Qt.SolidLine)
+        self.line_type = "solid"
         self.update_arrow()
 
     def change_width(self, width): #Толщина стрелки
@@ -162,6 +163,8 @@ class Arrow(QGraphicsItem):
             self.pen.setStyle(Qt.DashDotLine)
         else:
             self.pen.setStyle(Qt.SolidLine)
+        
+        self.line_type = line_type
         self.update()
 
     def remove_arrow(self):

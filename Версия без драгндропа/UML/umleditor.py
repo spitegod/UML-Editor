@@ -2123,6 +2123,7 @@ QLabel {
                 start_node_id = item.node1.unique_id  # Получаем id начального узла
                 end_node_id = item.node2.unique_id    # Получаем id конечного узла
                 dots = item.intermediate_points
+                line_type = item.line_type
 
                         # Преобразуем intermediate_points в сериализуемый формат
                 dots = [[point.x(), point.y()] for point in item.intermediate_points]
@@ -2131,6 +2132,8 @@ QLabel {
                     "start_node_id": start_node_id, # Начало стрелки
                     "end_node_id": end_node_id, # Конец стрелки
                     "dots": dots, # Точки изгиба
+                    "line_type": line_type
+
                 })
 
         try:
