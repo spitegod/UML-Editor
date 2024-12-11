@@ -1,0 +1,56 @@
+{
+    "items": [
+        {
+            "type": "StartEvent",
+            "position": {
+                "x": -329.0,
+                "y": -339.0
+            },
+            "size": null,
+            "radius": 30.0,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": 4,
+            "dots": null
+        },
+        {
+            "type": "StartEvent",
+            "position": {
+                "x": -222.0,
+                "y": -181.0
+            },
+            "size": null,
+            "radius": 30.0,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": 3,
+            "dots": null
+        }
+    ],
+    "arrows": [
+        {
+            "start_node_id": 3,
+            "end_node_id": 4,
+            "dots": [
+                [
+                    -348.99367088607596,
+                    -224.0
+                ]
+            ],
+            "line_type": "dotted",
+            "color": "#00ff00"
+        }
+    ]
+}
