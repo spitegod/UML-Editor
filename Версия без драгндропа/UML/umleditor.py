@@ -2125,6 +2125,7 @@ QLabel {
                 dots = item.intermediate_points       # Получаем точки изгиба
                 line_type = item.line_type            # Получаем тип начертания линии
                 color = item.color.name()             # Получаем цвет стрелки
+                line_width = item.pen_width           # Получаем толщину линии
 
                         # Преобразуем intermediate_points в сериализуемый формат
                 dots = [[point.x(), point.y()] for point in item.intermediate_points]
@@ -2135,6 +2136,7 @@ QLabel {
                     "dots": dots, # Точки изгиба
                     "line_type": line_type, # Тип начертания линии
                     "color": color,  # Сохраняем цвет как строку в формате HEX
+                    "width": line_width # Толщина линии
 
                 })
 
@@ -2180,6 +2182,7 @@ QLabel {
                 dots = item.intermediate_points
                 line_type = item.line_type            # Получаем тип начертания линии
                 color = item.color.name()             # Получаем цвет стрелки
+                line_width = item.pen_width           # Получаем толщину линии
 
                         # Преобразуем intermediate_points в сериализуемый формат
                 dots = [[point.x(), point.y()] for point in item.intermediate_points]
@@ -2190,6 +2193,7 @@ QLabel {
                     "dots": dots, # Точки изгиба
                     "line_type": line_type, # Тип начертания линии
                     "color": color,  # Сохраняем цвет как строку в формате HEX
+                    "width": line_width # Толщина линии
                 })
 
 
@@ -2911,6 +2915,8 @@ QLabel {
             # Получаем цвет, используем тёмно-красный (#8B0000) по умолчанию
             color_hex = arrow_data.get("color", "#8B0000")
             color = QColor(color_hex)  # Преобразуем HEX-строку в объект QColor
+
+            width_of_pen = arrow_data.get("width")
             # Вытаскиваем по полученным идентификаторам из памяти
             start_node = self.get_element_by_id(start_node_id)
             end_node = self.get_element_by_id(end_node_id)
@@ -2928,6 +2934,7 @@ QLabel {
                 line_type = arrow_data.get("line_type", "solid")  # Используем "solid" по умолчанию, если данных нет
                 arrow.change_line_type(line_type)  # Применяем тип линии
                 arrow.change_color(color)         # Устанавливаем цвет
+                arrow.change_width(width_of_pen)
                 arrow.setZValue(-1)
                 self.scene_.addItem(arrow)  # Добавляем стрелку на сцену
                 # Привязываем стрелку к обоим узлам
