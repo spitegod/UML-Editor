@@ -13,6 +13,7 @@ from PyQt5.QtCore import QTimer, QTime, QDateTime
 from PyQt5.QtCore import pyqtSignal  # Импортируем pyqtSignal
 from PyQt5.QtCore import Qt, QPointF, QLineF, QRectF
 from PyQt5.QtGui import QPen, QBrush, QPainterPath, QKeySequence
+from uml_elements import *
 
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import pyqtSlot
@@ -2121,10 +2122,15 @@ QLabel {
             if isinstance(item, Arrow):
                 start_node_id = item.node1.unique_id  # Получаем id начального узла
                 end_node_id = item.node2.unique_id    # Получаем id конечного узла
+                dots = item.intermediate_points
+
+                        # Преобразуем intermediate_points в сериализуемый формат
+                dots = [[point.x(), point.y()] for point in item.intermediate_points]
 
                 data["arrows"].append({
                     "start_node_id": start_node_id,
-                    "end_node_id": end_node_id
+                    "end_node_id": end_node_id,
+                    "dots": dots,
                 })
 
         try:
@@ -2160,6 +2166,7 @@ QLabel {
                     arrow_data = {
                         "start_node_id": item.node1.unique_id,  # Сохраняем идентификаторы узлов
                         "end_node_id": item.node2.unique_id,
+                        "dots": item.node2.unique_id,
                     }
                     data["arrows"].append(arrow_data)
 
@@ -2207,7 +2214,8 @@ QLabel {
             "end_node": None,                # Конечная точка соединения (для Arrow)
             "color": None,                   # Цвет линии (для Arrow)
             "line_width": None,              # Ширина линии
-            "id": None                       # Идентификатор
+            "id": None,                       # Идентификатор
+            "dots": None
         }
 
        
@@ -2291,7 +2299,11 @@ QLabel {
             base_data["width"] = rect.width()
             base_data["height"] = rect.height()
 
-        # Возвращаем структуру со всеми ключами
+        elif isinstance(item, Arrow):
+            rect = item.rect()
+            base_data["dots"] = item.intermediate_points
+
+
         return base_data
 
     # Закрытие приложения
@@ -3031,9 +3043,9 @@ QLabel {
         self.action_time_stop.setText(_translate("MainWindow", "Остановить таймер"))
         self.action_time_reset.setText(_translate("MainWindow", "Сбросить таймер"))
 
-        def set_username(self, username):
-            self.username = username
-            self.update_ui()  # Обновляем интерфейс
+        # def set_username(self, username):
+        #     self.username = username
+        #     self.update_ui()  # Обновляем интерфейс
 
 
 if __name__ == "__main__":
