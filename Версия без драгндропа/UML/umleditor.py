@@ -2120,12 +2120,14 @@ QLabel {
         # Сохраняем стрелки отдельно через их id
         for item in self.scene_.items():
             if isinstance(item, Arrow):
-                start_node_id = item.node1.unique_id  # Получаем id начального узла
-                end_node_id = item.node2.unique_id    # Получаем id конечного узла
-                dots = item.intermediate_points       # Получаем точки изгиба
-                line_type = item.line_type            # Получаем тип начертания линии
-                color = item.color.name()             # Получаем цвет стрелки
-                line_width = item.pen_width           # Получаем толщину линии
+                start_node_id = item.node1.unique_id   # Получаем id начального узла
+                end_node_id = item.node2.unique_id     # Получаем id конечного узла
+                dots = item.intermediate_points        # Получаем точки изгиба
+                line_type = item.line_type             # Получаем тип начертания линии
+                color = item.color.name()              # Получаем цвет стрелки
+                line_width = item.pen_width            # Получаем толщину линии
+                right_arrow = item.right_arrow_enabled # Получаем флаг правого наконечника
+                left_arrow = item.left_arrow_enabled   # Получаем флаг левого наконечника
 
                         # Преобразуем intermediate_points в сериализуемый формат
                 dots = [[point.x(), point.y()] for point in item.intermediate_points]
@@ -2136,7 +2138,9 @@ QLabel {
                     "dots": dots, # Точки изгиба
                     "line_type": line_type, # Тип начертания линии
                     "color": color,  # Сохраняем цвет как строку в формате HEX
-                    "width": line_width # Толщина линии
+                    "width": line_width, # Толщина линии
+                    "right_arrow": right_arrow, # Правый наконечник
+                    "left_arrow": left_arrow, # Левый наконечник
 
                 })
 
@@ -2183,6 +2187,8 @@ QLabel {
                 line_type = item.line_type            # Получаем тип начертания линии
                 color = item.color.name()             # Получаем цвет стрелки
                 line_width = item.pen_width           # Получаем толщину линии
+                right_arrow = item.right_arrow_enabled # Получаем флаг правого наконечника
+                left_arrow = item.left_arrow_enabled   # Получаем флаг левого наконечника
 
                         # Преобразуем intermediate_points в сериализуемый формат
                 dots = [[point.x(), point.y()] for point in item.intermediate_points]
@@ -2193,7 +2199,9 @@ QLabel {
                     "dots": dots, # Точки изгиба
                     "line_type": line_type, # Тип начертания линии
                     "color": color,  # Сохраняем цвет как строку в формате HEX
-                    "width": line_width # Толщина линии
+                    "width": line_width, # Толщина линии
+                    "right_arrow": right_arrow, # Правый наконечник
+                    "left_arrow": left_arrow, # Левый наконечник
                 })
 
 
@@ -2916,7 +2924,10 @@ QLabel {
             color_hex = arrow_data.get("color", "#8B0000")
             color = QColor(color_hex)  # Преобразуем HEX-строку в объект QColor
 
-            width_of_pen = arrow_data.get("width")
+            width_of_pen = arrow_data.get("width") # Получаем толщину линии
+
+            right_arrow = arrow_data.get("right_arrow")
+            left_arrow = arrow_data.get("left_arrow")
             # Вытаскиваем по полученным идентификаторам из памяти
             start_node = self.get_element_by_id(start_node_id)
             end_node = self.get_element_by_id(end_node_id)
@@ -2932,6 +2943,8 @@ QLabel {
 
                 # Устанавливаем тип линии
                 line_type = arrow_data.get("line_type", "solid")  # Используем "solid" по умолчанию, если данных нет
+                arrow.right_arrow_enabled = right_arrow
+                arrow.left_arrow_enabled = left_arrow
                 arrow.change_line_type(line_type)  # Применяем тип линии
                 arrow.change_color(color)         # Устанавливаем цвет
                 arrow.change_width(width_of_pen)
