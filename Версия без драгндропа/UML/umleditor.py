@@ -2128,9 +2128,9 @@ QLabel {
                 dots = [[point.x(), point.y()] for point in item.intermediate_points]
 
                 data["arrows"].append({
-                    "start_node_id": start_node_id,
-                    "end_node_id": end_node_id,
-                    "dots": dots,
+                    "start_node_id": start_node_id, # Начало стрелки
+                    "end_node_id": end_node_id, # Конец стрелки
+                    "dots": dots, # Точки изгиба
                 })
 
         try:
@@ -2166,7 +2166,7 @@ QLabel {
                     arrow_data = {
                         "start_node_id": item.node1.unique_id,  # Сохраняем идентификаторы узлов
                         "end_node_id": item.node2.unique_id,
-                        "dots": item.node2.unique_id,
+                        "dots": item.intermediate_points,
                     }
                     data["arrows"].append(arrow_data)
 
@@ -2299,9 +2299,6 @@ QLabel {
             base_data["width"] = rect.width()
             base_data["height"] = rect.height()
 
-        elif isinstance(item, Arrow):
-            rect = item.rect()
-            base_data["dots"] = item.intermediate_points
 
 
         return base_data
@@ -2891,9 +2888,13 @@ QLabel {
             end_node = self.get_element_by_id(end_node_id)
             #Рисуем стрелки
             if start_node and end_node:
-                node1, node2 = start_node, end_node
-                # Создаем стрелку и привязываем её к выбранным узлам
-                arrow = Arrow(node1, node2)
+                node1, node2 = start_node, end_node # Инициализируем узлы
+                
+                intermediate_points = [
+                    QPointF(x, y) for x, y in arrow_data.get("dots", []) # Получаем точки изгиба
+                ]
+
+                arrow = Arrow(node1, node2, intermediate_points=intermediate_points) # Создаём объект стрелки вместе с точками изгиба
                 arrow.setZValue(-1)
                 self.scene_.addItem(arrow)  # Добавляем стрелку на сцену
                 # Привязываем стрелку к обоим узлам
