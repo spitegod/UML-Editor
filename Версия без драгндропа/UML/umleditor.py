@@ -2128,6 +2128,7 @@ QLabel {
                 line_width = item.pen_width            # Получаем толщину линии
                 right_arrow = item.right_arrow_enabled # Получаем флаг правого наконечника
                 left_arrow = item.left_arrow_enabled   # Получаем флаг левого наконечника
+                show_points = item.show_points         # Получаем флаг видимости точек
 
                         # Преобразуем intermediate_points в сериализуемый формат
                 dots = [[point.x(), point.y()] for point in item.intermediate_points]
@@ -2141,6 +2142,7 @@ QLabel {
                     "width": line_width, # Толщина линии
                     "right_arrow": right_arrow, # Правый наконечник
                     "left_arrow": left_arrow, # Левый наконечник
+                    "show_points": show_points, # Видимость точек
 
                 })
 
@@ -2189,6 +2191,7 @@ QLabel {
                 line_width = item.pen_width           # Получаем толщину линии
                 right_arrow = item.right_arrow_enabled # Получаем флаг правого наконечника
                 left_arrow = item.left_arrow_enabled   # Получаем флаг левого наконечника
+                show_points = item.show_points         # Получаем флаг видимости точек
 
                         # Преобразуем intermediate_points в сериализуемый формат
                 dots = [[point.x(), point.y()] for point in item.intermediate_points]
@@ -2202,6 +2205,7 @@ QLabel {
                     "width": line_width, # Толщина линии
                     "right_arrow": right_arrow, # Правый наконечник
                     "left_arrow": left_arrow, # Левый наконечник
+                    "show_points": show_points, # Видимость точек
                 })
 
 
@@ -2926,8 +2930,10 @@ QLabel {
 
             width_of_pen = arrow_data.get("width") # Получаем толщину линии
 
-            right_arrow = arrow_data.get("right_arrow")
-            left_arrow = arrow_data.get("left_arrow")
+            right_arrow = arrow_data.get("right_arrow") # Получаем правый наконечник
+            left_arrow = arrow_data.get("left_arrow") # Получаем левый наконечник
+
+            show_points = arrow_data.get("show_points")
             # Вытаскиваем по полученным идентификаторам из памяти
             start_node = self.get_element_by_id(start_node_id)
             end_node = self.get_element_by_id(end_node_id)
@@ -2943,8 +2949,9 @@ QLabel {
 
                 # Устанавливаем тип линии
                 line_type = arrow_data.get("line_type", "solid")  # Используем "solid" по умолчанию, если данных нет
-                arrow.right_arrow_enabled = right_arrow
-                arrow.left_arrow_enabled = left_arrow
+                arrow.right_arrow_enabled = right_arrow # Правый наконечник
+                arrow.left_arrow_enabled = left_arrow # Левый наконечник
+                arrow.show_points = show_points # Видимость точек
                 arrow.change_line_type(line_type)  # Применяем тип линии
                 arrow.change_color(color)         # Устанавливаем цвет
                 arrow.change_width(width_of_pen)
