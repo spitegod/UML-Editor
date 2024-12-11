@@ -13,6 +13,7 @@ from PyQt5.QtCore import QTimer, QTime, QDateTime
 from PyQt5.QtCore import pyqtSignal  # Импортируем pyqtSignal
 from PyQt5.QtCore import Qt, QPointF, QLineF, QRectF
 from PyQt5.QtGui import QPen, QBrush, QPainterPath, QKeySequence
+from uml_elements import *
 
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import pyqtSlot
@@ -2119,12 +2120,30 @@ QLabel {
         # Сохраняем стрелки отдельно через их id
         for item in self.scene_.items():
             if isinstance(item, Arrow):
-                start_node_id = item.node1.unique_id  # Получаем id начального узла
-                end_node_id = item.node2.unique_id    # Получаем id конечного узла
+                start_node_id = item.node1.unique_id   # Получаем id начального узла
+                end_node_id = item.node2.unique_id     # Получаем id конечного узла
+                dots = item.intermediate_points        # Получаем точки изгиба
+                line_type = item.line_type             # Получаем тип начертания линии
+                color = item.color.name()              # Получаем цвет стрелки
+                line_width = item.pen_width            # Получаем толщину линии
+                right_arrow = item.right_arrow_enabled # Получаем флаг правого наконечника
+                left_arrow = item.left_arrow_enabled   # Получаем флаг левого наконечника
+                show_points = item.show_points         # Получаем флаг видимости точек
+
+                        # Преобразуем intermediate_points в сериализуемый формат
+                dots = [[point.x(), point.y()] for point in item.intermediate_points]
 
                 data["arrows"].append({
-                    "start_node_id": start_node_id,
-                    "end_node_id": end_node_id
+                    "start_node_id": start_node_id, # Начало стрелки
+                    "end_node_id": end_node_id, # Конец стрелки
+                    "dots": dots, # Точки изгиба
+                    "line_type": line_type, # Тип начертания линии
+                    "color": color,  # Сохраняем цвет как строку в формате HEX
+                    "width": line_width, # Толщина линии
+                    "right_arrow": right_arrow, # Правый наконечник
+                    "left_arrow": left_arrow, # Левый наконечник
+                    "show_points": show_points, # Видимость точек
+
                 })
 
         try:
@@ -2149,24 +2168,52 @@ QLabel {
         data = {"items": [], "arrows": []}
         elements = {}
 
-        # Сохраняем элементы
+        # Сохраняем элементы, пропуская стрелки
         for item in self.scene_.items():
-            if isinstance(item, QtWidgets.QGraphicsItem):
+            if isinstance(item, QtWidgets.QGraphicsItem) and not isinstance(item, Arrow) and not isinstance(item, QGraphicsEllipseItem):
                 item_data = self.serialize_item(item)
-                data["items"].append(item_data)
-                elements[item.unique_id] = item  # Сохраняем элементы по их уникальному идентификатору
+                data["items"].append(item_data)  # Добавляем элемент в items
+                elements[item.unique_id] = item  # Сохраняем элемент по уникальному идентификатору
 
-                if isinstance(item, Arrow):  # Если элемент - стрелка
-                    arrow_data = {
-                        "start_node_id": item.node1.unique_id,  # Сохраняем идентификаторы узлов
-                        "end_node_id": item.node2.unique_id,
-                    }
-                    data["arrows"].append(arrow_data)
+            if isinstance(item, QGraphicsEllipseItem):
+                item_data = self.serialize_item(item)
+                data["items"].append(item_data)  # Добавляем элемент в items
+                
+
+        # Сохраняем стрелки отдельно через их id
+        for item in self.scene_.items():
+            if isinstance(item, Arrow):
+                start_node_id = item.node1.unique_id  # Получаем id начального узла
+                end_node_id = item.node2.unique_id    # Получаем id конечного узла
+                dots = item.intermediate_points
+                line_type = item.line_type            # Получаем тип начертания линии
+                color = item.color.name()             # Получаем цвет стрелки
+                line_width = item.pen_width           # Получаем толщину линии
+                right_arrow = item.right_arrow_enabled # Получаем флаг правого наконечника
+                left_arrow = item.left_arrow_enabled   # Получаем флаг левого наконечника
+                show_points = item.show_points         # Получаем флаг видимости точек
+
+                        # Преобразуем intermediate_points в сериализуемый формат
+                dots = [[point.x(), point.y()] for point in item.intermediate_points]
+
+                data["arrows"].append({
+                    "start_node_id": start_node_id, # Начало стрелки
+                    "end_node_id": end_node_id, # Конец стрелки
+                    "dots": dots, # Точки изгиба
+                    "line_type": line_type, # Тип начертания линии
+                    "color": color,  # Сохраняем цвет как строку в формате HEX
+                    "width": line_width, # Толщина линии
+                    "right_arrow": right_arrow, # Правый наконечник
+                    "left_arrow": left_arrow, # Левый наконечник
+                    "show_points": show_points, # Видимость точек
+                })
+
 
         try:
             with open(filepath, "w") as file:
                 json.dump(data, file, indent=4)
             print("Файл сохранён:", filepath)
+            QtWidgets.QMessageBox.information(self, "Сохранение", f"Файл успешно сохранён в:\n{filepath}")
         except Exception as e:
             QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось сохранить файл: {e}")
 
@@ -2207,7 +2254,8 @@ QLabel {
             "end_node": None,                # Конечная точка соединения (для Arrow)
             "color": None,                   # Цвет линии (для Arrow)
             "line_width": None,              # Ширина линии
-            "id": None                       # Идентификатор
+            "id": None,                       # Идентификатор
+            "dots": None
         }
 
        
@@ -2291,7 +2339,8 @@ QLabel {
             base_data["width"] = rect.width()
             base_data["height"] = rect.height()
 
-        # Возвращаем структуру со всеми ключами
+
+
         return base_data
 
     # Закрытие приложения
@@ -2874,14 +2923,38 @@ QLabel {
             # Идентификаторы
             start_node_id = arrow_data["start_node_id"]
             end_node_id = arrow_data["end_node_id"]
+
+            # Получаем цвет, используем тёмно-красный (#8B0000) по умолчанию
+            color_hex = arrow_data.get("color", "#8B0000")
+            color = QColor(color_hex)  # Преобразуем HEX-строку в объект QColor
+
+            width_of_pen = arrow_data.get("width") # Получаем толщину линии
+
+            right_arrow = arrow_data.get("right_arrow") # Получаем правый наконечник
+            left_arrow = arrow_data.get("left_arrow") # Получаем левый наконечник
+
+            show_points = arrow_data.get("show_points")
             # Вытаскиваем по полученным идентификаторам из памяти
             start_node = self.get_element_by_id(start_node_id)
             end_node = self.get_element_by_id(end_node_id)
             #Рисуем стрелки
             if start_node and end_node:
-                node1, node2 = start_node, end_node
-                # Создаем стрелку и привязываем её к выбранным узлам
-                arrow = Arrow(node1, node2)
+                node1, node2 = start_node, end_node # Инициализируем узлы
+                
+                intermediate_points = [
+                    QPointF(x, y) for x, y in arrow_data.get("dots", []) # Получаем точки изгиба
+                ]
+
+                arrow = Arrow(node1, node2, intermediate_points=intermediate_points) # Создаём объект стрелки вместе с точками изгиба
+
+                # Устанавливаем тип линии
+                line_type = arrow_data.get("line_type", "solid")  # Используем "solid" по умолчанию, если данных нет
+                arrow.right_arrow_enabled = right_arrow # Правый наконечник
+                arrow.left_arrow_enabled = left_arrow # Левый наконечник
+                arrow.show_points = show_points # Видимость точек
+                arrow.change_line_type(line_type)  # Применяем тип линии
+                arrow.change_color(color)         # Устанавливаем цвет
+                arrow.change_width(width_of_pen)
                 arrow.setZValue(-1)
                 self.scene_.addItem(arrow)  # Добавляем стрелку на сцену
                 # Привязываем стрелку к обоим узлам
@@ -3031,9 +3104,9 @@ QLabel {
         self.action_time_stop.setText(_translate("MainWindow", "Остановить таймер"))
         self.action_time_reset.setText(_translate("MainWindow", "Сбросить таймер"))
 
-        def set_username(self, username):
-            self.username = username
-            self.update_ui()  # Обновляем интерфейс
+        # def set_username(self, username):
+        #     self.username = username
+        #     self.update_ui()  # Обновляем интерфейс
 
 
 if __name__ == "__main__":

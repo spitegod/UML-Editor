@@ -1,0 +1,144 @@
+{
+    "items": [
+        {
+            "type": "Text_into_object",
+            "position": [
+                -14.5,
+                -175.0
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": null,
+            "dots": null
+        },
+        {
+            "type": "ActiveState",
+            "position": {
+                "x": -44.0,
+                "y": -193.0
+            },
+            "size": null,
+            "radius": 16.666666666666668,
+            "inner_radius_ratio": null,
+            "width": 100.0,
+            "height": 60.0,
+            "text": "\u0422\u0435\u043a\u0441\u0442",
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": 5,
+            "dots": null
+        },
+        {
+            "type": "Text_into_object",
+            "position": [
+                -392.5,
+                -297.0
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": null,
+            "dots": null
+        },
+        {
+            "type": "ActiveState",
+            "position": {
+                "x": -422.0,
+                "y": -315.0
+            },
+            "size": null,
+            "radius": 16.666666666666668,
+            "inner_radius_ratio": null,
+            "width": 100.0,
+            "height": 60.0,
+            "text": "\u0422\u0435\u043a\u0441\u0442",
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": 4,
+            "dots": null
+        },
+        {
+            "type": "Text_into_object",
+            "position": [
+                -206.5,
+                -140.0
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": null,
+            "dots": null
+        },
+        {
+            "type": "ActiveState",
+            "position": {
+                "x": -599.0,
+                "y": -502.0
+            },
+            "size": null,
+            "radius": 16.666666666666668,
+            "inner_radius_ratio": null,
+            "width": 100.0,
+            "height": 60.0,
+            "text": "\u0422\u0435\u043a\u0441\u0442",
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": 3,
+            "dots": null
+        }
+    ],
+    "arrows": [
+        {
+            "start_node_id": 4,
+            "end_node_id": 5,
+            "dots": [
+                [
+                    -13.0,
+                    -253.53968253968253
+                ],
+                [
+                    -210.0,
+                    -126.53968253968253
+                ]
+            ]
+        },
+        {
+            "start_node_id": 3,
+            "end_node_id": 4,
+            "dots": [
+                [
+                    -359.65775401069516,
+                    -423.0
+                ]
+            ]
+        }
+    ]
+}
