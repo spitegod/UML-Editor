@@ -2122,8 +2122,8 @@ QLabel {
             if isinstance(item, Arrow):
                 start_node_id = item.node1.unique_id  # Получаем id начального узла
                 end_node_id = item.node2.unique_id    # Получаем id конечного узла
-                dots = item.intermediate_points
-                line_type = item.line_type
+                dots = item.intermediate_points       # Получаем точки изгиба
+                line_type = item.line_type            # Получаем тип начертания линии
 
                         # Преобразуем intermediate_points в сериализуемый формат
                 dots = [[point.x(), point.y()] for point in item.intermediate_points]
@@ -2132,7 +2132,7 @@ QLabel {
                     "start_node_id": start_node_id, # Начало стрелки
                     "end_node_id": end_node_id, # Конец стрелки
                     "dots": dots, # Точки изгиба
-                    "line_type": line_type
+                    "line_type": line_type # Тип начертания линии
 
                 })
 
@@ -2176,6 +2176,7 @@ QLabel {
                 start_node_id = item.node1.unique_id  # Получаем id начального узла
                 end_node_id = item.node2.unique_id    # Получаем id конечного узла
                 dots = item.intermediate_points
+                line_type = item.line_type            # Получаем тип начертания линии
 
                         # Преобразуем intermediate_points в сериализуемый формат
                 dots = [[point.x(), point.y()] for point in item.intermediate_points]
@@ -2184,6 +2185,7 @@ QLabel {
                     "start_node_id": start_node_id, # Начало стрелки
                     "end_node_id": end_node_id, # Конец стрелки
                     "dots": dots, # Точки изгиба
+                    "line_type": line_type # Тип начертания линии
                 })
 
 
@@ -2913,6 +2915,10 @@ QLabel {
                 ]
 
                 arrow = Arrow(node1, node2, intermediate_points=intermediate_points) # Создаём объект стрелки вместе с точками изгиба
+
+                # Устанавливаем тип линии
+                line_type = arrow_data.get("line_type", "solid")  # Используем "solid" по умолчанию, если данных нет
+                arrow.change_line_type(line_type)  # Применяем тип линии
                 arrow.setZValue(-1)
                 self.scene_.addItem(arrow)  # Добавляем стрелку на сцену
                 # Привязываем стрелку к обоим узлам
