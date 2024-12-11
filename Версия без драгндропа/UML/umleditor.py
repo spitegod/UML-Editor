@@ -2155,25 +2155,40 @@ QLabel {
         data = {"items": [], "arrows": []}
         elements = {}
 
-        # Сохраняем элементы
+        # Сохраняем элементы, пропуская стрелки
         for item in self.scene_.items():
-            if isinstance(item, QtWidgets.QGraphicsItem):
+            if isinstance(item, QtWidgets.QGraphicsItem) and not isinstance(item, Arrow) and not isinstance(item, QGraphicsEllipseItem):
                 item_data = self.serialize_item(item)
-                data["items"].append(item_data)
-                elements[item.unique_id] = item  # Сохраняем элементы по их уникальному идентификатору
+                data["items"].append(item_data)  # Добавляем элемент в items
+                elements[item.unique_id] = item  # Сохраняем элемент по уникальному идентификатору
 
-                if isinstance(item, Arrow):  # Если элемент - стрелка
-                    arrow_data = {
-                        "start_node_id": item.node1.unique_id,  # Сохраняем идентификаторы узлов
-                        "end_node_id": item.node2.unique_id,
-                        "dots": item.intermediate_points,
-                    }
-                    data["arrows"].append(arrow_data)
+            if isinstance(item, QGraphicsEllipseItem):
+                item_data = self.serialize_item(item)
+                data["items"].append(item_data)  # Добавляем элемент в items
+                
+
+        # Сохраняем стрелки отдельно через их id
+        for item in self.scene_.items():
+            if isinstance(item, Arrow):
+                start_node_id = item.node1.unique_id  # Получаем id начального узла
+                end_node_id = item.node2.unique_id    # Получаем id конечного узла
+                dots = item.intermediate_points
+
+                        # Преобразуем intermediate_points в сериализуемый формат
+                dots = [[point.x(), point.y()] for point in item.intermediate_points]
+
+                data["arrows"].append({
+                    "start_node_id": start_node_id, # Начало стрелки
+                    "end_node_id": end_node_id, # Конец стрелки
+                    "dots": dots, # Точки изгиба
+                })
+
 
         try:
             with open(filepath, "w") as file:
                 json.dump(data, file, indent=4)
             print("Файл сохранён:", filepath)
+            QtWidgets.QMessageBox.information(self, "Сохранение", f"Файл успешно сохранён в:\n{filepath}")
         except Exception as e:
             QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось сохранить файл: {e}")
 
