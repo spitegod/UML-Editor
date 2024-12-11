@@ -470,6 +470,9 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
 
 class StartEvent(QtWidgets.QGraphicsEllipseItem):
     _id_counter = 0
+    x_default = 0  # Значения по умолчанию
+    y_default = 0
+    radius_default = 30
     def __init__(self, x, y, radius, node1=None, node2=None):
         super().__init__(x - radius, y - radius, 2 * radius, 2 * radius)
         global global_id  # Объявляем, что будем использовать глобальную переменную
@@ -506,7 +509,13 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
         clone_item.setPen(self.pen())
         clone_item.radius = self.radius
         return clone_item
-
+    
+    def currentX(self):
+        return self.x_center
+    def currentY(self):
+        return self.y_center
+    def currentRadius(self):
+        return self.radius
 
     def setRadius(self, new_radius):
         self.radius = new_radius

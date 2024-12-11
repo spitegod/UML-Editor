@@ -320,18 +320,8 @@ class EditingPanel(QWidget):
 
     def delete_current_item(self):
         if self.editable_item:
-            # self.editable_item.setSelected(True)  # Выделяем текущий объект
+            self.main_window.reset_inaction()
             self.main_window.delete_specific_item(self.editable_item)    
-
-    def update_position(self):
-        if self.editable_item:
-            # Получаем глобальные координаты объекта на сцене
-            scene_pos = self.editable_item.mapToScene(self.editable_item.pos())  # Преобразуем в глобальные координаты
-            new_x = scene_pos.x()  # Глобальная X-координата
-            new_y = scene_pos.y()  # Глобальная Y-координата
-
-            self.x_spinbox.setValue(new_x)
-            self.y_spinbox.setValue(new_y)
 
     def update_coordinates(self, x, y):
         if self.is_position_updating:
@@ -343,6 +333,7 @@ class EditingPanel(QWidget):
 
     #Если пользователь хочет поменять позицию объекта через панель редактирования
     def update_position_from_spinbox(self):
+        self.main_window.reset_inaction()
         if self.is_position_updating:
             return  # Прерываем, если уже идет обновление позиции
         self.is_position_updating = True  # Устанавливаем флаг
@@ -361,12 +352,14 @@ class EditingPanel(QWidget):
         self.is_position_updating = False  # Сбрасываем флаг
 
     def change_arrow_color(self):
+        self.main_window.reset_inaction()
         color = QColorDialog.getColor()
         if color.isValid():
             self.editable_item.change_color(color)
             self.update_color_button_arrow()
 
     def update_color_button_arrow(self):
+        self.main_window.reset_inaction()
         current_color = self.editable_item.pen.color()  # Получаем цвет из pen у стрелки
         self.color_button.setStyleSheet(f"""
                 background-color: {current_color.name()};
@@ -374,6 +367,7 @@ class EditingPanel(QWidget):
 """)
 
     def update_line_type(self):
+        self.main_window.reset_inaction()
         line_type = self.line_type_combo.currentText()
         if line_type == "Пунктирная":
             self.editable_item.change_line_type("dashed")
@@ -387,21 +381,26 @@ class EditingPanel(QWidget):
             self.editable_item.change_line_type("solid")
 
     def toggle_right_arrow(self, state):
+        self.main_window.reset_inaction()
         self.editable_item.right_arrow_enabled = bool(state)
         self.editable_item.update_arrow()
 
     def toggle_left_arrow(self, state):
+        self.main_window.reset_inaction()
         self.editable_item.left_arrow_enabled = bool(state)
         self.editable_item.update_arrow()
 
     def toggle_points_visibility(self, state):
+        self.main_window.reset_inaction()
         self.editable_item.show_points = bool(state)
         self.editable_item.update()
 
     def update_arrow_thickness(self, thickness):
+        self.main_window.reset_inaction()
         self.editable_item.change_width(thickness)
 
     def update_text(self):
+        self.main_window.reset_inaction()
         if hasattr(self.editable_item, 'text_item'):
             self.editable_item.text_item.setPlainText(self.text_input.text())
         if isinstance(self.editable_item, Text_Edit):
@@ -429,11 +428,12 @@ class EditingPanel(QWidget):
         self.update_len_count()
 
     def update_orientation(self):
+        self.main_window.reset_inaction()
         if isinstance(self.editable_item, Splitter_Merge):
             orientation = self.orint_combo.currentText()  # Получаем выбранный текст
             if orientation == "Вериткально":
                 width, height = self.editable_item.height, self.editable_item.width
-                temp_s = width #Перед поротом меняем ширину и высоту местами
+                temp_s = width #Перед поворотом меняем ширину и высоту местами
                 width = height
                 height = temp_s
                 rotation = 90
@@ -446,6 +446,7 @@ class EditingPanel(QWidget):
 
 
     def update_width(self):
+        self.main_window.reset_inaction()
         new_width = self.width_spinbox.value()
         old_height = self.height_spinbox.value()
         if hasattr(self.editable_item, 'setRect'):
@@ -465,6 +466,7 @@ class EditingPanel(QWidget):
             print(f"Cannot update width for {type(self.editable_item).__name__}")
 
     def update_height(self):
+        self.main_window.reset_inaction()
         old_width = self.width_spinbox.value()
         new_height = self.height_spinbox.value()
         if hasattr(self.editable_item, 'setRect'):
@@ -501,6 +503,7 @@ class EditingPanel(QWidget):
         self.editable_item.setPolygon(new_polygon)
 
     def change_mirror(self, direction):
+        self.main_window.reset_inaction()
         if isinstance(self.editable_item, QGraphicsPolygonItem):
             if direction == "Слева":
                 self.editable_item.reflect("Слева")
@@ -508,6 +511,7 @@ class EditingPanel(QWidget):
                 self.editable_item.reflect("Справа")
 
     def update_radius(self):
+        self.main_window.reset_inaction()
         if isinstance(self.editable_item, (StartEvent)):
             new_radius = self.radius_spinbox.value()
             self.editable_item.setRadius(new_radius)  # Обновляем радиус
@@ -517,6 +521,7 @@ class EditingPanel(QWidget):
             self.editable_item.update_inner_circle()
 
     def duplicate_current_item(self):
+        self.main_window.reset_inaction()
         if isinstance(self.editable_item, (StartEvent, Decision, EndEvent, ActiveState, SignalSending, SignalReceipt, Splitter_Merge, ImageItem, Text_Edit)):
             new_item = self.editable_item.clone()
             new_pos = self.editable_item.scenePos() + QPointF(10, 10)
@@ -543,12 +548,14 @@ class EditingPanel(QWidget):
 
 
     def change_color(self):
+        self.main_window.reset_inaction()
         color = QColorDialog.getColor()
         if color.isValid():
             self.editable_item.setBrush(QBrush(color))
             self.update_button_color()
 
     def update_button_color(self):
+        self.main_window.reset_inaction()
         # Получение цвета из editable_item и установка его как цвет фона кнопки
         brush = self.editable_item.brush()
         if brush and brush.color().isValid():
@@ -562,6 +569,7 @@ class EditingPanel(QWidget):
 
     #Прозрачность для ImageItem
     def update_opacity(self):
+        self.main_window.reset_inaction()
         opacity = self.opacity_slider.value() / 100
         self.editable_item.setOpacity(opacity)
 
@@ -744,6 +752,7 @@ class DraggableButton(QtWidgets.QPushButton):
             painter.restore()
 
     def mouseMoveEvent(self, event):
+        self.mainwindow.reset_inaction()
         # Проверяем, находится ли курсор внутри Text_Edit, если да, то игнорируем drag-and-drop
         if not self.underMouse():
             return
@@ -765,6 +774,7 @@ class DraggableButton(QtWidgets.QPushButton):
             drag.exec_(Qt.MoveAction)
 
     def create_pixmap_for_drag(self):
+        self.mainwindow.reset_inaction()
         pixmap = QtGui.QPixmap(self.size())  # Создаем отображениу временного объекта во время перетаскивания размером с кнопку
         pixmap.fill(QtCore.Qt.transparent)  # Делаем фон прозрачным
 
@@ -1031,11 +1041,10 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
     def mousePressEvent(self, event):
 
         # self.clicks.append(event.scenePos())
-
+        self.reset_time.reset_inaction()
         selected_item = self.itemAt(event.scenePos(), QtGui.QTransform())  # Находим элемент под курсором
   
         if selected_item:
-            self.reset_time.stop_inaction()
             self.is_dragging = True
             # Устанавливаем текст в label_x_y с названием класса элемента
             element_name = type(selected_item).__name__
@@ -1097,10 +1106,12 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
         super().mouseReleaseEvent(event)
     
     def dragEnterEvent(self, event):
+        self.reset_time.reset_inaction()
         if event.mimeData().hasText():
             event.acceptProposedAction()
 
     def dropEvent(self, event):
+        self.reset_time.reset_inaction()
         element_type = event.mimeData().text()
         position = event.scenePos()
 
@@ -1172,13 +1183,14 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
             self.coordinates_updated.emit(global_pos.x(), global_pos.y()) #Передача глобальных координатов в панель редактирования
 
             # Проверяем переполнение
-            if len(self.objectS) > 10:
+            if len(self.objectS) > 50:
                 self.reset_time.message_overcrowed_objectS()
         else:
             # Если item (например фрагмент Text_Edit)не распознан, отклоняем событие
             event.ignore()
 
     def dragMoveEvent(self, event):
+        self.reset_time.reset_inaction()
         event.acceptProposedAction()
 
     # def addShape(self, shape):
@@ -1701,7 +1713,7 @@ QLabel {
         self.Time_inaction.setAlignment(QtCore.Qt.AlignCenter)  # Центрируем текст
         self.Time_inaction.setText("00:00:00")  # Устанавливаем начальное значение времени
         self.Time_inaction.setReadOnly(True)
-        self.Time_inaction.setVisible(False) #По умолчанию всегда невиден
+        # self.Time_inaction.setVisible(False) #По умолчанию всегда невиден
 
 
 
@@ -1838,17 +1850,37 @@ QLabel {
         MainWindow.addDockWidget(Qt.LeftDockWidgetArea, self.object_list_dock)
         MainWindow.tabifyDockWidget(self.object_list_dock, self.dock_widget) #Размещаем dockwidget'ы одновременно, чтобы сразу через них можно было переключаться
         self.object_list_dock.setMinimumWidth(100)
-        self.object_list_dock.setMaximumWidth(150)
+        self.object_list_dock.setMaximumWidth(200)
         self.object_list_widget.itemClicked.connect(self.on_object_selected)
         self.populate_object_list()
+        self.object_list_widget.itemClicked.connect(self.object_panel_on_item)
 
 
     def show_toolbar(self):
+        self.reset_inaction()
         self.dock_widget.setVisible(True)
+
     def show_edit_panel(self):
+        self.reset_inaction()
         self.editing_dock.setVisible(True)
+
     def show_object_panel(self):
+        self.reset_inaction()
         self.object_list_dock.setVisible(True)
+
+    # Выделение объекта и вызов панели редактирование для него через виджет "Список элементов"
+    def object_panel_on_item(self):
+        # Сначало снимаем выделение со всех элементов
+        for all_item in self.scene_.items():
+            # Проверяем может ли элемент выделяться
+            if isinstance(all_item, QtWidgets.QGraphicsItem):
+                all_item.setSelected(False) # Снимаем выделение
+
+        current_row = self.object_list_widget.currentRow()
+        item = self.objectS_[current_row]
+        item.setSelected(True) # Выделяем конкретный элемент
+        self.show_editing_panel(item) #Показываем информацию о выделенном элементе в окне редактирования
+
 
     def populate_object_list(self):
         self.object_list_widget.clear()
@@ -1856,14 +1888,17 @@ QLabel {
             list_item_text = f"#{item.unique_id}: {type(item).__name__}"
             list_item = QtWidgets.QListWidgetItem(list_item_text)
             self.object_list_widget.addItem(list_item)
+            
 
     def show_help(self):
+        self.reset_inaction()
         if not self.help_window:
             self.help_window = HelpWindow()
         self.help_window.show()
 
     def on_object_selected(self, item):
         # Получаем объект, привязанный к элементу списка
+        self.reset_inaction()
         selected_object = item.data(Qt.UserRole)
         if selected_object:
             # Снимаем выделение со всех объектов
@@ -1885,6 +1920,7 @@ QLabel {
         self.editing_dock.setVisible(False)
 
     def show_editing_panel(self, item):
+        self.reset_inaction()
         # Создание и отображение панели редактирования для выбранного объекта
         self.editing_panel = EditingPanel(item, self)
         self.editing_dock.setWidget(self.editing_panel)
@@ -1943,6 +1979,7 @@ QLabel {
 
 
     def save_to_file(self, filepath=None):
+        self.reset_inaction()
         # Получаем директорию, где находится исполняемый файл
         base_dir = os.path.dirname(os.path.abspath(__file__))
         saves_dir = os.path.join(base_dir, "saves")
@@ -1992,6 +2029,7 @@ QLabel {
             QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось сохранить файл: {e}")
 
     def save_as(self, filepath=None):
+        self.reset_inaction()
         if not filepath:  # Если путь не задан, запрашиваем его у пользователя
             options = QtWidgets.QFileDialog.Options()
             filepath, _ = QtWidgets.QFileDialog.getSaveFileName(
@@ -2025,6 +2063,7 @@ QLabel {
             QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось сохранить файл: {e}")
 
     def open_file(self):
+        self.reset_inaction()
         """Открытие файла формата chep."""
         options = QtWidgets.QFileDialog.Options()
         filepath, _ = QtWidgets.QFileDialog.getOpenFileName(
@@ -2164,6 +2203,7 @@ QLabel {
 
 
     def closeEvent(self, event):
+        self.reset_inaction()
         print('Вызвано')
         reply = QtWidgets.QMessageBox.question(
             self,
@@ -2180,7 +2220,8 @@ QLabel {
             event.ignore()
     
     def message_overcrowed_objectS(self):
-        if len(self.objectS_) > 10:
+        self.reset_inaction()
+        if len(self.objectS_) > 50:
             self.reset_inaction() #Сбрасыем второй таймер
             self.count_objectS.emit(len(self.objectS_) - 1)
             self.scene_.removeItem(self.objectS_[len(self.objectS_) - 1])
@@ -2213,6 +2254,7 @@ QLabel {
     #     self.scene_.addItem(text_item)  # Добавляем текстовое поле на сцену
 
     def add_text(self):
+        self.reset_inaction()
         text_item = Text_Edit(0, 0, 100, 30, "Текст")
         self.scene_.addItem(text_item)
         self.objectS_.append(text_item)
@@ -2222,7 +2264,7 @@ QLabel {
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())), self.user_.action_history)
 
     def draw_diamond(self):
-        # self.reset_inaction() #Сбрасыем второй таймер
+        self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра и размер ромба
         x, y, size = 0, 0, 50  # Пример координат и размера
         diamond = Decision(x, y, size)
@@ -2243,7 +2285,7 @@ QLabel {
     def draw_circle(self):
         # Вставляем круг на сцену
         # Координаты центра и радиус круга
-        # self.reset_inaction() #Сбрасыем второй таймер
+        self.reset_inaction() #Сбрасыем второй таймер
         x, y, radius = 0, 0, 30  # Пример: рисуем круг в центре с радиусом 50
         circle = StartEvent(x, y, radius)
         self.scene_.addItem(circle)  # Добавляем круг на сцену
@@ -2262,7 +2304,7 @@ QLabel {
         #         arrow.update_arrow()  # Перерисовываем стрелку для всех стрелок
 
     def draw_circle_2(self):
-        # self.reset_inaction() #Сбрасыем второй таймер
+        self.reset_inaction() #Сбрасыем второй таймер
         # Вставляем круг на сцену
         # Координаты центра и радиус круга
         x, y, radius, into_radius = 0, 0, 30, 0.5  # Пример: рисуем круг в центре с радиусом 50
@@ -2280,7 +2322,7 @@ QLabel {
 
 
     def draw_rounded_rectangle(self):
-        # self.reset_inaction() #Сбрасыем второй таймер
+        self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
         x, y, width, height, radius = 0, 0, 100, 60, 15  # Пример координат, размера и радиуса
         rounded_rect = ActiveState(x, y, width, height, radius)
@@ -2297,7 +2339,7 @@ QLabel {
 
 
     def draw_pentagon_signal(self):
-        # self.reset_inaction() #Сбрасыем второй таймер
+        self.reset_inaction() #Сбрасыем второй таймер
         pentagon = SignalSending(0, 0, 160, 60)
         pentagon.reflect("Справа")
         self.scene_.addItem(pentagon)  # Добавляем закругленный прямоугольник на сцену
@@ -2310,7 +2352,7 @@ QLabel {
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())), self.user_.action_history)
 
     def draw_pentagon_reverse(self):
-        # self.reset_inaction() #Сбрасыем второй таймер
+        self.reset_inaction() #Сбрасыем второй таймер
         pentagon = SignalReceipt(0, 0, 180, 60)
         pentagon.reflect("Слева")
         self.scene_.addItem(pentagon)
@@ -2323,7 +2365,7 @@ QLabel {
         self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())), self.user_.action_history)
 
     def draw_splitter_merge_h(self):
-        # self.reset_inaction() #Сбрасыем второй таймер
+        self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
         x, y = 0, 0  # Пример координат, размера и радиуса
         stick = Splitter_Merge(x, y, 120, 40)
@@ -2336,7 +2378,7 @@ QLabel {
         self.count_objectS.emit(len(self.objectS_))
 
     def draw_splitter_merge_v(self):
-        # self.reset_inaction() #Сбрасыем второй таймер
+        self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
         x, y = 0, 0  # Пример координат, размера и радиуса
         stick = Splitter_Merge(x, y, 120, 40)
@@ -2351,7 +2393,7 @@ QLabel {
 
 
     def add_edge(self):
-        # self.reset_inaction() #Сбрасыем второй таймер
+        self.reset_inaction() #Сбрасыем второй таймер
         selected_nodes = [object_ for object_ in self.objectS_ if object_.isSelected()]
 
         if len(selected_nodes) == 2:
@@ -2386,13 +2428,14 @@ QLabel {
             self.user_.add_action(f"Соединены '{node1.__class__.__name__}' и '{node2.__class__.__name__}'", self.get_current_Realtime())
     
     def select_all_item(self):
-        # self.reset_inaction()
+        self.reset_inaction()
         for item in self.scene_.items():
             # Проверяем может ли элемент выделяться
             if isinstance(item, QtWidgets.QGraphicsItem):
                 item.setSelected(True)
 
     def disconnect_nodes(self, node1, node2):
+        self.reset_inaction()
         if hasattr(node1, 'arrows') and hasattr(node2, 'arrows'):
             for arrow in node1.arrows[:]:
                 if (arrow.node1 == node2 or arrow.node2 == node2) and arrow in node2.arrows:
@@ -2405,7 +2448,7 @@ QLabel {
 
                 
     def delete_selected_item(self):
-        # self.reset_inaction()  # Сбрасываем второй таймер
+        self.reset_inaction()  # Сбрасываем второй таймер
         selected_items = self.scene_.selectedItems()
 
         for item in selected_items:
@@ -2436,6 +2479,7 @@ QLabel {
 
     #Для панели редактирования
     def delete_specific_item(self, item):
+        self.reset_inaction()
         if isinstance(item, (StartEvent, Decision, EndEvent, ActiveState, SignalSending, SignalReceipt, Splitter_Merge, ImageItem, Text_Edit)):
 
             if item in self.objectS_:
@@ -2463,6 +2507,7 @@ QLabel {
                 print(f"Объект {item.__class__.__name__} отсутствует в objectS_")
 
     def duplicate_selected_item(self):
+        self.reset_inaction()
         selected_items = self.scene_.selectedItems()
 
         for item in selected_items:
@@ -2476,7 +2521,7 @@ QLabel {
                 self.scene_.addItem(new_item)
                 self.objectS_.append(new_item)
 
-                if (len(self.objectS_)> 10):
+                if (len(self.objectS_)> 50):
                     self.message_overcrowed_objectS()
 
                 #это для стрелочек. пока не работает
@@ -2621,6 +2666,7 @@ QLabel {
 
 
     def load_from_data(self, data):
+        self.reset_inaction()
         self.objectS_.clear()
         self.scene_.clear()  # Очищаем сцену перед загрузкой новых данных
         elements = {}  # Словарь для хранения элементов по их координатам
@@ -2756,6 +2802,7 @@ QLabel {
         elements[position] = item  # Сохраняем элемент
 
     def create_new(self):
+        self.reset_inaction()
         if len(self.objectS_) != 0:
             reply = QtWidgets.QMessageBox.question(
                 self,
@@ -2769,6 +2816,7 @@ QLabel {
                 self.objectS_.clear()
                 self.scene_.clear()
                 self.user_.add_action("Создана диаграмма UML", self.get_current_Realtime())
+                self.reset_inaction()
             else:
                 return
         else:
@@ -2776,7 +2824,7 @@ QLabel {
             self.scene_.clear()
 
     def insert_image(self):
-        
+        self.reset_inaction()
         # Открываем диалог для выбора изображения
         options = QtWidgets.QFileDialog.Options()
         filepath, _ = QtWidgets.QFileDialog.getOpenFileName(
@@ -2825,6 +2873,7 @@ QLabel {
         )
     #Отображение окна статистики
     def show_static_widget(self):
+        self.reset_inaction()
         # Создаем виджет статистики
         self.static_widget = QtWidgets.QWidget()  
         self.static_ui = Ui_StaticWidget()
