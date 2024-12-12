@@ -2306,7 +2306,7 @@ QLabel {
             rect = item.rect()
             base_data["width"] = rect.width()
             base_data["height"] = rect.height()
-            base_data["radius"] = rect.width() / 6
+            base_data["radius"] = item.radius
             base_data["text"] = item.text_item.toPlainText() if hasattr(item, "text_item") else None
             position = item.sceneBoundingRect()
             p_center = position.center()
