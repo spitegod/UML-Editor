@@ -613,7 +613,7 @@ class DraggableButton(QtWidgets.QPushButton):
 
     def create_sending_signal_in_tulbar(self):
         if self.element_type == "SignalSending":
-            return SignalSending(0, 25, 80, 50)
+            return SignalSending(0, 25, 80, 50, "Справа")
 
     def create_sending_receipt_in_tulbar(self):
         if self.element_type == "SignalReceipt":
@@ -1133,7 +1133,7 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
             print(f"Created {item.__class__.__name__} with unique_id: {item.unique_id}")
 
         elif element_type == "SignalSending":
-            item = SignalSending(position.x(), position.y(), 160, 60)
+            item = SignalSending(position.x(), position.y(), 160, 60, "Справа")
             item.reflect("Справа")
             print(f"Created {item.__class__.__name__} with unique_id: {item.unique_id}")
 
@@ -2352,6 +2352,7 @@ QLabel {
                 base_data["color"] = item.color.name()  # HEX-строка
             else:
                 base_data["color"] = QtGui.QColor(item.color).name()  # Дефолтный цвет
+            base_data["direction"] = item.trans
 
         elif isinstance(item, SignalReceipt):  # Пентагон (сигнал получения)
             rect = item.boundingRect()
@@ -2993,6 +2994,7 @@ QLabel {
                 text = item_data.get("text", "")
                 x, y = position_data.get("x"), position_data.get("y")
                 color = item_data.get("color", "#000000")
+                trans = item_data.get("direction")
                 if isinstance(color, str):
                     if color.startswith("#"):  # Если это HEX-строка
                         color = QtGui.QColor(color)
@@ -3000,9 +3002,10 @@ QLabel {
                         color = getattr(QtCore.Qt, color, QtCore.Qt.transparent)
                 else:
                     color = QtGui.QColor()  # Цвет по умолчанию
-                item = SignalSending(x, y, width, height, color=color)
+                item = SignalSending(x, y, width, height, trans, color=color)
                 item.unique_id = item_data.get("id")
                 item.text_item.setPlainText(text)
+                item.reflect(trans)
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 

@@ -1036,7 +1036,7 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
 
 class SignalSending(QtWidgets.QGraphicsPolygonItem):
     _id_counter = 0
-    def __init__(self, x, y, width, height, color=QtCore.Qt.white, node1=None, node2=None):
+    def __init__(self, x, y, width, height, trans, color=QtCore.Qt.white, node1=None, node2=None):
         global global_id
         self.unique_id = global_id - 8
         global_id += 1
@@ -1046,6 +1046,7 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
         self.center_x = x
         self.center_y = y
         self.color = color
+        self.trans = trans
 
         # Создаем пентагон
         self.setPolygon(self.create_pentagon(self.center_x, self.center_y, self.width, self.height))
@@ -1237,8 +1238,8 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
         self.height = height
         self.center_x = x
         self.center_y = y
-        self.color=color
-        self.trans=trans
+        self.color = color
+        self.trans = trans
 
         # Создаем пентагон
         self.setPolygon(self.create_pentagon(self.center_x, self.center_y, self.width, self.height))
