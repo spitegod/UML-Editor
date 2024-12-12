@@ -511,8 +511,10 @@ class EditingPanel(QWidget):
         if isinstance(self.editable_item, QGraphicsPolygonItem):
             if direction == "Слева":
                 self.editable_item.reflect("Слева")
+                self.editable_item.trans = "Слева"
             elif direction == "Справа":
                 self.editable_item.reflect("Справа")
+                self.editable_item.trans = "Справа"
 
     def update_radius(self):
         if isinstance(self.editable_item, (StartEvent)):
@@ -553,6 +555,7 @@ class EditingPanel(QWidget):
         color = QColorDialog.getColor()
         if color.isValid():
             self.editable_item.setBrush(QBrush(color))
+            self.editable_item.color = color
             self.update_button_color()
 
     def update_button_color(self):
@@ -610,19 +613,19 @@ class DraggableButton(QtWidgets.QPushButton):
 
     def create_sending_signal_in_tulbar(self):
         if self.element_type == "SignalSending":
-            return SignalSending(0, 25, 80, 50)
+            return SignalSending(0, 25, 80, 50, "Справа")
 
     def create_sending_receipt_in_tulbar(self):
         if self.element_type == "SignalReceipt":
-            return SignalReceipt(0, 25, 100, 50)
+            return SignalReceipt(0, 25, 100, 50, "Слева")
 
     def create_splitter_merge_horizontal_in_tulbar(self):
         if self.element_type == "Splitter_Merge_Horizontal":
-            return Splitter_Merge(0, 10, 100, 30)
+            return Splitter_Merge(0, 10, 100, 30, 0)
 
     def create_splitter_merge_vertical_in_tulbar(self):
         if self.element_type == "Splitter_Merge_Vertical":
-            return Splitter_Merge(0, 0, 60, 30)
+            return Splitter_Merge(0, 0, 60, 30, 90)
 
     def create_active_state_in_tulbar(self):
         if self.element_type == "ActiveState":
@@ -1130,22 +1133,22 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
             print(f"Created {item.__class__.__name__} with unique_id: {item.unique_id}")
 
         elif element_type == "SignalSending":
-            item = SignalSending(position.x(), position.y(), 160, 60)
+            item = SignalSending(position.x(), position.y(), 160, 60, "Справа")
             item.reflect("Справа")
             print(f"Created {item.__class__.__name__} with unique_id: {item.unique_id}")
 
         elif element_type == "SignalReceipt":
-            item = SignalReceipt(position.x(), position.y(), 180, 60)
+            item = SignalReceipt(position.x(), position.y(), 180, 60, "Слева")
             item.reflect("Слева")
             print(f"Created {item.__class__.__name__} with unique_id: {item.unique_id}")
 
         elif element_type == "Splitter_Merge_Horizontal":
-            item = Splitter_Merge(position.x(), position.y(), 120, 40)
+            item = Splitter_Merge(position.x(), position.y(), 120, 40, 0)
             item.setRotation(0)
             print(f"Created {item.__class__.__name__} with unique_id: {item.unique_id}")
 
         elif element_type == "Splitter_Merge_Vertical":
-            item = Splitter_Merge(position.x(), position.y(), 120, 40)
+            item = Splitter_Merge(position.x(), position.y(), 120, 40, 90)
             item.setRotation(90)
             print(f"Created {item.__class__.__name__} with unique_id: {item.unique_id}")
 
@@ -2124,7 +2127,12 @@ QLabel {
                 end_node_id = item.node2.unique_id     # Получаем id конечного узла
                 dots = item.intermediate_points        # Получаем точки изгиба
                 line_type = item.line_type             # Получаем тип начертания линии
-                color = item.color.name()              # Получаем цвет стрелки
+                print(QtGui.QColor(item.color).name())
+                if isinstance(item.color, QtGui.QColor):
+                    color = item.color.name()  # HEX-строка
+                else:
+                    color = "#8B0000"  # Дефолтный цвет
+                
                 line_width = item.pen_width            # Получаем толщину линии
                 right_arrow = item.right_arrow_enabled # Получаем флаг правого наконечника
                 left_arrow = item.left_arrow_enabled   # Получаем флаг левого наконечника
@@ -2187,7 +2195,10 @@ QLabel {
                 end_node_id = item.node2.unique_id    # Получаем id конечного узла
                 dots = item.intermediate_points
                 line_type = item.line_type            # Получаем тип начертания линии
-                color = item.color.name()             # Получаем цвет стрелки
+                if isinstance(item.color, QtGui.QColor):
+                    color = item.color.name()  # HEX-строка
+                else:
+                    color = "#8B0000"  # Дефолтный цвет
                 line_width = item.pen_width           # Получаем толщину линии
                 right_arrow = item.right_arrow_enabled # Получаем флаг правого наконечника
                 left_arrow = item.left_arrow_enabled   # Получаем флаг левого наконечника
@@ -2255,25 +2266,29 @@ QLabel {
             "color": None,                   # Цвет линии (для Arrow)
             "line_width": None,              # Ширина линии
             "id": None,                       # Идентификатор
-            "dots": None
+            "dots": None,
+            "pixmap": None,
+            "opacity": None,
+            "rotation": None,
+            "direction": None,
         }
 
        
         # Заполняем структуру в зависимости от типа элемента
         if isinstance(item, Decision):  # Ромб
+            print(QtGui.QColor(item.color).name())
             base_data["size"] = item.size
             position = item.sceneBoundingRect()
             p_center = position.center()
             x = p_center.x()/ 2
             y = p_center.y() / 2
             base_data["position"] = {"x": x, "y": y}
-            base_data["id"] = item.unique_id
-            # Проверяем, является ли цвет экземпляром QColor
+            base_data["id"] = item.unique_id 
             if isinstance(item.color, QtGui.QColor):
-                base_data["color"] = item.color.name()  # Сохраняем как HEX
+                base_data["color"] = item.color.name()  # HEX-строка
             else:
-                # Для предопределённых цветов сохраняем их название
-                base_data["color"] = str(item.color)  # Например, 'transparent'
+                base_data["color"] = QtGui.QColor(item.color).name()  # Дефолтный цвет
+            
 
         elif isinstance(item, StartEvent):  # Круг (начало)
             rect = item.rect()
@@ -2284,6 +2299,10 @@ QLabel {
             y = p_center.y()
             base_data["position"] = {"x": x, "y": y}
             base_data["id"] = item.unique_id
+            if isinstance(item.color, QtGui.QColor):
+                base_data["color"] = item.color.name()  # HEX-строка
+            else:
+                base_data["color"] = QtGui.QColor(item.color).name()  # Дефолтный цвет
 
         elif isinstance(item, EndEvent):  # Круг с внутренним кругом (конец)
             rect = item.rect()
@@ -2295,12 +2314,16 @@ QLabel {
             y = p_center.y()
             base_data["position"] = {"x": x, "y": y}
             base_data["id"] = item.unique_id
+            if isinstance(item.color, QtGui.QColor):
+                base_data["color"] = item.color.name()  # HEX-строка
+            else:
+                base_data["color"] = QtGui.QColor(item.color).name()  # Дефолтный цвет
 
         elif isinstance(item, ActiveState):  # Прямоугольник с закругленными углами
             rect = item.rect()
             base_data["width"] = rect.width()
             base_data["height"] = rect.height()
-            base_data["radius"] = rect.width() / 6
+            base_data["radius"] = item.radius
             base_data["text"] = item.text_item.toPlainText() if hasattr(item, "text_item") else None
             position = item.sceneBoundingRect()
             p_center = position.center()
@@ -2309,28 +2332,45 @@ QLabel {
             print(x, y)
             base_data["position"] = {"x": x, "y": y}
             base_data["id"] = item.unique_id
+            if isinstance(item.color, QtGui.QColor):
+                base_data["color"] = item.color.name()  # HEX-строка
+            else:
+                base_data["color"] = QtGui.QColor(item.color).name()  # Дефолтный цвет
 
         elif isinstance(item, SignalSending):  # Пентагон (сигнал отправки)
             rect = item.boundingRect()
             base_data["width"] = item.width
             base_data["height"] = item.height
+            base_data["text"] = item.text_item.toPlainText() if hasattr(item, "text_item") else None
             position = item.sceneBoundingRect()
             p_center = position.center()
             x = p_center.x() - 15
             y = p_center.y() + 30
             base_data["position"] = {"x": x, "y": y}
             base_data["id"] = item.unique_id
+            if isinstance(item.color, QtGui.QColor):
+                base_data["color"] = item.color.name()  # HEX-строка
+            else:
+                base_data["color"] = QtGui.QColor(item.color).name()  # Дефолтный цвет
+            base_data["direction"] = item.trans
 
         elif isinstance(item, SignalReceipt):  # Пентагон (сигнал получения)
             rect = item.boundingRect()
             base_data["width"] = item.width
             base_data["height"] = item.height
+            base_data["text"] = item.text_item.toPlainText() if hasattr(item, "text_item") else None
             position = item.sceneBoundingRect()
             p_center = position.center()
             x = p_center.x()
             y = p_center.y() + 30
             base_data["position"] = {"x": x, "y": y}
             base_data["id"] = item.unique_id
+            if isinstance(item.color, QtGui.QColor):
+                base_data["color"] = item.color.name()  # HEX-строка
+            else:
+                base_data["color"] = QtGui.QColor(item.color).name()  # Дефолтный цвет
+
+            base_data["direction"] = item.trans
 
         
 
@@ -2338,6 +2378,40 @@ QLabel {
             rect = item.rect()
             base_data["width"] = rect.width()
             base_data["height"] = rect.height()
+
+            # Обработка ImageItem
+        elif isinstance(item, ImageItem):
+            position = item.sceneBoundingRect()
+            p_center = position.center()
+            base_data["id"] = item.unique_id
+            base_data["position"] = {"x": p_center.x(), "y": p_center.y()}
+            base_data["type"] = "ImageItem"
+            pixmap_bytes = QtCore.QByteArray()
+            buffer = QtCore.QBuffer(pixmap_bytes)
+            buffer.open(QtCore.QIODevice.WriteOnly)
+            item.pixmap().save(buffer, "PNG")
+            base_data["pixmap"] = pixmap_bytes.toBase64().data().decode("utf-8")
+            base_data["opacity"] = item.opacity()
+
+        elif isinstance(item, Text_Edit):
+            rect = item.boundingRect()
+            base_data["width"] = item.width
+            base_data["height"] = item.height
+            # rect = item.rect()
+            base_data["id"] = item.unique_id
+            base_data["position"] = {"x": item.x_center, "y": item.y_center}
+            base_data["text"] = item.toPlainText()
+
+        elif isinstance(item, Splitter_Merge):
+            base_data["width"] = item.width
+            base_data["height"] = item.height
+            base_data["id"] = item.unique_id
+            base_data["position"] = {"x": item.center_x, "y": item.center_y}
+            base_data["rotation"] = item.rot
+            if isinstance(item.color, QtGui.QColor):
+                base_data["color"] = item.color.name()  # HEX-строка
+            else:
+                base_data["color"] = QtGui.QColor(item.color).name()  # Дефолтный цвет
 
 
 
@@ -2513,7 +2587,7 @@ QLabel {
         # self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
         x, y = 0, 0  # Пример координат, размера и радиуса
-        stick = Splitter_Merge(x, y, 120, 40)
+        stick = Splitter_Merge(x, y, 120, 40, 0)
         stick.setRotation(0)
         self.scene_.addItem(stick) 
         self.objectS_.append(stick)
@@ -2526,7 +2600,7 @@ QLabel {
         # self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
         x, y = 0, 0  # Пример координат, размера и радиуса
-        stick = Splitter_Merge(x, y, 120, 40)
+        stick = Splitter_Merge(x, y, 120, 40, 90)
         stick.setRotation(90)
         self.scene_.addItem(stick) 
         self.objectS_.append(stick)
@@ -2846,7 +2920,7 @@ QLabel {
                 x, y = position_data.get("x"), position_data.get("y")
                 print(x, y)
 
-                item = Decision(x, y, size, color)
+                item = Decision(x, y, size, color=color)
                 item.unique_id = item_data.get("id")
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
@@ -2857,7 +2931,15 @@ QLabel {
                 radius = item_data.get("radius", 30)  # Достаём "radius" с умолчанием
                 position_data = item_data.get("position")
                 x, y = position_data.get("x"), position_data.get("y")
-                item = StartEvent(x, y, radius)
+                color = item_data.get("color", "#000000")
+                if isinstance(color, str):
+                    if color.startswith("#"):  # Если это HEX-строка
+                        color = QtGui.QColor(color)
+                    else:  # Если это предопределённый цвет
+                        color = getattr(QtCore.Qt, color, QtCore.Qt.transparent)
+                else:
+                    color = QtGui.QColor()  # Цвет по умолчанию
+                item = StartEvent(x, y, radius, color=color)
                 print('id now:', item.unique_id)
                 item.unique_id = item_data.get("id")
                 print('id after:', item.unique_id)
@@ -2869,7 +2951,15 @@ QLabel {
                 inner_radius_ratio = item_data.get("inner_radius_ratio", 0.5)
                 position_data = item_data.get("position")
                 x, y = position_data.get("x"), position_data.get("y")
-                item = EndEvent(x, y, radius, inner_radius_ratio)
+                color = item_data.get("color", "#000000")
+                if isinstance(color, str):
+                    if color.startswith("#"):  # Если это HEX-строка
+                        color = QtGui.QColor(color)
+                    else:  # Если это предопределённый цвет
+                        color = getattr(QtCore.Qt, color, QtCore.Qt.transparent)
+                else:
+                    color = QtGui.QColor()  # Цвет по умолчанию
+                item = EndEvent(x, y, radius, inner_radius_ratio, color=color)
                 item.unique_id = item_data.get("id")
                 
                 self.scene_.addItem(item)
@@ -2882,7 +2972,15 @@ QLabel {
                 text = item_data.get("text", "")
                 position_data = item_data.get("position")
                 x, y = position_data.get("x"), position_data.get("y")
-                item = ActiveState(x, y, width, height, radius)
+                color = item_data.get("color", "#000000")
+                if isinstance(color, str):
+                    if color.startswith("#"):  # Если это HEX-строка
+                        color = QtGui.QColor(color)
+                    else:  # Если это предопределённый цвет
+                        color = getattr(QtCore.Qt, color, QtCore.Qt.transparent)
+                else:
+                    color = QtGui.QColor()  # Цвет по умолчанию
+                item = ActiveState(x, y, width, height, radius, color=color)
                 item.unique_id = item_data.get("id")
                 item.text_item.setPlainText(text)
                 
@@ -2893,9 +2991,21 @@ QLabel {
                 width = item_data.get("width", 60)
                 height = item_data.get("height", 40)
                 position_data = item_data.get("position")
+                text = item_data.get("text", "")
                 x, y = position_data.get("x"), position_data.get("y")
-                item = SignalSending(x, y, width, height)
+                color = item_data.get("color", "#000000")
+                trans = item_data.get("direction")
+                if isinstance(color, str):
+                    if color.startswith("#"):  # Если это HEX-строка
+                        color = QtGui.QColor(color)
+                    else:  # Если это предопределённый цвет
+                        color = getattr(QtCore.Qt, color, QtCore.Qt.transparent)
+                else:
+                    color = QtGui.QColor()  # Цвет по умолчанию
+                item = SignalSending(x, y, width, height, trans, color=color)
                 item.unique_id = item_data.get("id")
+                item.text_item.setPlainText(text)
+                item.reflect(trans)
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 
@@ -2903,9 +3013,22 @@ QLabel {
                 width = item_data.get("width", 60)
                 height = item_data.get("height", 40)
                 position_data = item_data.get("position")
+                text = item_data.get("text", "")
                 x, y = position_data.get("x"), position_data.get("y")
-                item = SignalReceipt(x, y, width, height)
+                color = item_data.get("color", "#000000")
+                trans = item_data.get("direction")
+                if isinstance(color, str):
+                    if color.startswith("#"):  # Если это HEX-строка
+                        color = QtGui.QColor(color)
+                    else:  # Если это предопределённый цвет
+                        color = getattr(QtCore.Qt, color, QtCore.Qt.transparent)
+                else:
+                    color = QtGui.QColor()  # Цвет по умолчанию
+                item = SignalReceipt(x, y, width, height, trans, color=color)
                 item.unique_id = item_data.get("id")
+
+                item.text_item.setPlainText(text)
+                item.reflect(trans)
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 
@@ -2915,6 +3038,60 @@ QLabel {
                 rect = QRectF(-width / 2, -height / 2, width, height)
                 item = QtWidgets.QGraphicsEllipseItem(rect)
                 item.setPos(*position)
+                self.scene_.addItem(item)
+                self.objectS_.append(item)
+
+            elif item_type == "ImageItem":
+                # Декодируем pixmap из Base64
+                pixmap_data = item_data.get("pixmap")
+                if pixmap_data:
+                    pixmap = QtGui.QPixmap()
+                    pixmap.loadFromData(QtCore.QByteArray.fromBase64(pixmap_data.encode("utf-8")))
+
+                    # Получаем позицию из данных
+                    position = item_data.get("position", {"x": 0, "y": 0})
+                    x = position.get("x", 0)
+                    y = position.get("y", 0)
+
+                    # Создаём объект ImageItem
+                    item = ImageItem(pixmap, x, y)
+
+                    # Устанавливаем прозрачность, если она сохранена
+                    opacity = item_data.get("opacity", 1.0)
+                    item.setOpacity(opacity)
+
+                    # Добавляем элемент на сцену
+                    self.scene_.addItem(item)
+                    self.objectS_.append(item)
+
+            elif item_type == "Text_Edit":
+                width = item_data.get("width", 60)
+                height = item_data.get("height", 40)
+                position_data = item_data.get("position")
+                x, y = position_data.get("x"), position_data.get("y")
+                text = item_data.get("text", "")
+                item = Text_Edit(x, y, width, height, text)
+                item.unique_id = item_data.get("id")
+                self.scene_.addItem(item)
+                self.objectS_.append(item)
+
+            elif item_type == "Splitter_Merge":
+                width = item_data.get("width", 60)
+                height = item_data.get("height", 40)
+                position_data = item_data.get("position")
+                x, y = position_data.get("x"), position_data.get("y")
+                rot = item_data.get("rotation")
+                color = item_data.get("color", "#000000")
+                if isinstance(color, str):
+                    if color.startswith("#"):  # Если это HEX-строка
+                        color = QtGui.QColor(color)
+                    else:  # Если это предопределённый цвет
+                        color = getattr(QtCore.Qt, color, QtCore.Qt.transparent)
+                else:
+                    color = QtGui.QColor()  # Цвет по умолчанию
+                item = Splitter_Merge(x, y, width, height, rot, color=color)
+                item.update_size_and_orientation(width, height, rot)
+                item.unique_id = item_data.get("id")
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 
@@ -2966,7 +3143,10 @@ QLabel {
 
         # Добавляем элемент на сцену
         self.scene_.addItem(item)
-        elements[position] = item
+        try:
+            elements[position] = item
+        except TypeError:
+            pass  # Игнорировать ошибку и продолжить выполнение
 
     # Обработка кнопки "Создать"
     def create_new(self):
