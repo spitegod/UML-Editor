@@ -612,7 +612,7 @@ class InnerCircle(QtWidgets.QGraphicsEllipseItem):
 
 class EndEvent(QtWidgets.QGraphicsEllipseItem):
     _id_counter = 0
-    def __init__(self, x, y, radius, inner_radius_ratio=0.5, node1=None, node2=None):
+    def __init__(self, x, y, radius, inner_radius_ratio=0.5, color=QtCore.Qt.white, node1=None, node2=None):
         super().__init__(x - radius, y - radius, 2 * radius, 2 * radius)
         global global_id
         self.unique_id = global_id - 8
@@ -622,7 +622,8 @@ class EndEvent(QtWidgets.QGraphicsEllipseItem):
         self.y_center = y
         self.radius = radius
         self.inner_radius_ratio = inner_radius_ratio
-        self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))  # Основной круг
+        self.color = color
+        self.setBrush(color)  # Основной круг
         self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать элемент
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
