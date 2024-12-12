@@ -2559,7 +2559,7 @@ QLabel {
 
     def draw_pentagon_signal(self):
         # self.reset_inaction() #Сбрасыем второй таймер
-        pentagon = SignalSending(0, 0, 160, 60)
+        pentagon = SignalSending(0, 0, 160, 60, "Справа")
         pentagon.reflect("Справа")
         self.scene_.addItem(pentagon)  # Добавляем закругленный прямоугольник на сцену
         self.objectS_.append(pentagon)
@@ -2572,7 +2572,7 @@ QLabel {
 
     def draw_pentagon_reverse(self):
         # self.reset_inaction() #Сбрасыем второй таймер
-        pentagon = SignalReceipt(0, 0, 180, 60)
+        pentagon = SignalReceipt(0, 0, 180, 60, "Слева")
         pentagon.reflect("Слева")
         self.scene_.addItem(pentagon)
         self.objectS_.append(pentagon)
