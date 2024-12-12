@@ -511,8 +511,10 @@ class EditingPanel(QWidget):
         if isinstance(self.editable_item, QGraphicsPolygonItem):
             if direction == "Слева":
                 self.editable_item.reflect("Слева")
+                self.editable_item.trans = "Слева"
             elif direction == "Справа":
                 self.editable_item.reflect("Справа")
+                self.editable_item.trans = "Справа"
 
     def update_radius(self):
         if isinstance(self.editable_item, (StartEvent)):
@@ -615,7 +617,7 @@ class DraggableButton(QtWidgets.QPushButton):
 
     def create_sending_receipt_in_tulbar(self):
         if self.element_type == "SignalReceipt":
-            return SignalReceipt(0, 25, 100, 50)
+            return SignalReceipt(0, 25, 100, 50, "Слева")
 
     def create_splitter_merge_horizontal_in_tulbar(self):
         if self.element_type == "Splitter_Merge_Horizontal":
@@ -1136,7 +1138,7 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
             print(f"Created {item.__class__.__name__} with unique_id: {item.unique_id}")
 
         elif element_type == "SignalReceipt":
-            item = SignalReceipt(position.x(), position.y(), 180, 60)
+            item = SignalReceipt(position.x(), position.y(), 180, 60, "Слева")
             item.reflect("Слева")
             print(f"Created {item.__class__.__name__} with unique_id: {item.unique_id}")
 
@@ -2268,6 +2270,7 @@ QLabel {
             "pixmap": None,
             "opacity": None,
             "rotation": None,
+            "direction": None,
         }
 
        
@@ -2365,6 +2368,8 @@ QLabel {
                 base_data["color"] = item.color.name()  # HEX-строка
             else:
                 base_data["color"] = QtGui.QColor(item.color).name()  # Дефолтный цвет
+
+            base_data["direction"] = item.trans
 
         
 
@@ -3008,6 +3013,7 @@ QLabel {
                 text = item_data.get("text", "")
                 x, y = position_data.get("x"), position_data.get("y")
                 color = item_data.get("color", "#000000")
+                trans = item_data.get("direction")
                 if isinstance(color, str):
                     if color.startswith("#"):  # Если это HEX-строка
                         color = QtGui.QColor(color)
@@ -3015,9 +3021,11 @@ QLabel {
                         color = getattr(QtCore.Qt, color, QtCore.Qt.transparent)
                 else:
                     color = QtGui.QColor()  # Цвет по умолчанию
-                item = SignalReceipt(x, y, width, height, color=color)
+                item = SignalReceipt(x, y, width, height, trans, color=color)
                 item.unique_id = item_data.get("id")
+
                 item.text_item.setPlainText(text)
+                item.reflect(trans)
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 
