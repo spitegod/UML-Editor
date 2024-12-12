@@ -3143,7 +3143,10 @@ QLabel {
 
         # Добавляем элемент на сцену
         self.scene_.addItem(item)
-        elements[position] = item
+        try:
+            elements[position] = item
+        except TypeError:
+            pass  # Игнорировать ошибку и продолжить выполнение
 
     # Обработка кнопки "Создать"
     def create_new(self):
