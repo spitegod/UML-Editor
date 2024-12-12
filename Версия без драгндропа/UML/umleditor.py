@@ -2361,6 +2361,14 @@ QLabel {
             base_data["pixmap"] = pixmap_bytes.toBase64().data().decode("utf-8")
             base_data["opacity"] = item.opacity()
 
+        elif isinstance(item, Text_Edit):
+            rect = item.boundingRect()
+            base_data["width"] = item.width
+            base_data["height"] = item.height
+            # rect = item.rect()
+            base_data["id"] = item.unique_id
+            base_data["position"] = {"x": item.x_center, "y": item.y_center}
+            base_data["text"] = item.toPlainText()
 
         return base_data
 
@@ -2961,6 +2969,17 @@ QLabel {
                     # Добавляем элемент на сцену
                     self.scene_.addItem(item)
                     self.objectS_.append(item)
+
+            elif item_type == "Text_Edit":
+                width = item_data.get("width", 60)
+                height = item_data.get("height", 40)
+                position_data = item_data.get("position")
+                x, y = position_data.get("x"), position_data.get("y")
+                text = item_data.get("text", "")
+                item = Text_Edit(x, y, width, height, text)
+                item.unique_id = item_data.get("id")
+                self.scene_.addItem(item)
+                self.objectS_.append(item)
 
         # Вытаскиваем стрелки
         for arrow_data in data.get("arrows", []):
