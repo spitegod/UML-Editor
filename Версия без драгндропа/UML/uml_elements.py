@@ -476,7 +476,7 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
 
 class StartEvent(QtWidgets.QGraphicsEllipseItem):
     _id_counter = 0
-    def __init__(self, x, y, radius, node1=None, node2=None):
+    def __init__(self, x, y, radius, color=QtCore.Qt.black, node1=None, node2=None):
         super().__init__(x - radius, y - radius, 2 * radius, 2 * radius)
         global global_id  # Объявляем, что будем использовать глобальную переменную
         self.unique_id = global_id - 8
@@ -484,7 +484,8 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
         self.x_center = x
         self.y_center = y
         self.radius = radius
-        self.setBrush(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
+        self.color = color
+        self.setBrush(color)
         self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать элемент
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения

@@ -2296,6 +2296,10 @@ QLabel {
             y = p_center.y()
             base_data["position"] = {"x": x, "y": y}
             base_data["id"] = item.unique_id
+            if isinstance(item.color, QtGui.QColor):
+                base_data["color"] = item.color.name()  # HEX-строка
+            else:
+                base_data["color"] = QtGui.QColor(item.color).name()  # Дефолтный цвет
 
         elif isinstance(item, EndEvent):  # Круг с внутренним кругом (конец)
             rect = item.rect()
@@ -2901,7 +2905,15 @@ QLabel {
                 radius = item_data.get("radius", 30)  # Достаём "radius" с умолчанием
                 position_data = item_data.get("position")
                 x, y = position_data.get("x"), position_data.get("y")
-                item = StartEvent(x, y, radius)
+                color = item_data.get("color", "#000000")
+                if isinstance(color, str):
+                    if color.startswith("#"):  # Если это HEX-строка
+                        color = QtGui.QColor(color)
+                    else:  # Если это предопределённый цвет
+                        color = getattr(QtCore.Qt, color, QtCore.Qt.transparent)
+                else:
+                    color = QtGui.QColor()  # Цвет по умолчанию
+                item = StartEvent(x, y, radius, color=color)
                 print('id now:', item.unique_id)
                 item.unique_id = item_data.get("id")
                 print('id after:', item.unique_id)
