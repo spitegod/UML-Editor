@@ -2335,6 +2335,7 @@ QLabel {
             rect = item.boundingRect()
             base_data["width"] = item.width
             base_data["height"] = item.height
+            base_data["text"] = item.text_item.toPlainText() if hasattr(item, "text_item") else None
             position = item.sceneBoundingRect()
             p_center = position.center()
             x = p_center.x()
@@ -2945,9 +2946,11 @@ QLabel {
                 width = item_data.get("width", 60)
                 height = item_data.get("height", 40)
                 position_data = item_data.get("position")
+                text = item_data.get("text", "")
                 x, y = position_data.get("x"), position_data.get("y")
                 item = SignalReceipt(x, y, width, height)
                 item.unique_id = item_data.get("id")
+                item.text_item.setPlainText(text)
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
 
