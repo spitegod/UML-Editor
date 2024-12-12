@@ -2261,7 +2261,9 @@ QLabel {
             "color": None,                   # Цвет линии (для Arrow)
             "line_width": None,              # Ширина линии
             "id": None,                       # Идентификатор
-            "dots": None
+            "dots": None,
+            "pixmap": None,
+            "opacity": None,
         }
 
        
@@ -2345,6 +2347,19 @@ QLabel {
             base_data["width"] = rect.width()
             base_data["height"] = rect.height()
 
+            # Обработка ImageItem
+        elif isinstance(item, ImageItem):
+            position = item.sceneBoundingRect()
+            p_center = position.center()
+            base_data["id"] = item.unique_id
+            base_data["position"] = {"x": p_center.x(), "y": p_center.y()}
+            base_data["type"] = "ImageItem"
+            pixmap_bytes = QtCore.QByteArray()
+            buffer = QtCore.QBuffer(pixmap_bytes)
+            buffer.open(QtCore.QIODevice.WriteOnly)
+            item.pixmap().save(buffer, "PNG")
+            base_data["pixmap"] = pixmap_bytes.toBase64().data().decode("utf-8")
+            base_data["opacity"] = item.opacity()
 
 
         return base_data
@@ -2923,6 +2938,29 @@ QLabel {
                 item.setPos(*position)
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
+
+            elif item_type == "ImageItem":
+                # Декодируем pixmap из Base64
+                pixmap_data = item_data.get("pixmap")
+                if pixmap_data:
+                    pixmap = QtGui.QPixmap()
+                    pixmap.loadFromData(QtCore.QByteArray.fromBase64(pixmap_data.encode("utf-8")))
+
+                    # Получаем позицию из данных
+                    position = item_data.get("position", {"x": 0, "y": 0})
+                    x = position.get("x", 0)
+                    y = position.get("y", 0)
+
+                    # Создаём объект ImageItem
+                    item = ImageItem(pixmap, x, y)
+
+                    # Устанавливаем прозрачность, если она сохранена
+                    opacity = item_data.get("opacity", 1.0)
+                    item.setOpacity(opacity)
+
+                    # Добавляем элемент на сцену
+                    self.scene_.addItem(item)
+                    self.objectS_.append(item)
 
         # Вытаскиваем стрелки
         for arrow_data in data.get("arrows", []):
