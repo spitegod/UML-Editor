@@ -2124,7 +2124,10 @@ QLabel {
                 end_node_id = item.node2.unique_id     # Получаем id конечного узла
                 dots = item.intermediate_points        # Получаем точки изгиба
                 line_type = item.line_type             # Получаем тип начертания линии
-                color = item.color.name()              # Получаем цвет стрелки
+                if isinstance(item.color, QtGui.QColor):
+                    color = item.color.name()  # HEX-строка
+                else:
+                    color = "#8B0000"  # Дефолтный цвет
                 line_width = item.pen_width            # Получаем толщину линии
                 right_arrow = item.right_arrow_enabled # Получаем флаг правого наконечника
                 left_arrow = item.left_arrow_enabled   # Получаем флаг левого наконечника
@@ -2187,7 +2190,10 @@ QLabel {
                 end_node_id = item.node2.unique_id    # Получаем id конечного узла
                 dots = item.intermediate_points
                 line_type = item.line_type            # Получаем тип начертания линии
-                color = item.color.name()             # Получаем цвет стрелки
+                if isinstance(item.color, QtGui.QColor):
+                    color = item.color.name()  # HEX-строка
+                else:
+                    color = "#8B0000"  # Дефолтный цвет
                 line_width = item.pen_width           # Получаем толщину линии
                 right_arrow = item.right_arrow_enabled # Получаем флаг правого наконечника
                 left_arrow = item.left_arrow_enabled   # Получаем флаг левого наконечника
