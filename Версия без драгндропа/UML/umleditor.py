@@ -2402,6 +2402,10 @@ QLabel {
             base_data["id"] = item.unique_id
             base_data["position"] = {"x": item.center_x, "y": item.center_y}
             base_data["rotation"] = item.rot
+            if isinstance(item.color, QtGui.QColor):
+                base_data["color"] = item.color.name()  # HEX-строка
+            else:
+                base_data["color"] = QtGui.QColor(item.color).name()  # Дефолтный цвет
 
 
 
@@ -3066,7 +3070,15 @@ QLabel {
                 position_data = item_data.get("position")
                 x, y = position_data.get("x"), position_data.get("y")
                 rot = item_data.get("rotation")
-                item = Splitter_Merge(x, y, width, height, rot)
+                color = item_data.get("color", "#000000")
+                if isinstance(color, str):
+                    if color.startswith("#"):  # Если это HEX-строка
+                        color = QtGui.QColor(color)
+                    else:  # Если это предопределённый цвет
+                        color = getattr(QtCore.Qt, color, QtCore.Qt.transparent)
+                else:
+                    color = QtGui.QColor()  # Цвет по умолчанию
+                item = Splitter_Merge(x, y, width, height, rot, color=color)
                 item.update_size_and_orientation(width, height, rot)
                 item.unique_id = item_data.get("id")
                 self.scene_.addItem(item)

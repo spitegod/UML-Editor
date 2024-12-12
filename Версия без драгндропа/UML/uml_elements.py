@@ -1412,7 +1412,7 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
 
 class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
     _id_counter = 0
-    def __init__(self, x, y, width, height, rot, node1=None, node2=None):
+    def __init__(self, x, y, width, height, rot, color=QtCore.Qt.black, node1=None, node2=None):
         super().__init__()
         global global_id
         self.unique_id = global_id - 8
@@ -1422,10 +1422,11 @@ class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
         self.center_x = x
         self.center_y = y
         self.rot = rot
+        self.color = color
 
         self.setPolygon(self.create_SM(self.center_x, self.center_y, self.width, self.height))
 
-        self.setBrush(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
+        self.setBrush(color)
         self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
