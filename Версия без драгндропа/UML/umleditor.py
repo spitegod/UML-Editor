@@ -618,11 +618,11 @@ class DraggableButton(QtWidgets.QPushButton):
 
     def create_splitter_merge_horizontal_in_tulbar(self):
         if self.element_type == "Splitter_Merge_Horizontal":
-            return Splitter_Merge(0, 10, 100, 30)
+            return Splitter_Merge(0, 10, 100, 30, 0)
 
     def create_splitter_merge_vertical_in_tulbar(self):
         if self.element_type == "Splitter_Merge_Vertical":
-            return Splitter_Merge(0, 0, 60, 30)
+            return Splitter_Merge(0, 0, 60, 30, 90)
 
     def create_active_state_in_tulbar(self):
         if self.element_type == "ActiveState":
@@ -1140,12 +1140,12 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
             print(f"Created {item.__class__.__name__} with unique_id: {item.unique_id}")
 
         elif element_type == "Splitter_Merge_Horizontal":
-            item = Splitter_Merge(position.x(), position.y(), 120, 40)
+            item = Splitter_Merge(position.x(), position.y(), 120, 40, 0)
             item.setRotation(0)
             print(f"Created {item.__class__.__name__} with unique_id: {item.unique_id}")
 
         elif element_type == "Splitter_Merge_Vertical":
-            item = Splitter_Merge(position.x(), position.y(), 120, 40)
+            item = Splitter_Merge(position.x(), position.y(), 120, 40, 90)
             item.setRotation(90)
             print(f"Created {item.__class__.__name__} with unique_id: {item.unique_id}")
 
@@ -2264,6 +2264,7 @@ QLabel {
             "dots": None,
             "pixmap": None,
             "opacity": None,
+            "rotation": None,
         }
 
        
@@ -2369,6 +2370,13 @@ QLabel {
             base_data["id"] = item.unique_id
             base_data["position"] = {"x": item.x_center, "y": item.y_center}
             base_data["text"] = item.toPlainText()
+
+        elif isinstance(item, Splitter_Merge):
+            base_data["width"] = item.width
+            base_data["height"] = item.height
+            base_data["id"] = item.unique_id
+            base_data["position"] = {"x": item.center_x, "y": item.center_y}
+            base_data["rotation"] = item.rot
 
         return base_data
 
@@ -2542,7 +2550,7 @@ QLabel {
         # self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
         x, y = 0, 0  # Пример координат, размера и радиуса
-        stick = Splitter_Merge(x, y, 120, 40)
+        stick = Splitter_Merge(x, y, 120, 40, 0)
         stick.setRotation(0)
         self.scene_.addItem(stick) 
         self.objectS_.append(stick)
@@ -2555,7 +2563,7 @@ QLabel {
         # self.reset_inaction() #Сбрасыем второй таймер
         # Координаты центра, ширина, высота и радиус закругления
         x, y = 0, 0  # Пример координат, размера и радиуса
-        stick = Splitter_Merge(x, y, 120, 40)
+        stick = Splitter_Merge(x, y, 120, 40, 90)
         stick.setRotation(90)
         self.scene_.addItem(stick) 
         self.objectS_.append(stick)
@@ -2977,6 +2985,18 @@ QLabel {
                 x, y = position_data.get("x"), position_data.get("y")
                 text = item_data.get("text", "")
                 item = Text_Edit(x, y, width, height, text)
+                item.unique_id = item_data.get("id")
+                self.scene_.addItem(item)
+                self.objectS_.append(item)
+
+            elif item_type == "Splitter_Merge":
+                width = item_data.get("width", 60)
+                height = item_data.get("height", 40)
+                position_data = item_data.get("position")
+                x, y = position_data.get("x"), position_data.get("y")
+                rot = item_data.get("rotation")
+                item = Splitter_Merge(x, y, width, height, rot)
+                item.update_size_and_orientation(width, height, rot)
                 item.unique_id = item_data.get("id")
                 self.scene_.addItem(item)
                 self.objectS_.append(item)

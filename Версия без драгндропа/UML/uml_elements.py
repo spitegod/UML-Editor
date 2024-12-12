@@ -1406,7 +1406,7 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
 
 class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
     _id_counter = 0
-    def __init__(self, x, y, width, height, node1=None, node2=None):
+    def __init__(self, x, y, width, height, rot, node1=None, node2=None):
         super().__init__()
         global global_id
         self.unique_id = global_id - 8
@@ -1415,6 +1415,7 @@ class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
         self.height = height
         self.center_x = x
         self.center_y = y
+        self.rot = rot
 
         self.setPolygon(self.create_SM(self.center_x, self.center_y, self.width, self.height))
 
@@ -1431,6 +1432,7 @@ class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
         self.is_resizing = False # Флаг, указывающий, идет ли изменение размера
         self.resize_side = None # Определяем, с какой стороны идет изменение размера
         self.resize_margin = 10 # Чувствительная область для изменения размера
+
 
         self.arrows = []
 
@@ -1459,6 +1461,7 @@ class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
     def update_size_and_orientation(self, width, height, rotation):
         self.setPolygon(self.create_SM(self.center_x, self.center_y, width, height))
         self.setRotation(rotation)
+        self.rot = rotation
         self.update()
 
 
