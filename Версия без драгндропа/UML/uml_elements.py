@@ -345,7 +345,7 @@ class Arrow(QGraphicsItem):
 
 class Decision(QtWidgets.QGraphicsPolygonItem):
     _id_counter = 0
-    def __init__(self, x, y, size, color=QtCore.Qt.white,  node1=None, node2=None):
+    def __init__(self, x, y, size, color=QtCore.Qt.white, node1=None, node2=None):
         super().__init__()
         global global_id  # Объявляем, что будем использовать глобальную переменную
         self.unique_id = global_id - 8
@@ -390,6 +390,7 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
 
     def setColor(self, color):  
         self.color = color
+        print(color)
         self.setBrush(self.color)
         self.update()  # Обновляем элемент для перерисовки
 

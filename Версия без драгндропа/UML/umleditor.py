@@ -553,6 +553,7 @@ class EditingPanel(QWidget):
         color = QColorDialog.getColor()
         if color.isValid():
             self.editable_item.setBrush(QBrush(color))
+            self.editable_item.color = color
             self.update_button_color()
 
     def update_button_color(self):
@@ -2124,10 +2125,12 @@ QLabel {
                 end_node_id = item.node2.unique_id     # Получаем id конечного узла
                 dots = item.intermediate_points        # Получаем точки изгиба
                 line_type = item.line_type             # Получаем тип начертания линии
+                print(QtGui.QColor(item.color).name())
                 if isinstance(item.color, QtGui.QColor):
                     color = item.color.name()  # HEX-строка
                 else:
                     color = "#8B0000"  # Дефолтный цвет
+                
                 line_width = item.pen_width            # Получаем толщину линии
                 right_arrow = item.right_arrow_enabled # Получаем флаг правого наконечника
                 left_arrow = item.left_arrow_enabled   # Получаем флаг левого наконечника
@@ -2270,19 +2273,19 @@ QLabel {
        
         # Заполняем структуру в зависимости от типа элемента
         if isinstance(item, Decision):  # Ромб
+            print(QtGui.QColor(item.color).name())
             base_data["size"] = item.size
             position = item.sceneBoundingRect()
             p_center = position.center()
             x = p_center.x()/ 2
             y = p_center.y() / 2
             base_data["position"] = {"x": x, "y": y}
-            base_data["id"] = item.unique_id
-            # Проверяем, является ли цвет экземпляром QColor
+            base_data["id"] = item.unique_id 
             if isinstance(item.color, QtGui.QColor):
-                base_data["color"] = item.color.name()  # Сохраняем как HEX
+                base_data["color"] = item.color.name()  # HEX-строка
             else:
-                # Для предопределённых цветов сохраняем их название
-                base_data["color"] = str(item.color)  # Например, 'transparent'
+                base_data["color"] = QtGui.QColor(item.color).name()  # Дефолтный цвет
+            
 
         elif isinstance(item, StartEvent):  # Круг (начало)
             rect = item.rect()
@@ -2887,7 +2890,7 @@ QLabel {
                 x, y = position_data.get("x"), position_data.get("y")
                 print(x, y)
 
-                item = Decision(x, y, size, color)
+                item = Decision(x, y, size, color=color)
                 item.unique_id = item_data.get("id")
                 self.scene_.addItem(item)
                 self.objectS_.append(item)
