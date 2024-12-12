@@ -348,7 +348,7 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
     def __init__(self, x, y, size, color=QtCore.Qt.white,  node1=None, node2=None):
         super().__init__()
         global global_id  # Объявляем, что будем использовать глобальную переменную
-        self.unique_id = global_id
+        self.unique_id = global_id - 8
         global_id += 1
         self.size = size
         self.center_x = x  # Сохраняем центр при инициализации
@@ -478,7 +478,7 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
     def __init__(self, x, y, radius, node1=None, node2=None):
         super().__init__(x - radius, y - radius, 2 * radius, 2 * radius)
         global global_id  # Объявляем, что будем использовать глобальную переменную
-        self.unique_id = global_id
+        self.unique_id = global_id - 8
         global_id += 1
         self.x_center = x
         self.y_center = y
@@ -612,8 +612,10 @@ class EndEvent(QtWidgets.QGraphicsEllipseItem):
     _id_counter = 0
     def __init__(self, x, y, radius, inner_radius_ratio=0.5, node1=None, node2=None):
         super().__init__(x - radius, y - radius, 2 * radius, 2 * radius)
-        self.unique_id = EndEvent._id_counter
-        EndEvent._id_counter += 1
+        global global_id
+        self.unique_id = global_id - 8
+        global_id += 1
+        # EndEvent._id_counter += 1
         self.x_center = x
         self.y_center = y
         self.radius = radius
@@ -783,8 +785,8 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
     _id_counter = 0
     def __init__(self, x, y, width, height, radius, node1=None, node2=None):
         super().__init__(x, y, width, height)
-        global global_id  # Объявляем, что будем использовать глобальную переменную
-        self.unique_id = global_id
+        global global_id
+        self.unique_id = global_id - 8
         global_id += 1
         self.x_center = x
         self.y_center = y
@@ -1031,8 +1033,9 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
 class SignalSending(QtWidgets.QGraphicsPolygonItem):
     _id_counter = 0
     def __init__(self, x, y, width, height, node1=None, node2=None):
-        self.unique_id = SignalSending._id_counter
-        SignalSending._id_counter += 1
+        global global_id
+        self.unique_id = global_id - 8
+        global_id += 1
         super().__init__()
         self.width = width
         self.height = height
@@ -1222,8 +1225,9 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
     _id_counter = 0
     def __init__(self, x, y, width, height, node1=None, node2=None):
         super().__init__()
-        self.unique_id = SignalReceipt._id_counter
-        SignalReceipt._id_counter += 1
+        global global_id
+        self.unique_id = global_id - 8
+        global_id += 1
         self.width = width
         self.height = height
         self.center_x = x
@@ -1404,8 +1408,9 @@ class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
     _id_counter = 0
     def __init__(self, x, y, width, height, node1=None, node2=None):
         super().__init__()
-        self.unique_id = Splitter_Merge._id_counter
-        Splitter_Merge._id_counter += 1
+        global global_id
+        self.unique_id = global_id - 8
+        global_id += 1
         self.width = width
         self.height = height
         self.center_x = x
@@ -1527,8 +1532,9 @@ class ImageItem(QtWidgets.QGraphicsPixmapItem):
     _id_counter = 0
     def __init__(self, pixmap, x, y):
         super().__init__(pixmap)
-        self.unique_id = ImageItem._id_counter
-        ImageItem._id_counter += 1
+        global global_id
+        self.unique_id = global_id - 8
+        global_id += 1
         self.x_center = x
         self.y_center = y
         self.setPos(self.x_center, self.y_center)  # Устанавливаем начальную позицию
@@ -1618,8 +1624,9 @@ class Text_Edit(Text_into_object):
     _id_counter = 0
     def __init__(self, x, y, width, height, text="Текст", max_length=250, parent=None):
         super().__init__(max_length, parent)
-        self.unique_id = Splitter_Merge._id_counter
-        Splitter_Merge._id_counter += 1
+        global global_id
+        self.unique_id = global_id - 8
+        global_id += 1
         self.setPlainText(text)
         self.max_length = max_length
 
