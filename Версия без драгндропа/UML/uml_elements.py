@@ -786,7 +786,7 @@ class Text_into_object(QtWidgets.QGraphicsTextItem):
 
 class ActiveState(QtWidgets.QGraphicsRectItem):
     _id_counter = 0
-    def __init__(self, x, y, width, height, radius, node1=None, node2=None):
+    def __init__(self, x, y, width, height, radius, color=QtCore.Qt.white, node1=None, node2=None):
         super().__init__(x, y, width, height)
         global global_id
         self.unique_id = global_id - 8
@@ -796,8 +796,9 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
         self.width = width
         self.height = height
         self.radius = radius  # Радиус закругления
+        self.color = color
         self.setRect(self.x_center, self.y_center, width, height)
-        self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
+        self.setBrush(color)
         self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
@@ -1035,7 +1036,7 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
 
 class SignalSending(QtWidgets.QGraphicsPolygonItem):
     _id_counter = 0
-    def __init__(self, x, y, width, height, node1=None, node2=None):
+    def __init__(self, x, y, width, height, color=QtCore.Qt.white, node1=None, node2=None):
         global global_id
         self.unique_id = global_id - 8
         global_id += 1
@@ -1044,10 +1045,11 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
         self.height = height
         self.center_x = x
         self.center_y = y
+        self.color = color
 
         # Создаем пентагон
         self.setPolygon(self.create_pentagon(self.center_x, self.center_y, self.width, self.height))
-        self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
+        self.setBrush(color)
         self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
