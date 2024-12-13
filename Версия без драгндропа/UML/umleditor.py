@@ -1513,7 +1513,8 @@ class DialogWindow(QtWidgets.QDialog):
 class LoginWindow(QtWidgets.QDialog):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Вход или регистрация")
+        self.setWindowTitle("UML editor")
+        self.setWindowIcon(QIcon("imgs/finalstate.png"))
         
         # Получаем размеры экрана для центрирования окна
         screen_geometry = QtWidgets.QDesktopWidget().availableGeometry()
@@ -1534,8 +1535,25 @@ class LoginWindow(QtWidgets.QDialog):
 
         # Добавление изображения
         self.logo_label = QtWidgets.QLabel(self)
-        self.logo_pixmap = QtGui.QPixmap("imgs/ctuaslogo.jpg")  # Убедись, что путь корректный
-        self.logo_pixmap = self.logo_pixmap.scaled(150, 150, QtCore.Qt.KeepAspectRatio)
+        self.logo_pixmap = QtGui.QPixmap("imgs/ctuasologo_black")
+        if not self.logo_pixmap.isNull():
+            # Создаем прозрачный QPixmap
+            transparent_pixmap = QtGui.QPixmap(self.logo_pixmap.size())
+            transparent_pixmap.fill(QtCore.Qt.transparent)  # Устанавливаем прозрачный фон
+
+            # Используем QPainter для установки прозрачности
+            painter = QtGui.QPainter(transparent_pixmap)
+            painter.setOpacity(0.5)  # Устанавливаем 50% прозрачности
+            painter.drawPixmap(0, 0, self.logo_pixmap)  # Вставка исходного изображения
+            painter.end()
+
+            # Масштабируем изображение с сглаживанием
+            self.logo_pixmap = transparent_pixmap.scaled(
+                150, 150,
+                QtCore.Qt.KeepAspectRatio,
+                QtCore.Qt.SmoothTransformation
+            )
+
         self.logo_label.setPixmap(self.logo_pixmap)
         self.logo_label.setAlignment(QtCore.Qt.AlignCenter)
         layout.addWidget(self.logo_label)
@@ -1550,9 +1568,18 @@ class LoginWindow(QtWidgets.QDialog):
         # Поля ввода
         self.username_input = QtWidgets.QLineEdit(self)
         self.username_input.setPlaceholderText("Введите логин")
+        self.username_input.setMaxLength(20)
         self.password_input = QtWidgets.QLineEdit(self)
         self.password_input.setPlaceholderText("Введите пароль")
+        self.password_input.setMaxLength(20)
         self.password_input.setEchoMode(QtWidgets.QLineEdit.Password)
+
+        # Регулярки полей ввода
+        regex = QtCore.QRegExp("^[a-zA-Zа-яА-я][a-zA-Zа-яА-я0-9_]*$")
+        validator = QtGui.QRegExpValidator(regex, self.username_input)
+        self.username_input.setValidator(validator)
+        validator = QtGui.QRegExpValidator(regex, self.password_input)
+        self.password_input.setValidator(validator)
 
         # Кнопки
         self.login_button = QtWidgets.QPushButton("Войти", self)
@@ -1567,6 +1594,9 @@ class LoginWindow(QtWidgets.QDialog):
         # Связывание кнопок с методами
         self.login_button.clicked.connect(self.login)
         self.register_button.clicked.connect(self.register)
+
+        # Применение дизайна
+        self.setDesign()
 
     # Хэшируем пароль
     def hash_password(self, password):
@@ -1625,6 +1655,53 @@ class LoginWindow(QtWidgets.QDialog):
             self.accept()  # Закрыть окно с результатом успешной регистрации
         else:
             QtWidgets.QMessageBox.warning(self, "Ошибка", "Логин и пароль должны быть длиннее 3 символов!")
+
+    def setDesign(self):
+        self.setStyleSheet("""
+        QWidget {
+            font-family: 'Arial', sans-serif;
+            font-size: 14px;
+            color: #2f2f2f;
+        }
+
+        QLabel {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        QLineEdit {
+            background-color: rgb(240, 240, 240);
+            border: 1px solid rgb(200, 200, 200);
+            border-radius: 6px;
+            padding: 8px;
+            font-family: 'Arial';
+            font-size: 16px;
+        }
+
+        QSpinBox:hover, QComboBox:hover, QLineEdit:hover, QTextEdit:hover, QDoubleSpinBox::hover {
+            border: 1px solid rgb(150, 150, 150);
+        }
+
+        QPushButton {
+            background-color: rgb(240, 240, 240);
+            border: 1px solid rgb(150, 150, 150);
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #2f2f2f;
+        }
+
+        QPushButton:hover {
+            background-color: rgb(220, 220, 220);
+            border: 1px solid rgb(100, 100, 100);
+        }
+
+        QPushButton:pressed {
+            background-color: rgb(200, 200, 200);
+        }
+                           
+""")
 
 
 
@@ -1957,7 +2034,7 @@ QLabel {
         # Настраиваем второй таймер для обновления времени каждую секунду
         self.timer_2 = QTimer(self)
         self.timer_2.timeout.connect(self.increment_time)  # Соединяем таймер с функцией обновления времени
-        #self.timer_2.start(1000)  # Запускаем таймер с интервалом в 1 секунду
+        self.timer_2.start(1000)  # Запускаем таймер с интервалом в 1 секунду
 
         #Инициализируем переменные для секундомера
         self.running = False
@@ -2749,7 +2826,6 @@ QLabel {
     def draw_pentagon_signal(self):
 
         self.reset_inaction() #Сбрасыем второй таймер
-        pentagon = SignalSending(0, 0, 160, 60)
 
         # self.reset_inaction() #Сбрасыем второй таймер
         pentagon = SignalSending(0, 0, 160, 60, "Справа")
@@ -2985,28 +3061,17 @@ QLabel {
         if self.running:  # Останавливаем таймер
             self.running = False
             self.timer.stop()
-            # self.timer_2.stop()
+            self.timer_2.stop()
             self.last_time = self.Start_Time.text()  # Сохраняем текущее значение времени перед остановкой
 
             self.today_uptadet = self.get_current_Date()
             self.time_now_uptadet = self.get_current_Realtime()
 
-
             self.running_inaction = False
-            self.timer_inaction.stop()
+            # self.timer_inaction.stop()
 
             self.time_updated.emit(self.today_uptadet, self.last_time, self.time_now_uptadet)
             self.tray_icon.showMessage("Предупреждение", f"Работа приостановлена в {self.get_current_Realtime()}. Программа ожидает отклика пользователя", QSystemTrayIcon.Information, 1000000)
-
-            msgBox = QMessageBox()
-            msgBox.setIcon(QMessageBox.Information)
-            msgBox.setText(f"Работа приостановлена в {self.get_current_Realtime()}. Программа ожидает отклика пользователя")
-            msgBox.setWindowTitle("Предупреждение")
-            msgBox.setStandardButtons(QMessageBox.Ok)
-            returnValue = msgBox.exec()
-
-            if returnValue == QMessageBox.Ok:
-                self.reset_inaction()
 
     def stop_inaction(self): #Остановка таймера бездействия (к примеру останавливате таймер)
         if self.running_inaction:     #когда пользователь вытаскивает элемент из тулбара
@@ -3026,7 +3091,7 @@ QLabel {
         self.last_time = time_str  # Сохраняем последнее значение времени
         self.Time_inaction.setText(time_str2)
 
-        if self.Time_inaction.text() == "00:00:30":
+        if self.elapsed_Time_inaction == QTime(0, 0, 30):
             self.stop()
     
     def reset_inaction(self):
@@ -3490,6 +3555,7 @@ QLabel {
         self.tray_icon.setIcon(QIcon("imgs/finalstate.png"))
         self.tray_icon.setVisible(True)
         self.tray_icon.activated.connect(self.on_tray_icon_activated)
+        self.tray_icon.setToolTip("UML editor")
 
         MainWindow.setStyleSheet("""
         QMenuBar {
@@ -3828,12 +3894,31 @@ QLabel {
             # Создаем контекстное меню для иконки
             tray_menu = QMenu()
 
+            static = QAction(f"Просмотр статистики")
             quit_action = QAction("Выход")
+
+            tray_menu.addAction(static)
             tray_menu.addAction(quit_action)
+            static.triggered.connect(self.show_static_widget)
             quit_action.triggered.connect(self.quit_app)
+
+            tray_menu.hovered.connect(self.on_menu_hovered)
+
+            # Подсказки для действий
+            static.setData(f"""
+                Пользователь - {self.user_.nickname}\n
+                Начало работы - {self.today} {self.time_now}
+""")
 
             # Показываем контекстное меню в месте клика
             tray_menu.exec_(QCursor.pos())
+
+    def on_menu_hovered(self, action):
+        # Отображаем подсказку для текущего действия
+        tooltip_text = action.data()  # Получаем текст подсказки из данных
+        if tooltip_text:
+            QToolTip.showText(QCursor.pos(), tooltip_text)
+
 
     def quit_app(self):
         if len(self.objectS_) > 0:

@@ -1093,12 +1093,12 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
     #     self.update_text_position()
 
     def clone(self):
-        cloned_item = SignalSending(self.center_x, self.center_y, self.width, self.height)
+        cloned_item = SignalSending(self.center_x, self.center_y, self.width, self.height, self.current_reflection)
         cloned_item.setPolygon(self.polygon())
         cloned_item.setBrush(self.brush())
         cloned_item.setPen(self.pen())
-        
         cloned_item.text_item.setPlainText(self.text_item.toPlainText())
+        cloned_item.reflect(self.current_reflection)
 
         return cloned_item
 
@@ -1289,7 +1289,7 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
         self.update_text_position()
 
     def clone(self):
-        cloned_item = SignalSending(self.center_x, self.center_y, self.width, self.height)
+        cloned_item = SignalSending(self.center_x, self.center_y, self.width, self.height, self.current_reflection)
         cloned_item.setPolygon(self.polygon())
         cloned_item.setBrush(self.brush())
         cloned_item.setPen(self.pen())
@@ -1479,7 +1479,7 @@ class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
         self.arrows = []
 
     def clone(self):
-        clone_item = Splitter_Merge(self.center_x, self.center_y, self.width, self.height)
+        clone_item = Splitter_Merge(self.center_x, self.center_y, self.width, self.height, self.rot)
         clone_item.setPolygon(self.polygon())
         clone_item.setBrush(self.brush())
         clone_item.setPen(self.pen())

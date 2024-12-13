@@ -67,11 +67,7 @@ class Ui_StaticWidget(QtWidgets.QWidget):
         
         self.gridLayout_2 = QtWidgets.QGridLayout()
         self.gridLayout_2.setObjectName("gridLayout_2")
-        
-        # Заголовок "Статистика"
-        # self.label = QtWidgets.QLabel(StaticWidget)
-        # self.label.setObjectName("label")
-        # self.gridLayout_2.addWidget(self.label, 0, 0, 1, 1)
+    
         
         # Основная рабочая область
         self.horizontalLayout_workarea = QtWidgets.QHBoxLayout()
@@ -384,7 +380,6 @@ QLineEdit {
                 width: 0px;
             }
         """)
-        # Убедитесь, что весь блок таблицы выделяется
 
 
 
