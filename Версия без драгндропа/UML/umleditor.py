@@ -1507,33 +1507,78 @@ class DialogWindow(QtWidgets.QDialog):
         self.ui = Ui_Dialog()  # Экземпляр класса интерфейса
         self.ui.setupUi(self)  # Настройка интерфейса в окне
 
+#Класс для создания кастомного заголовка для LoginWindow
+class CustomTitleBar(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setAutoFillBackground(True)
+        self.setFixedHeight(35)
+
+        # Layout для кастомного заголовка
+        layout = QtWidgets.QHBoxLayout(self)
+        layout.setContentsMargins(10, 5, 10, 5)
+
+        self.title_label = QtWidgets.QLabel("", self)
+        self.title_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        layout.addWidget(self.title_label)
+
+        # Кнопка закрытия
+        self.close_button = QtWidgets.QPushButton("x", self)
+        self.close_button.setFixedSize(41, 30)
+        self.close_button.clicked.connect(self.close_window)
+        font = self.close_button.font()
+        font.setPointSize(8)  # Размер шрифта для крестика
+        self.close_button.setFont(font)
+        layout.addWidget(self.close_button, alignment=QtCore.Qt.AlignRight)
+
+        self.setLayout(layout)
+
+    # Закрытие окна регистрации и выход из приложения
+    def close_window(self):
+        self.window().close()
+
+    # Нажатие на title
+    def mousePressEvent(self, event):
+        self.offset = event.pos()
+
+    # Обработка перетаскивания окна за title
+    def mouseMoveEvent(self, event):
+        if event.buttons() == QtCore.Qt.LeftButton:
+            self.window().move(self.window().pos() + event.pos() - self.offset)
 
 
-# Окно входа
 class LoginWindow(QtWidgets.QDialog):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("UML editor")
-        self.setWindowIcon(QIcon("imgs/finalstate.png"))
-        
+        self.setWindowIcon(QtGui.QIcon("imgs/finalstate.png"))
+
+        # Убираем стандартный заголовок окна
+        self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+
+        # Создание и установка кастомного заголовка
+        self.custom_title_bar = CustomTitleBar()
+
+        layout = QtWidgets.QVBoxLayout(self)
+
+        # Добавление кастомного заголовка
+        layout.addWidget(self.custom_title_bar)
+
         # Получаем размеры экрана для центрирования окна
         screen_geometry = QtWidgets.QDesktopWidget().availableGeometry()
         screen_center = screen_geometry.center()
 
         # Устанавливаем начальный размер окна
-        self.setFixedSize(300, 400)
+        self.setFixedSize(300, 420)
 
         # Центрируем окно, учитывая его размеры
         window_size = self.size()
         self.move(screen_center.x() - window_size.width() // 2, screen_center.y() - window_size.height() // 2)
 
-
         self.user_data_folder = "user_data"
         os.makedirs(self.user_data_folder, exist_ok=True)
 
-        layout = QtWidgets.QVBoxLayout(self)
-
-        # Добавление изображения
+        # Создание элементов интерфейса
         self.logo_label = QtWidgets.QLabel(self)
         self.logo_pixmap = QtGui.QPixmap("imgs/ctuasologo_black")
         if not self.logo_pixmap.isNull():
@@ -1575,7 +1620,7 @@ class LoginWindow(QtWidgets.QDialog):
         self.password_input.setEchoMode(QtWidgets.QLineEdit.Password)
 
         # Регулярки полей ввода
-        regex = QtCore.QRegExp("^[a-zA-Zа-яА-я][a-zA-Zа-яА-я0-9_]*$")
+        regex = QtCore.QRegExp("^[a-zA-Zа-яА-я0-9][a-zA-Zа-яА-я0-9_]*$")
         validator = QtGui.QRegExpValidator(regex, self.username_input)
         self.username_input.setValidator(validator)
         validator = QtGui.QRegExpValidator(regex, self.password_input)
@@ -1606,7 +1651,6 @@ class LoginWindow(QtWidgets.QDialog):
     def login(self):
         username = self.username_input.text()
         password = self.password_input.text()
-        
 
         user_file = os.path.join(self.user_data_folder, f"{username}.json")
         if os.path.exists(user_file):
@@ -1615,7 +1659,7 @@ class LoginWindow(QtWidgets.QDialog):
 
             # Если пароли совпадают
             if user_data.get("password") == self.hash_password(password):
-                global global_start_time # Получаем время начала работы
+                global global_start_time  # Получаем время начала работы
                 global_start_time = user_data.get("start_time")
 
                 QtWidgets.QMessageBox.information(self, "Успех", f"Добро пожаловать, {username}!")
@@ -1636,7 +1680,7 @@ class LoginWindow(QtWidgets.QDialog):
             if os.path.exists(user_file):
                 QtWidgets.QMessageBox.warning(self, "Ошибка", "Пользователь с таким именем уже существует!")
                 return
-            
+
             hashed_password = self.hash_password(password)
             user_data = {
                 "username": username,
@@ -1645,7 +1689,7 @@ class LoginWindow(QtWidgets.QDialog):
                 "end_time": None
             }
 
-            global global_start_time # Получаем время начала работы
+            global global_start_time  # Получаем время начала работы
             global_start_time = user_data.get("start_time")
 
             with open(user_file, "w") as f:
@@ -1676,10 +1720,6 @@ class LoginWindow(QtWidgets.QDialog):
             padding: 8px;
             font-family: 'Arial';
             font-size: 16px;
-        }
-
-        QSpinBox:hover, QComboBox:hover, QLineEdit:hover, QTextEdit:hover, QDoubleSpinBox::hover {
-            border: 1px solid rgb(150, 150, 150);
         }
 
         QPushButton {
@@ -3889,6 +3929,20 @@ QLabel {
             border-radius: 8px; 
         }""")
 
+        QtWidgets.QToolTip.setFont(QtGui.QFont("Arial", 10, QtGui.QFont.Bold))
+
+        # Устанавливаем стиль для подсказок через global stylesheet
+        app.setStyleSheet("""
+            QToolTip {
+                background-color: #f7f7f7;
+                color: #333333;
+                border: 2px solid #999999;
+                padding: 5px;
+                font-size: 16px;
+                font-weight: 500;
+            }
+        """)
+
     def on_tray_icon_activated(self, reason):
         if reason == QSystemTrayIcon.Trigger:  # Это сработает при клике по иконке
             # Создаем контекстное меню для иконки
@@ -3904,11 +3958,11 @@ QLabel {
 
             tray_menu.hovered.connect(self.on_menu_hovered)
 
-            # Подсказки для действий
+            # Подсказки для действий. В данном случае показывает часть информации из статистики пользователя
             static.setData(f"""
                 Пользователь - {self.user_.nickname}\n
                 Начало работы - {self.today} {self.time_now}
-""")
+""") # А именно - имя пользователя и когда он начал работу
 
             # Показываем контекстное меню в месте клика
             tray_menu.exec_(QCursor.pos())
@@ -3919,9 +3973,10 @@ QLabel {
         if tooltip_text:
             QToolTip.showText(QCursor.pos(), tooltip_text)
 
-
+    # Выход из приложения через иконку в системном треи
     def quit_app(self):
-        if len(self.objectS_) > 0:
+        if len(self.objectS_) > 0: # Перед выходом проверяем наличее объектов на сцене
+            # Если они есть предупреждаем об этом пользователя
             reply = QtWidgets.QMessageBox.question(
                 self,
                 "Выход",
@@ -3930,10 +3985,10 @@ QLabel {
                 QtWidgets.QMessageBox.No,
             )
 
-            if reply == QtWidgets.QMessageBox.Yes:
+            if reply == QtWidgets.QMessageBox.Yes: # Если пользователь всё равно хочет закрыть приложения
                 QtWidgets.QApplication.quit()
-        else:
-            QtWidgets.QApplication.quit() # Закрывает приложение
+        else: # Если сцена пуста, то приложение закроется без предупреждений
+            QtWidgets.QApplication.quit()
 
 
 if __name__ == "__main__":

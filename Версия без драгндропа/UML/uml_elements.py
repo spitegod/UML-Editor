@@ -1289,7 +1289,7 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
         self.update_text_position()
 
     def clone(self):
-        cloned_item = SignalSending(self.center_x, self.center_y, self.width, self.height, self.current_reflection)
+        cloned_item = SignalReceipt(self.center_x, self.center_y, self.width, self.height, self.current_reflection)
         cloned_item.setPolygon(self.polygon())
         cloned_item.setBrush(self.brush())
         cloned_item.setPen(self.pen())
