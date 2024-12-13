@@ -9,8 +9,8 @@ from uml_elements import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QTimer, QTime, QDateTime
 from PyQt5.QtCore import pyqtSignal  # Импортируем pyqtSignal
-from PyQt5.QtCore import Qt, QPointF, QLineF, QRectF
-from PyQt5.QtGui import QPen, QBrush, QPainterPath, QKeySequence
+from PyQt5.QtCore import Qt, QPointF, QLineF, QRectF, QEvent
+from PyQt5.QtGui import QPen, QBrush, QPainterPath, QKeySequence, QIcon, QCursor, QPainter, QPixmap
 
 from PyQt5 import QtWidgets, QtGui, QtCore
 
@@ -303,6 +303,7 @@ class EditingPanel(QWidget):
         # self.delete_item.clicked.connect(self.mainwin.delete_selected_item)
 
         self.delete_item.clicked.connect(self.delete_current_item)
+        self.delete_item.setObjectName("DeleteButton")
         self.copy_item.clicked.connect(self.duplicate_current_item)
 
 
@@ -317,6 +318,7 @@ class EditingPanel(QWidget):
 
         self.setMinimumWidth(200)
         self.setMaximumWidth(400)
+        self.setDesigh()
 
     def delete_current_item(self):
         if self.editable_item:
@@ -521,7 +523,6 @@ class EditingPanel(QWidget):
             self.editable_item.update_inner_circle()
 
     def duplicate_current_item(self):
-        self.main_window.reset_inaction()
         if isinstance(self.editable_item, (StartEvent, Decision, EndEvent, ActiveState, SignalSending, SignalReceipt, Splitter_Merge, ImageItem, Text_Edit)):
             new_item = self.editable_item.clone()
             new_pos = self.editable_item.scenePos() + QPointF(10, 10)
@@ -572,6 +573,116 @@ class EditingPanel(QWidget):
         self.main_window.reset_inaction()
         opacity = self.opacity_slider.value() / 100
         self.editable_item.setOpacity(opacity)
+
+    def setDesigh(self):
+        self.setStyleSheet("""
+        QWidget {
+            font-family: 'Arial', sans-serif;
+            font-size: 14px;
+            color: #2f2f2f;
+        }
+
+        QLabel {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        QSpinBox, QComboBox, QLineEdit, QTextEdit, QDoubleSpinBox {
+            background-color: rgb(240, 240, 240);
+            border: 1px solid rgb(200, 200, 200);
+            border-radius: 6px;
+            padding: 8px;
+            font-family: 'Arial';
+            font-size: 14px;
+        }
+
+        QSpinBox:hover, QComboBox:hover, QLineEdit:hover, QTextEdit:hover, QDoubleSpinBox::hover {
+            border: 1px solid rgb(150, 150, 150);
+        }
+
+        QPushButton {
+            background-color: rgb(240, 240, 240);
+            border: 1px solid rgb(150, 150, 150);
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #2f2f2f;
+        }
+
+        QPushButton:hover {
+            background-color: rgb(220, 220, 220);
+            border: 1px solid rgb(100, 100, 100);
+        }
+
+        QPushButton:pressed {
+            background-color: rgb(200, 200, 200);
+        }
+                           
+        #DeleteButton:hover {
+            background-color: rgba(255, 0, 0, 100);
+            border: 1px solid rgb(150, 0, 0); 
+        }
+
+        #DeleteButton:pressed {
+            background-color: rgb(200, 0, 0);
+        }
+
+        QCheckBox {
+            font-size: 14px;
+        }
+
+        QCheckBox::indicator {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+
+        QCheckBox::indicator:checked {
+            background-color: rgb(150, 150, 150);
+            border: 2px solid rgb(47, 47, 47);
+        }
+
+        QCheckBox::indicator:unchecked {
+            background-color: rgb(240, 240, 240);
+            border: 2px solid rgb(47, 47, 47);
+        }
+
+        QCheckBox::indicator:hover {
+            background-color: rgba(190, 190, 190, 0.5);
+        }
+                           
+
+        QSlider::groove:horizontal {
+            height: 15px;
+            background: rgb(220, 220, 220);
+            border-radius: 5px;
+        }
+
+        QSlider::handle:horizontal {
+            background: rgb(150, 150, 150);
+            width: 14px;
+            border-radius: 7px;
+        }
+
+        QSlider::handle:horizontal:pressed {
+            background: white;
+        }
+
+        QGroupBox {
+            border: 1px solid rgb(200, 200, 200);
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 14px;
+            color: white;
+        }
+
+        QGroupBox::title {
+            color: rgb(76, 175, 80);
+            font-weight: bold;
+        }
+
+    """)
 
 
 class DraggableButton(QtWidgets.QPushButton):
@@ -1049,8 +1160,7 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
             # Устанавливаем текст в label_x_y с названием класса элемента
             element_name = type(selected_item).__name__
             mouse_pos = event.scenePos()
-            self.label.setText(f"Выбрано: {element_name} ({mouse_pos.x():.1f}, {-mouse_pos.y():.1f})")
-
+            self.label.setText(f"({mouse_pos.x():.1f}, {-mouse_pos.y():.1f})\tВыбрано: {element_name}")
             # self.reset_time.on_object_selected(selected_item)
 
             item_rect = selected_item.sceneBoundingRect()
@@ -1062,8 +1172,15 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
                 parent_item = selected_item.parentItem()  # Получаем родителя
                 if isinstance(parent_item, (EndEvent, ActiveState, SignalReceipt, SignalSending)):
                     self.reset_time.show_editing_panel(parent_item) # Окно редактирования будет отоброжать информацию для родительского элемента
-            else: # Если нет, по умолчанию отобразим информацию о selected_item
+                    item_i = self.objectS.index(parent_item)
+                    self.reset_time.object_panel_select(item_i)
+            elif not(isinstance(selected_item, Arrow)): # Если нет, по умолчанию отобразим информацию о selected_item
                 self.reset_time.show_editing_panel(selected_item)
+                item_i = self.objectS.index(selected_item)
+                self.reset_time.object_panel_select(item_i)
+            else:
+                self.reset_time.show_editing_panel(selected_item)
+            
 
         else:
             self.reset_time.on_selection_changed()
@@ -1408,14 +1525,14 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.gridLayout_2.setObjectName("gridLayout_2")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.ToolBarBox = QtWidgets.QGroupBox(self.centralwidget)
+        self.ToolBarBox = QtWidgets.QFrame(self.centralwidget)
         font = QtGui.QFont()
         font.setFamily("Helvetica")
         font.setPointSize(15)
         font.setBold(True)
         font.setWeight(75)
         self.ToolBarBox.setFont(font)
-        self.ToolBarBox.setStyleSheet("background-color: rgb(255, 255, 255);")
+
         self.ToolBarBox.setObjectName("ToolBarBox")
         self.gridLayout_5 = QtWidgets.QGridLayout(self.ToolBarBox)
         self.gridLayout_5.setObjectName("gridLayout_5")
@@ -1530,10 +1647,23 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.logoLabel.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignHCenter)  # Центрирование изображения
         
         # Загрузка изображения
-        pixmap = QtGui.QPixmap("imgs/ctuaslogo.jpg")
+        pixmap = QtGui.QPixmap("imgs/ctuasologo_black")
         if not pixmap.isNull():
-            self.logoLabel.setPixmap(pixmap.scaled(
-                150, 150, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+            transparent_pixmap = QPixmap(pixmap.size())
+            transparent_pixmap.fill(QtGui.QColor(0, 0, 0, 0))  # Прозрачный фон
+
+            painter = QPainter(transparent_pixmap)
+            painter.setOpacity(0.5)  # Устанавливаем 50% прозрачности
+            painter.drawPixmap(0, 0, pixmap)
+            painter.end()
+
+            # Масштабируем прозрачное изображение
+            scaled_pixmap = transparent_pixmap.scaled(
+                150, 150, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
+            )
+
+            # Устанавливаем изображение в QLabel
+            self.logoLabel.setPixmap(scaled_pixmap)
         else:
             self.logoLabel.setText("Логотип\nне найден")
         
@@ -1547,12 +1677,13 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         self.label_x_y = QtWidgets.QLabel(MainWindow)
         self.label_x_y.setObjectName("label_x_y")
-        self.label_x_y.setAlignment(QtCore.Qt.AlignRight)
+        # self.label_x_y.setAlignment(QtCore.Qt.AlignRight)
         self.label_x_y.setStyleSheet("""
 QLabel {
             color: gray;                         }""")
         self.label_x_y.setText("(0, 0)")
-        self.gridLayout_2.addWidget(self.label_x_y, 2, 1, 1, 1)
+        self.label_x_y.setAlignment(QtCore.Qt.AlignLeft)
+        self.gridLayout_2.addWidget(self.label_x_y, 1, 1, 1, 1)
 
 
         #Настройка главного меню
@@ -1713,7 +1844,7 @@ QLabel {
         self.Time_inaction.setAlignment(QtCore.Qt.AlignCenter)  # Центрируем текст
         self.Time_inaction.setText("00:00:00")  # Устанавливаем начальное значение времени
         self.Time_inaction.setReadOnly(True)
-        # self.Time_inaction.setVisible(False) #По умолчанию всегда невиден
+        self.Time_inaction.setVisible(False) #По умолчанию всегда невиден
 
 
 
@@ -1848,13 +1979,11 @@ QLabel {
         self.object_list_widget = object_list_widget
         self.object_list_dock.setWidget(object_list_widget)
         MainWindow.addDockWidget(Qt.LeftDockWidgetArea, self.object_list_dock)
-        MainWindow.tabifyDockWidget(self.object_list_dock, self.dock_widget) #Размещаем dockwidget'ы одновременно, чтобы сразу через них можно было переключаться
-        self.object_list_dock.setMinimumWidth(100)
-        self.object_list_dock.setMaximumWidth(200)
         self.object_list_widget.itemClicked.connect(self.on_object_selected)
         self.populate_object_list()
         self.object_list_widget.itemClicked.connect(self.object_panel_on_item)
 
+        self.setDesigh(MainWindow)
 
     def show_toolbar(self):
         self.reset_inaction()
@@ -1881,6 +2010,8 @@ QLabel {
         item.setSelected(True) # Выделяем конкретный элемент
         self.show_editing_panel(item) #Показываем информацию о выделенном элементе в окне редактирования
 
+    def object_panel_select(self, i_item):
+        self.object_list_widget.setCurrentRow(i_item)
 
     def populate_object_list(self):
         self.object_list_widget.clear()
@@ -2462,7 +2593,7 @@ QLabel {
                             # Удаляем стрелку из списка стрелок узла
                             item.arrows.remove(arrow)
                             del arrow
-                    del arrows_to_remove
+                    # del arrows_to_remove
 
                 # Удаляем сам элемент из сцены
                 self.scene_.removeItem(item)
@@ -2507,7 +2638,6 @@ QLabel {
                 print(f"Объект {item.__class__.__name__} отсутствует в objectS_")
 
     def duplicate_selected_item(self):
-        self.reset_inaction()
         selected_items = self.scene_.selectedItems()
 
         for item in selected_items:
@@ -2539,12 +2669,6 @@ QLabel {
         self.populate_object_list()
 
 
-
-    # def count_objectS(self):
-    #     return len(self.objectS_)
-
-
-
     #Ниже 7 функции - реализация работы таймера
 
     def start(self):
@@ -2571,9 +2695,8 @@ QLabel {
             self.running_inaction = False
             self.timer_inaction.stop()
 
-            print("Таймер остален")
-
             self.time_updated.emit(self.today_uptadet, self.last_time, self.time_now_uptadet)
+            self.tray_icon.showMessage("Предупреждение", f"Работа приостановлена в {self.get_current_Realtime()}. Программа ожидает отклика пользователя", QSystemTrayIcon.Information, 1000000)
 
             msgBox = QMessageBox()
             msgBox.setIcon(QMessageBox.Information)
@@ -2859,6 +2982,7 @@ QLabel {
         # Логика обновления интерфейса и отправки событий
         print("Количество объектов на сцене - ", len(self.objectS_))
         self.count_objectS.emit(len(self.objectS_))
+        self.populate_object_list()
 
         # Лог действий
         self.user_.add_action(f"Добавлен элемент '{image_item.__class__.__name__}'", self.get_current_Realtime())
@@ -2911,7 +3035,6 @@ QLabel {
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "UML editor"))
-        self.ToolBarBox.setTitle(_translate("MainWindow", "Панель инструментов"))
         self.menu.setTitle(_translate("MainWindow", "Файл"))
         self.menu_insert.setTitle(_translate("MainWindow", "Вставка"))
         self.menu_2.setTitle(_translate("MainWindow", "Статистика"))
@@ -2923,9 +3046,6 @@ QLabel {
         self.action_edit_panel.setText(_translate("MainWindow", "Панель редактирования"))
         self.action_object_panel.setText(_translate("MainWindow", "Список объектов"))
         self.action_Toolbar.setText(_translate("MainWindow", "Тулбар"))
-        
-
-        
 
         self.action.setText(_translate("MainWindow", "Открыть"))
         self.action_2.setText(_translate("MainWindow", "Сохранить"))
@@ -2940,6 +3060,373 @@ QLabel {
         self.action_time_start.setText(_translate("MainWindow", "Запустить таймер"))
         self.action_time_stop.setText(_translate("MainWindow", "Остановить таймер"))
         self.action_time_reset.setText(_translate("MainWindow", "Сбросить таймер"))
+
+    def setDesigh(self, MainWindow):
+
+        MainWindow.setWindowIcon(QIcon("imgs/finalstate.png"))
+        self.tray_icon = QSystemTrayIcon()
+        self.tray_icon.setIcon(QIcon("imgs/finalstate.png"))
+        self.tray_icon.setVisible(True)
+        self.tray_icon.activated.connect(self.on_tray_icon_activated)
+
+        MainWindow.setStyleSheet("""
+        QMenuBar {
+            background-color: rgb(60, 60, 60); /* Тёмный фон */
+            border: none; /* Без рамки */
+        }
+
+        QMenuBar::item {
+            background-color: transparent; /* Прозрачный фон для пунктов меню */
+            color: white; /* Белый цвет текста */
+            padding: 8px 16px;
+        }
+
+        QMenuBar::item:selected {
+            background-color: #4b4b4b; /* Цвет фона при наведении */
+            color: #d3d3d3; /* Светлый цвет текста при наведении */
+        }
+
+        QMenu {
+            background-color: #2f2f2f; /* Тёмный фон меню */
+            border: 1px solid #555555; /* Тонкая рамка */
+            border-radius: 5px; /* Закругленные углы */
+        }
+
+        QMenu::item {
+            background-color: transparent; /* Прозрачный фон для пунктов меню */
+            color: white; /* Белый цвет текста */
+            padding: 8px 16px;
+        }
+
+        QMenu::item:selected {
+            background-color: #4b4b4b; /* Цвет фона при выделении */
+            color: #d3d3d3; /* Светлый цвет текста при выделении */
+        }
+
+        QMenu::item:pressed {
+            background-color: #636363; /* Цвет фона при нажатии */
+            color: white; /* Белый цвет текста при нажатии */
+        }
+
+        QMenu::indicator {
+            border: none; /* Убираем стандартный индикатор */
+        }
+
+        QMenu::indicator:checked {
+            background-color: #4CAF50; /* Цвет для отмеченных пунктов */
+        }
+
+        """)
+
+        self.object_list_dock.setStyleSheet("""
+        QDockWidget {
+            background-color: rgb(240, 240, 240);
+            border: 1px solid rgb(200, 200, 200);
+            border-radius: 8px;
+        }
+
+        QDockWidget::title {
+            background-color: rgb(150, 150, 150);
+            color: white;
+            padding-left: 10px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        QDockWidget::close-button {
+            width: 16px;
+            height: 16px;
+        }
+                                            
+        QDockWidget::close-button:hover {
+            background-color: white;
+            border-radius: 8px;  
+        }                                      
+
+        QDockWidget::float-button {
+            width: 16px;
+            height: 16px;
+        }
+                                            
+        QDockWidget::float-button:hover {
+            background-color: white;
+            border-radius: 8px; 
+        }
+        """)
+
+        self.dock_widget.setStyleSheet("""
+        QDockWidget {
+            background-color: rgb(240, 240, 240);
+            border: 1px solid rgb(200, 200, 200);
+            border-radius: 8px;
+        }
+
+        QDockWidget::title {
+            background-color: rgb(150, 150, 150);
+            color: white;
+            padding-left: 10px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        QDockWidget::close-button {
+            width: 16px;
+            height: 16px;
+        }
+                                            
+        QDockWidget::close-button:hover {
+            background-color: white;
+            border-radius: 8px;  
+        }                                      
+
+        QDockWidget::float-button {
+            width: 16px;
+            height: 16px;
+        }
+                                            
+        QDockWidget::float-button:hover {
+            background-color: white;
+            border-radius: 8px; 
+        }
+
+        QDockWidget QWidget {
+            font-family: 'Arial';
+            font-size: 14px;
+            padding: 10px;
+        }
+
+        """)
+        self.dock_widget.update() 
+        self.ToolBarBox.setStyleSheet("""
+            QFrame {
+        background-color: rgb(240, 240, 240);
+        border: 2px solid rgb(175, 175, 175);
+        }
+
+        QFrame QWidget {
+            font-family: 'Arial';
+            font-size: 14px;
+            padding: 10px;
+        }
+
+        QPushButton {
+            background-color: rgb(240, 240, 240);
+            border: 1px solid rgb(150, 150, 150);
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        QPushButton:hover {
+            background-color: rgb(220, 220, 220); 
+            border: 1px solid rgb(100, 100, 100); 
+        }
+
+        QPushButton:pressed {
+            background-color: rgb(200, 200, 200); 
+        }
+    """)
+        self.object_list_widget.setStyleSheet("""
+        QListWidget {
+            border: none;
+            background: rgb(250, 250, 250);
+            border: 2px solid rgb(175, 175, 175);
+            padding: 10px;
+            font-weight: 500;
+        }
+
+        QListWidget::item {
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 16px;
+            font-family: 'Arial';
+            color: rgb(60, 60, 60);
+            background-color: transparent; 
+        }
+
+        QListWidget::item:hover {
+            background-color: rgb(240, 240, 240);
+        }
+
+        QListWidget::item:selected {
+            background-color: rgb(169, 169, 169);
+            color: white; 
+            font-weight: bold;  
+        }
+
+        QListWidget::item:pressed {
+            background-color: rgb(180, 230, 255);
+        }
+
+        QListWidget::indicator {
+            border: none; 
+        }
+
+        QListWidget::indicator:checked {
+            background-color: rgb(50, 150, 250);
+            border-radius: 5px;
+        }
+        """)
+        self.object_list_widget.verticalScrollBar().setStyleSheet("""
+            QScrollBar:vertical {
+                border: none;
+                background: none;
+                width: 12px;
+                margin: 5px 0 5px 0;
+                border-radius: 6px;
+            }
+            QScrollBar::handle:vertical {
+                background: rgb(200, 200, 200);
+                min-height: 20px;
+                border-radius: 6px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background: rgb(180, 180, 180);
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                background: none;
+                height: 0px;
+            }
+        """)
+        self.object_list_widget.horizontalScrollBar().setStyleSheet("""
+            QScrollBar:horizontal {
+                border: none;
+                background: none;
+                height: 12px;
+                margin: 0px 5px 0px 5px;
+                border-radius: 6px;
+            }
+            QScrollBar::handle:horizontal {
+                background: rgb(200, 200, 200);
+                min-width: 20px;
+                border-radius: 6px;
+            }
+            QScrollBar::handle:horizontal:hover {
+                background: rgb(180, 180, 180);
+            }
+            QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+                background: none;
+                width: 0px;
+            }
+        """)
+        self.graphicsView.setObjectName("MyGraphicsView")
+        self.graphicsView.setStyleSheet("""
+            #MyGraphicsView {
+                background-color: rgb(250, 250, 250);
+                border: 2px solid rgb(200, 200, 200);
+                border-radius: 10px;
+            }
+            #MyGraphicsView:hover {
+                border-color: rgb(150, 150, 150);
+            }
+            
+        """)
+
+        self.graphicsView.verticalScrollBar().setStyleSheet("""
+            QScrollBar:vertical {
+                border: none;
+                background: none;
+                width: 12px;
+                margin: 5px 0 5px 0;
+                border-radius: 6px;
+            }
+            QScrollBar::handle:vertical {
+                background: rgb(200, 200, 200);
+                min-height: 20px;
+                border-radius: 6px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background: rgb(180, 180, 180);
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                background: none;
+                height: 0px;
+            }
+        """)
+
+        self.graphicsView.horizontalScrollBar().setStyleSheet("""
+            QScrollBar:horizontal {
+                border: none;
+                background: none;
+                height: 12px;
+                margin: 0px 5px 0px 5px;
+                border-radius: 6px;
+            }
+            QScrollBar::handle:horizontal {
+                background: rgb(200, 200, 200);
+                min-width: 20px;
+                border-radius: 6px;
+            }
+            QScrollBar::handle:horizontal:hover {
+                background: rgb(180, 180, 180);
+            }
+            QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+                background: none;
+                width: 0px;
+            }
+        """)
+
+        self.editing_dock.setStyleSheet("""QDockWidget {
+            background-color: rgb(240, 240, 240);
+            border: 1px solid rgb(200, 200, 200);
+            border-radius: 8px;
+        }
+
+        QDockWidget::title {
+            background-color: rgb(150, 150, 150);
+            color: white;
+            padding-left: 10px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        QDockWidget::close-button {
+            width: 16px;
+            height: 16px;
+        }
+                                            
+        QDockWidget::close-button:hover {
+            background-color: white;
+            border-radius: 8px;  
+        }                                      
+
+        QDockWidget::float-button {
+            width: 16px;
+            height: 16px;
+        }
+                                            
+        QDockWidget::float-button:hover {
+            background-color: white;
+            border-radius: 8px; 
+        }""")
+
+    def on_tray_icon_activated(self, reason):
+        if reason == QSystemTrayIcon.Trigger:  # Это сработает при клике по иконке
+            # Создаем контекстное меню для иконки
+            tray_menu = QMenu()
+
+            quit_action = QAction("Выход")
+            tray_menu.addAction(quit_action)
+            quit_action.triggered.connect(self.quit_app)
+
+            # Показываем контекстное меню в месте клика
+            tray_menu.exec_(QCursor.pos())
+
+    def quit_app(self):
+        if len(self.objectS_) > 0:
+            reply = QtWidgets.QMessageBox.question(
+                self,
+                "Выход",
+                "Вы уверены, что хотите выйти? Изменения не будут сохранены.",
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                QtWidgets.QMessageBox.No,
+            )
+
+            if reply == QtWidgets.QMessageBox.Yes:
+                QtWidgets.QApplication.quit()
+        else:
+            QtWidgets.QApplication.quit() # Закрывает приложение
 
 if __name__ == "__main__":
     import sys

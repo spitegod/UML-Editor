@@ -33,11 +33,13 @@ class Ui_StaticWidget(QtWidgets.QWidget):
         #lineeit о количестве объектов на сцене
         self.label_count_el = QtWidgets.QLineEdit(self)
         self.label_count_el.setReadOnly(True)
+        self.label_count_el.setAlignment(QtCore.Qt.AlignRight)
         self.label_count_el.setObjectName("label_count_el")
 
         self.tableWidget = QtWidgets.QTableWidget(self)
         self.tableWidget.setObjectName("tableWidget")
         self.tableWidget.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.tableWidget.verticalHeader().hide()
 
         self.listWidget_Users = QtWidgets.QListWidget(self)
         self.listWidget_Users.setObjectName("listWidget_Users")
@@ -171,21 +173,6 @@ QLineEdit {
         self.tableWidget.setRowCount(0)
         self.tableWidget.setHorizontalHeaderLabels(["Время", "Действие"])
         self.tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.tableWidget.setStyleSheet("""
-    QTableWidget {
-        border: none;
-        background: transparent;
-    }
-    QTableWidget::item {
-        background-color: transparent;
-    }
-    QTableWidget::item:selected {
-        color: black;
-    }
-    QHeaderView::section {
-        background-color: transparent;
-    }
-""")
         
         self.verticalLayout_2half.addWidget(self.tableWidget)
         self.verticalLayout_2half.addWidget(self.label_count_el)
@@ -199,6 +186,7 @@ QLineEdit {
 
         self.retranslateUi(StaticWidget)
         QtCore.QMetaObject.connectSlotsByName(StaticWidget)
+        self.setDesigh(StaticWidget)
 
 
     def get_count_objectS(self, int_):
@@ -238,8 +226,16 @@ QLineEdit {
             self.tableWidget.insertRow(row_position)
 
         for row, (time, act) in enumerate(action_history.items()):
-            self.tableWidget.setItem(row, 0, QTableWidgetItem(act))  # Действие
-            self.tableWidget.setItem(row, 1, QTableWidgetItem(time))  # Время
+            action_item = QTableWidgetItem(act)  # Действие пользователя на сцене
+            time_item = QTableWidgetItem(time)  # Время
+
+            # Центрируем содержимое в каждой ячейке
+            action_item.setTextAlignment(QtCore.Qt.AlignCenter)
+            time_item.setTextAlignment(QtCore.Qt.AlignCenter)
+
+            # Устанавливаем элементы в таблицу
+            self.tableWidget.setItem(row, 0, action_item)  # Действие
+            self.tableWidget.setItem(row, 1, time_item)  # Время
 
         # Обновляем виджеты
         self.listWidget_Users.update()
@@ -247,13 +243,7 @@ QLineEdit {
 
         print(len(action_history))
 
-
-
-
     def retranslateUi(self, StaticWidget):
-
-
-
         _translate = QtCore.QCoreApplication.translate
         StaticWidget.setWindowTitle(_translate("StaticWidget", "Статистика"))
         self.label_2.setText(_translate("StaticWidget", "Пользователь"))
@@ -261,9 +251,142 @@ QLineEdit {
         self.label_4.setText(_translate("StaticWidget", "Время работы"))
         self.label_5.setText(_translate("StaticWidget", "Конец работы"))
         self.label_6.setText(_translate("StaticWidget", "История действий"))
-        
 
-    
+
+    def setDesigh(self, StaticWindow):
+        StaticWindow.setStyleSheet("""
+            QWidget {
+                font-family: 'Arial', sans-serif;
+                font-size: 16px;
+                color: #2f2f2f;
+                background-color: #f4f4f4;
+            }
+            QLineEdit {
+                border: 1px solid #dcdcdc;
+                border-radius: 6px;
+                background-color: #ffffff;
+                padding: 8px;
+            }
+            QLineEdit:focus {
+                border: 1px solid #76b852;
+                background-color: #f1f8e9;
+            }
+            QLabel {
+                font-family: 'Arial', sans-serif;
+                font-size: 16px;
+                font-weight: bold;
+                color: #2f2f2f;
+            }
+            }
+            QListWidget {
+                border: none;
+                background: transparent;
+                color: #2f2f2f;
+            }
+            QListWidget::item {
+                padding: 8px;
+                border-radius: 4px;
+            }
+            QListWidget::item:hover {
+                background-color: rgb(220, 220, 220);
+            }
+            QTableWidget {
+                border-radius: 8px;
+                color: #2f2f2f;
+                gridline-color: #ddd;
+                font-family: 'Arial', sans-serif;
+                font-size: 16px;
+                border: none;
+                background: transparent;
+            }
+
+            QTableWidget::item {
+                padding: 10px;
+                background-color: transparent;
+                border-bottom: 1px solid #eee;
+            }
+
+            QTableWidget::item:selected {
+                background-color: transparent;
+                color: black;
+            }
+
+            QTableWidget::item:hover {
+                background-color: rgb(150, 150, 150, 100);
+            }
+
+            QTableWidget::item:selected:hover {
+                background-color: rgb(100, 100, 100);
+            }
+
+            QHeaderView::section {
+                background-color: transparent;
+                color: #2f2f2f;
+                font-weight: bold;
+                border: none;
+                padding: 8px;
+                border-bottom: 2px solid #2f2f2f;
+            }
+
+            QHeaderView::section:horizontal {
+                border-right: 1px solid #ccc;
+            }
+
+            QHeaderView::section:vertical {
+                border-bottom: 1px solid #ccc;
+            }
+
+            QScrollBar:vertical {
+                border: none;
+                background: #f1f1f1;
+                width: 12px;
+                margin: 0px 0px 0px 0px;
+                border-radius: 6px;
+            }
+
+            QScrollBar::handle:vertical {
+                background: #cccccc;
+                min-height: 20px;
+                border-radius: 6px;
+            }
+
+            QScrollBar::handle:vertical:hover {
+                background: #aaaaaa;
+            }
+
+            QScrollBar::add-line:vertical,
+            QScrollBar::sub-line:vertical {
+                background: none;
+                height: 0px;
+            }
+
+            QScrollBar:horizontal {
+                border: none;
+                background: #f1f1f1;
+                height: 12px;
+                margin: 0px 0px 0px 0px;
+                border-radius: 6px;
+            }
+
+            QScrollBar::handle:horizontal {
+                background: #cccccc;
+                min-width: 20px;
+                border-radius: 6px;
+            }
+
+            QScrollBar::handle:horizontal:hover {
+                background: #aaaaaa;
+            }
+
+            QScrollBar::add-line:horizontal,
+            QScrollBar::sub-line:horizontal {
+                background: none;
+                width: 0px;
+            }
+        """)
+        # Убедитесь, что весь блок таблицы выделяется
+
+
 
 if __name__ == "__main__":
     import sys

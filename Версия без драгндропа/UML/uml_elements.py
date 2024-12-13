@@ -119,6 +119,7 @@ class Arrow(QGraphicsItem):
 
         self.pen_width = 3
         self.pen = QPen(Qt.darkRed, self.pen_width, Qt.SolidLine)
+        self.path = QPainterPath()  # Пустой путь, который будет обновлятьс
         self.update_arrow()
 
     def change_width(self, width): #Толщина стрелки
@@ -140,7 +141,7 @@ class Arrow(QGraphicsItem):
         if self.show_points:
             pen = QPen(Qt.black)
             painter.setPen(pen)
-            brush = QBrush(Qt.blue)
+            brush = QBrush(QtGui.QColor(60, 60, 60))
             painter.setBrush(brush)
             for point in self.intermediate_points:
                 painter.drawEllipse(point, 5, 5)
@@ -520,6 +521,8 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
     def setRadius(self, new_radius):
         self.radius = new_radius
         self.setRect(self.x(), self.y(), new_radius * 2, new_radius * 2)
+        for arrow in self.arrows:
+            arrow.update_arrow()
 
     def hoverMoveEvent(self, event):
         rect = self.rect()
@@ -652,6 +655,8 @@ class EndEvent(QtWidgets.QGraphicsEllipseItem):
     def setRadius(self, new_radius):
         self.radius = new_radius
         self.setRect(self.x(), self.y(), new_radius * 2, new_radius * 2)
+        for arrow in self.arrows:
+            arrow.update_arrow()
 
     def update_inner_circle(self):
         rect = self.rect()
@@ -744,6 +749,7 @@ class Text_into_object(QtWidgets.QGraphicsTextItem):
         super().__init__(parent)
         self.unique_id = None
         self.max_length = max_length
+        self.setTextInteractionFlags(QtCore.Qt.NoTextInteraction)
 
     def keyPressEvent(self, event):
 
@@ -811,7 +817,7 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
         # Создаем текстовое поле внутри объекта
         self.text_item = Text_into_object(15, self) #15 - это максимально разрешаеммая длинна ввода
         self.text_item.setPlainText("Текст")
-        self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+        # self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
         self.update_text_wrap()
         self.update_text_position()
 
@@ -909,13 +915,12 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
     #Пока не работает. вернуться к этому
     def mouseDoubleClickEvent(self, event):
         print("Произошел двойной клик по элементу")
-        # Если двойной клик произошёл на текстовом элементе, включаем редактирование
-        local_pos = self.mapToItem(self.text_item, event.pos())
-        if self.text_item.contains(local_pos):
+        if self.text_item.textInteractionFlags() == QtCore.Qt.NoTextInteraction:
             self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
             self.text_item.setFocus(QtCore.Qt.MouseFocusReason)
         else:
-            super().mouseDoubleClickEvent(event)
+            self.text_item.setTextInteractionFlags(QtCore.Qt.NoTextInteraction)
+        super().mouseDoubleClickEvent(event)
 
 
 
@@ -1202,6 +1207,15 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
     def mouseReleaseEvent(self, event):
         self.is_resizing = False
         super().mouseReleaseEvent(event)
+
+    def mouseDoubleClickEvent(self, event):
+        print("Произошел двойной клик по элементу")
+        if self.text_item.textInteractionFlags() == QtCore.Qt.NoTextInteraction:
+            self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+            self.text_item.setFocus(QtCore.Qt.MouseFocusReason)
+        else:
+            self.text_item.setTextInteractionFlags(QtCore.Qt.NoTextInteraction)
+        super().mouseDoubleClickEvent(event)
         
     #Сглаживаине отрисовки объекта
     def paint(self, painter, option, widget=None):
@@ -1264,6 +1278,7 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
         cloned_item.setPen(self.pen())
         
         cloned_item.text_item.setPlainText(self.text_item.toPlainText())
+        cloned_item.reflect(self.current_reflection)
 
         return cloned_item
 
@@ -1386,6 +1401,15 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
     def mouseReleaseEvent(self, event):
         self.is_resizing = False
         super().mouseReleaseEvent(event)
+
+    def mouseDoubleClickEvent(self, event):
+        print("Произошел двойной клик по элементу")
+        if self.text_item.textInteractionFlags() == QtCore.Qt.NoTextInteraction:
+            self.text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+            self.text_item.setFocus(QtCore.Qt.MouseFocusReason)
+        else:
+            self.text_item.setTextInteractionFlags(QtCore.Qt.NoTextInteraction)
+        super().mouseDoubleClickEvent(event)
 
     # #Сглаживаине отрисовки объекта
     def paint(self, painter, option, widget=None):
