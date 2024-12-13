@@ -8,7 +8,7 @@ import math
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-global_id = 0
+global_id = 0 # Глобальный идентификатор для всех элементов
 # class Text_Edit(QtWidgets.QGraphicsTextItem):
 #     def __init__(self, x, y, width, height, text=""):
 #         super().__init__(text)  # Инициализация с начальным текстом
@@ -119,7 +119,10 @@ class Arrow(QGraphicsItem):
 
         self.pen_width = 3
         self.pen = QPen(Qt.darkRed, self.pen_width, Qt.SolidLine)
-        self.path = QPainterPath()  # Пустой путь, который будет обновлятьс
+
+        self.line_type = "solid"
+        self.color = Qt.darkRed  # Цвет по умолчанию
+
         self.update_arrow()
 
     def change_width(self, width): #Толщина стрелки
@@ -149,6 +152,7 @@ class Arrow(QGraphicsItem):
     def change_color(self, color):
         # Метод для изменения цвета стрелки
         self.pen.setColor(color)
+        self.color = color  # Обновляем атрибут цвета
         self.update() 
 
     def change_line_type(self, line_type):
@@ -163,6 +167,8 @@ class Arrow(QGraphicsItem):
             self.pen.setStyle(Qt.DashDotLine)
         else:
             self.pen.setStyle(Qt.SolidLine)
+        
+        self.line_type = line_type
         self.update()
 
     def remove_arrow(self):
@@ -341,10 +347,10 @@ class Arrow(QGraphicsItem):
 
 class Decision(QtWidgets.QGraphicsPolygonItem):
     _id_counter = 0
-    def __init__(self, x, y, size, color=QtCore.Qt.white,  node1=None, node2=None):
+    def __init__(self, x, y, size, color=QtCore.Qt.white, node1=None, node2=None):
         super().__init__()
         global global_id  # Объявляем, что будем использовать глобальную переменную
-        self.unique_id = global_id
+        self.unique_id = global_id - 8
         global_id += 1
         self.size = size
         self.center_x = x  # Сохраняем центр при инициализации
@@ -386,6 +392,7 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
 
     def setColor(self, color):  
         self.color = color
+        print(color)
         self.setBrush(self.color)
         self.update()  # Обновляем элемент для перерисовки
 
@@ -471,18 +478,18 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
 
 class StartEvent(QtWidgets.QGraphicsEllipseItem):
     _id_counter = 0
-    x_default = 0  # Значения по умолчанию
-    y_default = 0
-    radius_default = 30
-    def __init__(self, x, y, radius, node1=None, node2=None):
+
+    def __init__(self, x, y, radius, color=QtCore.Qt.black, node1=None, node2=None):
+
         super().__init__(x - radius, y - radius, 2 * radius, 2 * radius)
         global global_id  # Объявляем, что будем использовать глобальную переменную
-        self.unique_id = global_id
+        self.unique_id = global_id - 8
         global_id += 1
         self.x_center = x
         self.y_center = y
         self.radius = radius
-        self.setBrush(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
+        self.color = color
+        self.setBrush(color)
         self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать элемент
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
@@ -617,15 +624,18 @@ class InnerCircle(QtWidgets.QGraphicsEllipseItem):
 
 class EndEvent(QtWidgets.QGraphicsEllipseItem):
     _id_counter = 0
-    def __init__(self, x, y, radius, inner_radius_ratio=0.5, node1=None, node2=None):
+    def __init__(self, x, y, radius, inner_radius_ratio=0.5, color=QtCore.Qt.white, node1=None, node2=None):
         super().__init__(x - radius, y - radius, 2 * radius, 2 * radius)
-        self.unique_id = EndEvent._id_counter
-        EndEvent._id_counter += 1
+        global global_id
+        self.unique_id = global_id - 8
+        global_id += 1
+        # EndEvent._id_counter += 1
         self.x_center = x
         self.y_center = y
         self.radius = radius
         self.inner_radius_ratio = inner_radius_ratio
-        self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))  # Основной круг
+        self.color = color
+        self.setBrush(color)  # Основной круг
         self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать элемент
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
@@ -791,18 +801,19 @@ class Text_into_object(QtWidgets.QGraphicsTextItem):
 
 class ActiveState(QtWidgets.QGraphicsRectItem):
     _id_counter = 0
-    def __init__(self, x, y, width, height, radius, node1=None, node2=None):
+    def __init__(self, x, y, width, height, radius, color=QtCore.Qt.white, node1=None, node2=None):
         super().__init__(x, y, width, height)
-        global global_id  # Объявляем, что будем использовать глобальную переменную
-        self.unique_id = global_id
+        global global_id
+        self.unique_id = global_id - 8
         global_id += 1
         self.x_center = x
         self.y_center = y
         self.width = width
         self.height = height
         self.radius = radius  # Радиус закругления
+        self.color = color
         self.setRect(self.x_center, self.y_center, width, height)
-        self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
+        self.setBrush(color)
         self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
@@ -1039,18 +1050,21 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
 
 class SignalSending(QtWidgets.QGraphicsPolygonItem):
     _id_counter = 0
-    def __init__(self, x, y, width, height, node1=None, node2=None):
-        self.unique_id = SignalSending._id_counter
-        SignalSending._id_counter += 1
+    def __init__(self, x, y, width, height, trans, color=QtCore.Qt.white, node1=None, node2=None):
+        global global_id
+        self.unique_id = global_id - 8
+        global_id += 1
         super().__init__()
         self.width = width
         self.height = height
         self.center_x = x
         self.center_y = y
+        self.color = color
+        self.trans = trans
 
         # Создаем пентагон
         self.setPolygon(self.create_pentagon(self.center_x, self.center_y, self.width, self.height))
-        self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
+        self.setBrush(color)
         self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
@@ -1238,18 +1252,21 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
 
 class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
     _id_counter = 0
-    def __init__(self, x, y, width, height, node1=None, node2=None):
+    def __init__(self, x, y, width, height, trans, color=QtCore.Qt.white, node1=None, node2=None):
         super().__init__()
-        self.unique_id = SignalReceipt._id_counter
-        SignalReceipt._id_counter += 1
+        global global_id
+        self.unique_id = global_id - 8
+        global_id += 1
         self.width = width
         self.height = height
         self.center_x = x
         self.center_y = y
+        self.color = color
+        self.trans = trans
 
         # Создаем пентагон
         self.setPolygon(self.create_pentagon(self.center_x, self.center_y, self.width, self.height))
-        self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
+        self.setBrush(color)
         self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
@@ -1430,18 +1447,21 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
 
 class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
     _id_counter = 0
-    def __init__(self, x, y, width, height, node1=None, node2=None):
+    def __init__(self, x, y, width, height, rot, color=QtCore.Qt.black, node1=None, node2=None):
         super().__init__()
-        self.unique_id = Splitter_Merge._id_counter
-        Splitter_Merge._id_counter += 1
+        global global_id
+        self.unique_id = global_id - 8
+        global_id += 1
         self.width = width
         self.height = height
         self.center_x = x
         self.center_y = y
+        self.rot = rot
+        self.color = color
 
         self.setPolygon(self.create_SM(self.center_x, self.center_y, self.width, self.height))
 
-        self.setBrush(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
+        self.setBrush(color)
         self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
@@ -1454,6 +1474,7 @@ class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
         self.is_resizing = False # Флаг, указывающий, идет ли изменение размера
         self.resize_side = None # Определяем, с какой стороны идет изменение размера
         self.resize_margin = 10 # Чувствительная область для изменения размера
+
 
         self.arrows = []
 
@@ -1482,6 +1503,7 @@ class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
     def update_size_and_orientation(self, width, height, rotation):
         self.setPolygon(self.create_SM(self.center_x, self.center_y, width, height))
         self.setRotation(rotation)
+        self.rot = rotation
         self.update()
 
 
@@ -1555,8 +1577,9 @@ class ImageItem(QtWidgets.QGraphicsPixmapItem):
     _id_counter = 0
     def __init__(self, pixmap, x, y):
         super().__init__(pixmap)
-        self.unique_id = ImageItem._id_counter
-        ImageItem._id_counter += 1
+        global global_id
+        self.unique_id = global_id - 8
+        global_id += 1
         self.x_center = x
         self.y_center = y
         self.setPos(self.x_center, self.y_center)  # Устанавливаем начальную позицию
@@ -1604,19 +1627,19 @@ class ImageItem(QtWidgets.QGraphicsPixmapItem):
             self.is_resizing = False
         super().mousePressEvent(event)
 
-    def mouseMoveEvent(self, event):
-        if self.is_resizing:
-            rect = self.boundingRect()
-            delta = event.pos() - rect.center()
-            new_width = max(10, rect.width() + delta.x() * 2)  # Минимальная ширина 10
-            new_height = max(10, rect.height() + delta.y() * 2)  # Минимальная высота 10
+    # def mouseMoveEvent(self, event):
+    #     if self.is_resizing:
+    #         rect = self.boundingRect()
+    #         delta = event.pos() - rect.center()
+    #         new_width = max(10, rect.width() + delta.x() * 2)  # Минимальная ширина 10
+    #         new_height = max(10, rect.height() + delta.y() * 2)  # Минимальная высота 10
 
-            # Обновляем размер изображения
-            self.setPixmap(
-                self.pixmap().scaled(int(new_width), int(new_height), QtCore.Qt.KeepAspectRatio)
-            )
-        else:
-            super().mouseMoveEvent(event)
+    #         # Обновляем размер изображения
+    #         self.setPixmap(
+    #             self.pixmap().scaled(int(new_width), int(new_height), QtCore.Qt.KeepAspectRatio)
+    #         )
+    #     else:
+    #         super().mouseMoveEvent(event)
 
         # Обновляем стрелки
         for arrow in self.arrows:
@@ -1646,8 +1669,9 @@ class Text_Edit(Text_into_object):
     _id_counter = 0
     def __init__(self, x, y, width, height, text="Текст", max_length=250, parent=None):
         super().__init__(max_length, parent)
-        self.unique_id = Splitter_Merge._id_counter
-        Splitter_Merge._id_counter += 1
+        global global_id
+        self.unique_id = global_id - 8
+        global_id += 1
         self.setPlainText(text)
         self.max_length = max_length
 
