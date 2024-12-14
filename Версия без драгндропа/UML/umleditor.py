@@ -38,7 +38,7 @@ from PyQt5.QtCore import pyqtSlot
 
 global_username = ""
 global_start_time = None
-
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 class EditingPanel(QWidget):
     def __init__(self, editable_item, main_window):
         super().__init__()
@@ -56,10 +56,12 @@ class EditingPanel(QWidget):
 
             self.line_type_label = QLabel("Тип линии:")
             self.line_type_combo = QComboBox(self)
-            self.line_type_combo.addItem("Сплошная")
-            self.line_type_combo.addItem("Пунктирная")
-            self.line_type_combo.addItem("Точечная")
-            self.line_type_combo.addItem("Чередующая")
+            self.line_type_combo.addItem(QIcon(QPixmap("imgs/solid_line.png")), "Сплошная")
+            self.line_type_combo.addItem(QIcon(QPixmap("imgs/intermittemt_line.png")), "Пунктирная")
+            self.line_type_combo.addItem(QIcon(QPixmap("imgs/point_line.png")), "Точечная")
+            self.line_type_combo.addItem(QIcon(QPixmap("imgs/alternating_line.png")), "Чередующая")
+
+            
 
             self.thickness_label = QLabel("Толщина линии:")
             self.thickness_spinbox = QSpinBox(self)
@@ -308,6 +310,7 @@ class EditingPanel(QWidget):
         self.delete_item = QPushButton("Удалить")
         self.copy_item = QPushButton("Дублировать")
 
+
         # self.delete_item.clicked.connect(self.mainwin.delete_selected_item)
 
         self.delete_item.clicked.connect(self.delete_current_item)
@@ -322,10 +325,19 @@ class EditingPanel(QWidget):
         layout.addWidget(self.delete_item, 8, 0)
         layout.addWidget(self.copy_item, 8, 1)
 
+        if isinstance(self.editable_item, Arrow):
+            self.x_label.setVisible(False)
+            self.y_label.setVisible(False)
+            self.x_spinbox.setVisible(False)
+            self.y_spinbox.setVisible(False)
+            self.copy_item.setVisible(False)
+            layout.removeWidget(self.delete_item)
+            layout.addWidget(self.delete_item, 4, 1)
+
         self.setLayout(layout)
 
-        self.setMinimumWidth(200)
-        self.setMaximumWidth(400)
+        self.setMinimumWidth(400)
+        self.setMaximumWidth(500)
         self.setDesigh()
 
     def delete_current_item(self):
@@ -587,6 +599,7 @@ class EditingPanel(QWidget):
 
     def setDesigh(self):
         self.setStyleSheet("""
+                           
         QWidget {
             font-family: 'Arial', sans-serif;
             font-size: 14px;
@@ -640,7 +653,7 @@ class EditingPanel(QWidget):
         }
 
         QCheckBox {
-            font-size: 14px;
+            font-size: 15px;
         }
 
         QCheckBox::indicator {
@@ -692,6 +705,82 @@ class EditingPanel(QWidget):
             color: rgb(76, 175, 80);
             font-weight: bold;
         }
+
+
+        QSpinBox::drop-up, QDoubleSpinBox::drop-up{
+            width: 20px;
+            border-left: 1px solid rgb(200, 200, 200);
+            border-radius: 6px;
+            background: none;
+        }
+
+        QSpinBox::up-arrow, QDoubleSpinBox::up-arrow{
+            image: url(imgs/button_up.png);
+            width: 16px;
+            height: 16px;
+            background: none;
+            border: none;
+        }
+
+        QSpinBox::drop-down, QDoubleSpinBox::drop-down {
+            width: 20px;
+            border-left: 1px solid rgb(200, 200, 200);
+            border-radius: 6px;
+            background: none; /* Убираем фон */
+        }
+
+        QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
+            image: url(imgs/button_down.png);
+            width: 16px;
+            height: 16px;
+            background: none;
+            border: none;
+        }
+                            
+        QSpinBox::up-button, QSpinBox::down-button, QDoubleSpinBox::up-button, QDoubleSpinBox::down-button {
+            background: none;
+            border: none;
+        }
+
+        QComboBox::drop-down {
+            width: 20px;
+            border-left: 1px solid rgb(200, 200, 200);
+            border-radius: 6px;
+            background-color: rgb(240, 240, 240);
+        }
+
+        QComboBox::down-arrow {
+            image: url(imgs/button_down.png);
+            width: 16px;
+            height: 16px;
+        }
+
+        QComboBox QAbstractItemView {
+            background-color: rgb(240, 240, 240);
+            border: 1px solid rgb(200, 200, 200);
+            border-radius: 6px;
+            padding: 8px;
+            font-family: 'Arial';
+            font-size: 14px;
+            selection-background-color: rgb(190, 190, 190);
+            selection-color: white;
+        }
+
+        QComboBox QAbstractItemView::item {
+            background-color: rgb(240, 240, 240);
+            height: 30px;
+            padding-left: 10px;
+        }
+
+        QComboBox QAbstractItemView::item:selected {
+            background-color: rgb(76, 175, 80);
+            color: white;
+        }
+
+        QComboBox QAbstractItemView::item:hover {
+            background-color: rgba(0, 150, 136, 0.5);
+        }
+
 
     """)
 
@@ -3599,7 +3688,7 @@ QLabel {
 
         MainWindow.setStyleSheet("""
         QMenuBar {
-            background-color: rgb(60, 60, 60); /* Тёмный фон */
+            background-color: rgb(100, 100, 100); /* Тёмный фон */
             border: none; /* Без рамки */
         }
 
