@@ -1,5 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QPen, QPainterPath, QColor, QPolygonF, QBrush, QTransform
+from PyQt5.QtGui import QPen, QPainterPath, QColor, QPolygonF, QBrush, QTransform, QPainter
 from PyQt5.QtCore import QPointF, Qt, QLineF
 from PyQt5.QtWidgets import QGraphicsItem, QGraphicsEllipseItem, QGraphicsRectItem, QGraphicsPolygonItem
 
@@ -131,7 +131,7 @@ class Arrow(QGraphicsItem):
         self.update()
 
     def boundingRect(self):
-        extra_margin = 100  # Добавочная область вокруг стрелки
+        extra_margin = 90  # Добавочная область вокруг стрелки
         rect = self.path.boundingRect()
         return rect.adjusted(-extra_margin, -extra_margin, extra_margin, extra_margin)
 
@@ -204,7 +204,6 @@ class Arrow(QGraphicsItem):
 
         start_point = self.get_edge_intersection(node1_rect, start_center, end_center)
         end_point = self.get_edge_intersection(node2_rect, end_center, start_center)
-
 
         if not self.relative_points:
             self.relative_points = [

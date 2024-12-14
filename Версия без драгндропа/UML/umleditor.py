@@ -45,7 +45,7 @@ class EditingPanel(QWidget):
         self.editable_item = editable_item
         self.main_window = main_window
 
-        # Используем QGridLayout вместо QVBoxLayout
+        # Используем QGridLayout
         layout = QGridLayout()
 
         if isinstance(self.editable_item, Arrow):
@@ -73,10 +73,12 @@ class EditingPanel(QWidget):
             self.line_type_combo.currentTextChanged.connect(self.update_line_type)
 
             self.right_arrow_checkbox = QCheckBox("Наконечник справа")
+            self.right_arrow_checkbox.setIcon(QIcon('imgs/button_right.png'))
             self.right_arrow_checkbox.setChecked(self.editable_item.right_arrow_enabled)
             self.right_arrow_checkbox.stateChanged.connect(self.toggle_right_arrow)
 
             self.left_arrow_checkbox = QCheckBox("Наконечник слева")
+            self.left_arrow_checkbox.setIcon(QIcon('imgs/button_left.png'))
             self.left_arrow_checkbox.setChecked(self.editable_item.left_arrow_enabled)
             self.left_arrow_checkbox.stateChanged.connect(self.toggle_left_arrow)
 
@@ -90,8 +92,8 @@ class EditingPanel(QWidget):
             layout.addWidget(self.line_type_combo, 1, 1)
             layout.addWidget(self.thickness_label, 2, 0)
             layout.addWidget(self.thickness_spinbox, 2, 1)
-            layout.addWidget(self.right_arrow_checkbox, 3, 0)
-            layout.addWidget(self.left_arrow_checkbox, 3, 1)
+            layout.addWidget(self.left_arrow_checkbox, 3, 0)
+            layout.addWidget(self.right_arrow_checkbox, 3, 1)
             layout.addWidget(self.show_points_checkbox, 4, 0)
 
         elif isinstance(self.editable_item, Decision):
@@ -335,7 +337,6 @@ class EditingPanel(QWidget):
             layout.addWidget(self.delete_item, 4, 1)
 
         self.setLayout(layout)
-
         self.setMinimumWidth(400)
         self.setMaximumWidth(500)
         self.setDesigh()
@@ -707,41 +708,55 @@ class EditingPanel(QWidget):
         }
 
 
-        QSpinBox::drop-up, QDoubleSpinBox::drop-up{
-            width: 20px;
-            border-left: 1px solid rgb(200, 200, 200);
+        QSpinBox, QDoubleSpinBox {
+            background-color: rgb(240, 240, 240);
+            border: 1px solid rgb(200, 200, 200);
             border-radius: 6px;
-            background: none;
+            padding: 4px;
+            height: 28px;
         }
 
-        QSpinBox::up-arrow, QDoubleSpinBox::up-arrow{
-            image: url(imgs/button_up.png);
+        /* Стиль кнопки для QSpinBox и QDoubleSpinBox */
+        QSpinBox::up-button, QDoubleSpinBox::up-button,
+        QSpinBox::down-button, QDoubleSpinBox::down-button {
+            background-color: rgb(240, 240, 240);
+            border: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 6px;
+        }
+
+        /* Стиль стрелок вверх и вниз для QSpinBox и QDoubleSpinBox */
+        QSpinBox::up-arrow, QDoubleSpinBox::up-arrow,
+        QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
             width: 16px;
             height: 16px;
             background: none;
             border: none;
         }
 
-        QSpinBox::drop-down, QDoubleSpinBox::drop-down {
-            width: 20px;
-            border-left: 1px solid rgb(200, 200, 200);
-            border-radius: 6px;
-            background: none; /* Убираем фон */
+        /* Установка изображений для стрелок вверх и вниз */
+        QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
+            image: url(imgs/button_up.png);
         }
 
         QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
             image: url(imgs/button_down.png);
-            width: 16px;
-            height: 16px;
-            background: none;
-            border: none;
         }
                             
-        QSpinBox::up-button, QSpinBox::down-button, QDoubleSpinBox::up-button, QDoubleSpinBox::down-button {
-            background: none;
+        QSpinBox::up-button, QSpinBox::down-button, QDoubleSpinBox::up-button, QDoubleSpinBox::down-button, QComboBox::down-button {
             border: none;
+            background: none;
+            border-radius: 6px;
         }
 
+        /*Наведение на кнопки*/
+        QSpinBox::up-button:hover, QSpinBox::down-button:hover,
+        QDoubleSpinBox::up-button:hover, QDoubleSpinBox::down-button:hover,
+        QComboBox::down-button:hover {
+            background-color: rgb(220, 220, 220);
+        }
+                           
         QComboBox::drop-down {
             width: 20px;
             border-left: 1px solid rgb(200, 200, 200);
