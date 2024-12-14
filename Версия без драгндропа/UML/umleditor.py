@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QTimer, QTime, QDateTime
 from PyQt5.QtCore import pyqtSignal  # Импортируем pyqtSignal
 
-from PyQt5.QtCore import Qt, QPointF, QLineF, QRectF, QEvent
+from PyQt5.QtCore import Qt, QPointF, QLineF, QRectF, QEvent, QSize
 from PyQt5.QtGui import QPen, QBrush, QPainterPath, QKeySequence, QIcon, QCursor, QPainter, QPixmap
 
 
@@ -46,9 +46,13 @@ class EditingPanel(QWidget):
         self.main_window = main_window
 
         # Используем QGridLayout
-        layout = QGridLayout()
+        self.layout = QGridLayout()
+        self.label_choose = QLabel("Выберите элемент на сцене")
+        self.layout.addWidget(self.label_choose, 0, 0)
+        self.label_choose.setVisible(False)
 
         if isinstance(self.editable_item, Arrow):
+            self.label_choose.setVisible(False)
             self.label_color = QLabel("Цвет стрекли")
             self.color_button = QPushButton("")
             self.color_button.clicked.connect(self.change_arrow_color)
@@ -73,12 +77,10 @@ class EditingPanel(QWidget):
             self.line_type_combo.currentTextChanged.connect(self.update_line_type)
 
             self.right_arrow_checkbox = QCheckBox("Наконечник справа")
-            self.right_arrow_checkbox.setIcon(QIcon('imgs/button_right.png'))
             self.right_arrow_checkbox.setChecked(self.editable_item.right_arrow_enabled)
             self.right_arrow_checkbox.stateChanged.connect(self.toggle_right_arrow)
 
             self.left_arrow_checkbox = QCheckBox("Наконечник слева")
-            self.left_arrow_checkbox.setIcon(QIcon('imgs/button_left.png'))
             self.left_arrow_checkbox.setChecked(self.editable_item.left_arrow_enabled)
             self.left_arrow_checkbox.stateChanged.connect(self.toggle_left_arrow)
 
@@ -86,23 +88,23 @@ class EditingPanel(QWidget):
             self.show_points_checkbox.setChecked(self.editable_item.show_points)
             self.show_points_checkbox.stateChanged.connect(self.toggle_points_visibility)
 
-            layout.addWidget(self.label_color, 0, 0, 1, 1)
-            layout.addWidget(self.color_button, 0, 1, 1, 1)
-            layout.addWidget(self.line_type_label, 1, 0)
-            layout.addWidget(self.line_type_combo, 1, 1)
-            layout.addWidget(self.thickness_label, 2, 0)
-            layout.addWidget(self.thickness_spinbox, 2, 1)
-            layout.addWidget(self.left_arrow_checkbox, 3, 0)
-            layout.addWidget(self.right_arrow_checkbox, 3, 1)
-            layout.addWidget(self.show_points_checkbox, 4, 0)
+            self.layout.addWidget(self.label_color, 0, 0, 1, 1)
+            self.layout.addWidget(self.color_button, 0, 1, 1, 1)
+            self.layout.addWidget(self.line_type_label, 1, 0)
+            self.layout.addWidget(self.line_type_combo, 1, 1)
+            self.layout.addWidget(self.thickness_label, 2, 0)
+            self.layout.addWidget(self.thickness_spinbox, 2, 1)
+            self.layout.addWidget(self.left_arrow_checkbox, 3, 0)
+            self.layout.addWidget(self.right_arrow_checkbox, 3, 1)
+            self.layout.addWidget(self.show_points_checkbox, 4, 0)
 
         elif isinstance(self.editable_item, Decision):
             self.label_color = QLabel("Цвет заливки")
             self.color_button = QPushButton("")
             self.color_button.clicked.connect(self.change_color)
             
-            layout.addWidget(self.label_color, 0, 0, 1, 1)
-            layout.addWidget(self.color_button, 0, 1, 1, 1)
+            self.layout.addWidget(self.label_color, 0, 0, 1, 1)
+            self.layout.addWidget(self.color_button, 0, 1, 1, 1)
             self.update_button_color()
 
         
@@ -118,10 +120,10 @@ class EditingPanel(QWidget):
             self.color_button.clicked.connect(self.change_color)
             self.update_button_color()
 
-            layout.addWidget(self.label_color, 0, 0, 1, 1)
-            layout.addWidget(self.color_button, 0, 1, 1, 1)
-            layout.addWidget(self.radius_label, 1, 0, 1, 1)
-            layout.addWidget(self.radius_spinbox, 1, 1, 1, 1)
+            self.layout.addWidget(self.label_color, 0, 0, 1, 1)
+            self.layout.addWidget(self.color_button, 0, 1, 1, 1)
+            self.layout.addWidget(self.radius_label, 1, 0, 1, 1)
+            self.layout.addWidget(self.radius_spinbox, 1, 1, 1, 1)
 
         elif isinstance(self.editable_item, (ActiveState)):
             self.width_label = QLabel("Ширина:")
@@ -147,14 +149,14 @@ class EditingPanel(QWidget):
             self.color_button.clicked.connect(self.change_color)
             self.update_button_color()
 
-            layout.addWidget(self.label_color, 0, 0 , 1, 1)
-            layout.addWidget(self.color_button, 0, 1, 1, 1)
-            layout.addWidget(self.width_label, 1, 0, 1, 1)
-            layout.addWidget(self.width_spinbox, 1, 1, 1, 1)
-            layout.addWidget(self.height_label, 2, 0, 1, 1)
-            layout.addWidget(self.height_spinbox, 2, 1, 1, 1)
-            layout.addWidget(self.text_label, 3, 0, 1, 1)
-            layout.addWidget(self.text_input, 3, 1, 1, 1)
+            self.layout.addWidget(self.label_color, 0, 0 , 1, 1)
+            self.layout.addWidget(self.color_button, 0, 1, 1, 1)
+            self.layout.addWidget(self.width_label, 1, 0, 1, 1)
+            self.layout.addWidget(self.width_spinbox, 1, 1, 1, 1)
+            self.layout.addWidget(self.height_label, 2, 0, 1, 1)
+            self.layout.addWidget(self.height_spinbox, 2, 1, 1, 1)
+            self.layout.addWidget(self.text_label, 3, 0, 1, 1)
+            self.layout.addWidget(self.text_input, 3, 1, 1, 1)
 
         if isinstance(self.editable_item, (SignalSending, SignalReceipt)):
             self.width_label = QLabel("Ширина:")
@@ -192,16 +194,16 @@ class EditingPanel(QWidget):
             else:
                 self.mirrow_combo.setCurrentIndex(1)
 
-            layout.addWidget(self.label_color, 0, 0 , 1, 1)
-            layout.addWidget(self.color_button, 0, 1, 1, 1)
-            layout.addWidget(self.width_label, 1, 0, 1, 1)
-            layout.addWidget(self.width_spinbox, 1, 1, 1, 1)
-            layout.addWidget(self.height_label, 2, 0, 1, 1)
-            layout.addWidget(self.height_spinbox, 2, 1, 1, 1)
-            layout.addWidget(self.label_mirrow, 3, 0, 1, 1)
-            layout.addWidget(self.mirrow_combo, 3, 1, 1, 1)
-            layout.addWidget(self.text_label, 4, 0, 1, 1)
-            layout.addWidget(self.text_input, 4, 1, 1, 1)
+            self.layout.addWidget(self.label_color, 0, 0 , 1, 1)
+            self.layout.addWidget(self.color_button, 0, 1, 1, 1)
+            self.layout.addWidget(self.width_label, 1, 0, 1, 1)
+            self.layout.addWidget(self.width_spinbox, 1, 1, 1, 1)
+            self.layout.addWidget(self.height_label, 2, 0, 1, 1)
+            self.layout.addWidget(self.height_spinbox, 2, 1, 1, 1)
+            self.layout.addWidget(self.label_mirrow, 3, 0, 1, 1)
+            self.layout.addWidget(self.mirrow_combo, 3, 1, 1, 1)
+            self.layout.addWidget(self.text_label, 4, 0, 1, 1)
+            self.layout.addWidget(self.text_input, 4, 1, 1, 1)
 
         elif isinstance(self.editable_item, (Splitter_Merge)):
 
@@ -234,14 +236,14 @@ class EditingPanel(QWidget):
             else: # иначе вертикально
                 self.orint_combo.setCurrentIndex(0)  
 
-            layout.addWidget(self.label_color, 0, 0, 1, 1)
-            layout.addWidget(self.color_button, 0, 1, 1, 1)
-            layout.addWidget(self.width_label, 1, 0, 1, 1)
-            layout.addWidget(self.width_spinbox, 1, 1, 1, 1)
-            layout.addWidget(self.height_label, 2, 0, 1, 1)
-            layout.addWidget(self.height_spinbox, 2, 1, 1, 1)
-            layout.addWidget(self.orint_label, 3, 0)
-            layout.addWidget(self.orint_combo, 3, 1)
+            self.layout.addWidget(self.label_color, 0, 0, 1, 1)
+            self.layout.addWidget(self.color_button, 0, 1, 1, 1)
+            self.layout.addWidget(self.width_label, 1, 0, 1, 1)
+            self.layout.addWidget(self.width_spinbox, 1, 1, 1, 1)
+            self.layout.addWidget(self.height_label, 2, 0, 1, 1)
+            self.layout.addWidget(self.height_spinbox, 2, 1, 1, 1)
+            self.layout.addWidget(self.orint_label, 3, 0)
+            self.layout.addWidget(self.orint_combo, 3, 1)
         
         elif isinstance(self.editable_item, (ImageItem)):
 
@@ -251,8 +253,8 @@ class EditingPanel(QWidget):
             self.opacity_slider.setValue(int(self.editable_item.opacity() * 100))
             self.opacity_slider.valueChanged.connect(self.update_opacity)
 
-            layout.addWidget(self.opacity_label, 0, 0, 1, 1)
-            layout.addWidget(self.opacity_slider, 0, 1, 1, 1)
+            self.layout.addWidget(self.opacity_label, 0, 0, 1, 1)
+            self.layout.addWidget(self.opacity_slider, 0, 1, 1, 1)
 
         elif isinstance(self.editable_item, (Text_Edit)): 
             self.text_label = QLabel("Текст:")
@@ -283,10 +285,10 @@ class EditingPanel(QWidget):
              # Подключаем сигнал textChanged для отслеживания изменений
             self.text_area.textChanged.connect(self.max_length_text_area)
             # Добавляем виджеты в layout
-            layout.addWidget(self.text_label, 0, 0, 1, 1)
-            layout.addWidget(self.text_area, 1, 0, 1, 0)
-            layout.addWidget(self.count_sim_label1, 2, 0, 1, 1)
-            layout.addWidget(self.count_sim_input2, 2, 1, 1, 1)
+            self.layout.addWidget(self.text_label, 0, 0, 1, 1)
+            self.layout.addWidget(self.text_area, 1, 0, 1, 0)
+            self.layout.addWidget(self.count_sim_label1, 2, 0, 1, 1)
+            self.layout.addWidget(self.count_sim_input2, 2, 1, 1, 1)
 
 
         self.x_label = QLabel("X:")
@@ -320,12 +322,12 @@ class EditingPanel(QWidget):
         self.copy_item.clicked.connect(self.duplicate_current_item)
 
 
-        layout.addWidget(self.x_label, 6, 0)
-        layout.addWidget(self.x_spinbox, 6, 1)
-        layout.addWidget(self.y_label, 7, 0)
-        layout.addWidget(self.y_spinbox, 7, 1)
-        layout.addWidget(self.delete_item, 8, 0)
-        layout.addWidget(self.copy_item, 8, 1)
+        self.layout.addWidget(self.x_label, 6, 0)
+        self.layout.addWidget(self.x_spinbox, 6, 1)
+        self.layout.addWidget(self.y_label, 7, 0)
+        self.layout.addWidget(self.y_spinbox, 7, 1)
+        self.layout.addWidget(self.delete_item, 8, 0)
+        self.layout.addWidget(self.copy_item, 8, 1)
 
         if isinstance(self.editable_item, Arrow):
             self.x_label.setVisible(False)
@@ -333,18 +335,35 @@ class EditingPanel(QWidget):
             self.x_spinbox.setVisible(False)
             self.y_spinbox.setVisible(False)
             self.copy_item.setVisible(False)
-            layout.removeWidget(self.delete_item)
-            layout.addWidget(self.delete_item, 4, 1)
+            self.layout.removeWidget(self.delete_item)
+            self.layout.addWidget(self.delete_item, 4, 1)
 
-        self.setLayout(layout)
+        self.setLayout(self.layout)
         self.setMinimumWidth(400)
         self.setMaximumWidth(500)
         self.setDesigh()
 
+    def empty_panel(self):
+        for i in range(self.layout.count()):
+            item = self.layout.itemAt(i)
+            widget = item.widget()
+            if widget:  # Если это виджет, делаем его невидимым
+                widget.setVisible(False)
+
+        self.label_choose.setVisible(True)
+
+
     def delete_current_item(self):
         if self.editable_item:
             self.main_window.reset_inaction()
-            self.main_window.delete_specific_item(self.editable_item)    
+            # Если editable_item — это стрелка, удаляем стрелку
+            if isinstance(self.editable_item, Arrow):
+                self.editable_item.remove_arrow()  # Удаляем стрелку
+                self.main_window.on_selection_changed()
+                self.empty_panel()
+            else:
+                self.main_window.delete_specific_item(self.editable_item)  # Удаляем другой элемент  
+                self.empty_panel()  
 
     def update_coordinates(self, x, y):
         if self.is_position_updating:
@@ -472,9 +491,15 @@ class EditingPanel(QWidget):
         self.main_window.reset_inaction()
         new_width = self.width_spinbox.value()
         old_height = self.height_spinbox.value()
+
+        if hasattr(self.editable_item, 'arrows') and self.editable_item.arrows:
+            # Если у editable_item есть стрелки (арrows) и они не пустые
+            for arrow in self.editable_item.arrows:
+                arrow.update_arrow()  # Обновляем каждую стрелку
         if hasattr(self.editable_item, 'setRect'):
-            rect = self.editable_item.boundingRect()
-            self.editable_item.setRect(rect.x(), rect.y(), new_width, old_height)
+            current_x = self.x_spinbox.value() # Считывает текущее положение объекта по x из значения панели
+            current_y = self.y_spinbox.value() # Считывает текущее положение объекта по y из значения панели
+            self.editable_item.setRect(current_x, current_y, new_width, old_height)
             self.editable_item.update_text_position()
         elif hasattr(self.editable_item, 'update_size'):
             rect = self.editable_item.boundingRect()
@@ -485,16 +510,20 @@ class EditingPanel(QWidget):
             if isinstance(self.editable_item, (SignalSending, SignalReceipt)):
                 self.editable_item.reflect(self.mirrow_combo.currentText())
                 self.editable_item.update_text_position()
-        else:
-            print(f"Cannot update width for {type(self.editable_item).__name__}")
 
     def update_height(self):
         self.main_window.reset_inaction()
         old_width = self.width_spinbox.value()
         new_height = self.height_spinbox.value()
+
+        if hasattr(self.editable_item, 'arrows') and self.editable_item.arrows:
+            # Если у editable_item есть стрелки (арrows) и они не пустые
+            for arrow in self.editable_item.arrows:
+                arrow.update_arrow()  # Обновляем каждую стрелку
         if hasattr(self.editable_item, 'setRect'):
-            rect = self.editable_item.boundingRect()
-            self.editable_item.setRect(rect.x(), rect.y(), old_width, new_height)
+            current_x = self.x_spinbox.value() # Считывает текущее положение объекта по x из значения панели
+            current_y = self.y_spinbox.value() # Считывает текущее положение объекта по y из значения панели
+            self.editable_item.setRect(current_x, current_y, old_width, new_height)
             self.editable_item.update_text_position()
         elif hasattr(self.editable_item, 'update_size'):
             rect = self.editable_item.boundingRect()
@@ -505,8 +534,6 @@ class EditingPanel(QWidget):
             if isinstance(self.editable_item, (SignalSending, SignalReceipt)):
                 self.editable_item.reflect(self.mirrow_combo.currentText())
                 self.editable_item.update_text_position()
-        else:
-            print(f"Cannot update height for {type(self.editable_item).__name__}")
 
     def update_polygon_size(self, new_width, new_height):
         polygon = self.editable_item.polygon()
@@ -737,11 +764,15 @@ class EditingPanel(QWidget):
 
         /* Установка изображений для стрелок вверх и вниз */
         QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-            image: url(imgs/button_up.png);
+            image: url(imgs/tr_up.png);
+            width: 12px;
+            height: 12px;
         }
 
         QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-            image: url(imgs/button_down.png);
+            image: url(imgs/tr_down.png);
+            width: 12px;
+            height: 12px;
         }
                             
         QSpinBox::up-button, QSpinBox::down-button, QDoubleSpinBox::up-button, QDoubleSpinBox::down-button, QComboBox::down-button {
@@ -765,9 +796,9 @@ class EditingPanel(QWidget):
         }
 
         QComboBox::down-arrow {
-            image: url(imgs/button_down.png);
-            width: 16px;
-            height: 16px;
+            image: url(imgs/tr_down.png);
+            width: 13px;
+            height: 13px;
         }
 
         QComboBox QAbstractItemView {
@@ -1308,8 +1339,8 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
                 self.start_pos = event.scenePos()  # Запоминаем начальную точку выделения
                 if self.selection_rect is None:
                     self.selection_rect = QtWidgets.QGraphicsRectItem()
-                    self.selection_rect.setPen(QtGui.QPen(QtGui.QColor(0, 0, 255, 150)))  # линия для выделения
-                    self.selection_rect.setBrush(QtGui.QBrush(QtGui.QColor(0, 0, 255, 50)))  # Прозрачный цвет внутри
+                    self.selection_rect.setPen(QtGui.QPen(QtGui.QColor(125, 125, 125, 150)))  # линия для выделения
+                    self.selection_rect.setBrush(QtGui.QBrush(QtGui.QColor(150, 150, 150, 50)))  # Прозрачный цвет внутри
                     self.addItem(self.selection_rect)  # Добавляем прямоугольник на сцену, который служит для выделения объектов на сцене
 
         super().mousePressEvent(event)
@@ -1619,21 +1650,20 @@ class CustomTitleBar(QtWidgets.QWidget):
         self.setFixedHeight(35)
 
         # Layout для кастомного заголовка
-        layout = QtWidgets.QHBoxLayout(self)
+        layout = QHBoxLayout(self)
         layout.setContentsMargins(10, 5, 10, 5)
 
-        self.title_label = QtWidgets.QLabel("", self)
+        self.title_label = QLabel("", self)
         self.title_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         layout.addWidget(self.title_label)
 
         # Кнопка закрытия
-        self.close_button = QtWidgets.QPushButton("x", self)
-        self.close_button.setFixedSize(41, 30)
+        self.close_button = QPushButton(self)
+        self.close_button.setIcon(QIcon("imgs/close_login.png"))
+        self.close_button.setFixedSize(30, 30)
+        self.close_button.setIconSize(QSize(14, 14))
         self.close_button.clicked.connect(self.close_window)
-        font = self.close_button.font()
-        font.setPointSize(8)  # Размер шрифта для крестика
-        self.close_button.setFont(font)
-        layout.addWidget(self.close_button, alignment=QtCore.Qt.AlignRight)
+        layout.addWidget(self.close_button, alignment=QtCore.Qt.AlignRight) # Перемещаем кнопку вправо
 
         self.setLayout(layout)
 
@@ -1655,7 +1685,7 @@ class LoginWindow(QtWidgets.QDialog):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("UML editor")
-        self.setWindowIcon(QtGui.QIcon("imgs/finalstate.png"))
+        self.setWindowIcon(QtGui.QIcon("imgs/main_icon.png"))
 
         # Убираем стандартный заголовок окна
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
@@ -2261,8 +2291,8 @@ QLabel {
         self.button_7.setToolTip("Текстовое поле - '9'")
 
 
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Warning)
+        self.msg = QMessageBox()
+        # self.msg.setIconPixmap(QPixmap("imgs/main_icon.png"))
 
         self.objectS_ = []
         self.graphicsView.setFocus()  # Устанавливаем фокус на graphicsView, чтобы горячие клавиши срабатывали через QShortcut
@@ -2856,23 +2886,21 @@ QLabel {
             self.scene_.removeItem(self.objectS_[len(self.objectS_) - 1])
             del self.objectS_[len(self.objectS_) - 1]
             self.populate_object_list()
-            msgBox = QMessageBox()
-            msgBox.setIcon(QMessageBox.Information)
-            msgBox.setText("Превышено максимальное значение элементов")
-            msgBox.setWindowTitle("Предупреждение")
-            msgBox.setStandardButtons(QMessageBox.Ok )
-            # msgBox.buttonClicked.connect(msgButtonClick)
+            self.msg.setIcon(QMessageBox.Information)
+            self.msg.setText("Превышено максимальное значение элементов")
+            self.msg.setWindowTitle("Предупреждение")
+            self.msg.setStandardButtons(QMessageBox.Ok )
             self.user_.pop_action()
             self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())), self.user_.action_history)
 
-            returnValue = msgBox.exec()
+            returnValue = self.msg.exec()
 
     # def message_arrow(self):
-    #     msgBox = QMessageBox()
-    #     msgBox.setIcon(QMessageBox.Information)
-    #     msgBox.setText("Стрелка уже существует между выбранными элементами")
-    #     msgBox.setWindowTitle("Предупреждение")
-    #     msgBox.setStandardButtons(QMessageBox.Ok )
+    #     self.msg = QMessageBox()
+    #     self.msg.setIcon(QMessageBox.Information)
+    #     self.msg.setText("Стрелка уже существует между выбранными элементами")
+    #     self.msg.setWindowTitle("Предупреждение")
+    #     self.msg.setStandardButtons(QMessageBox.Ok )
 
 
     # def add_text_edit(self, x, y, width, height, text="Введите текст"):
@@ -3032,20 +3060,16 @@ QLabel {
         selected_nodes = [object_ for object_ in self.objectS_ if object_.isSelected()]
         # Обработка случая, когда пользователь хочет соединить более двух элементов
         if len(selected_nodes) > 2:
-            warn = QMessageBox()
-            warn.setIcon(QMessageBox.Warning)
-            warn.setWindowTitle('Внимание')
-            warn.setText('Нельзя соединить более двух элементов одновременно.')
-            warn.setStandardButtons(QMessageBox.Ok)
-            warn.exec_()
+            self.msg.setWindowTitle('Внимание')
+            self.msg.setText('Нельзя соединить более двух элементов одновременно.')
+            self.msg.setStandardButtons(QMessageBox.Ok)
+            self.msg.exec_()
         # Обработка случая, когда пользователь хочет соединить менее двух элементов
         if len(selected_nodes) < 2:
-            warn = QMessageBox()
-            warn.setIcon(QMessageBox.Warning)
-            warn.setWindowTitle('Внимание')
-            warn.setText('Выберите два элемента для соединения.')
-            warn.setStandardButtons(QMessageBox.Ok)
-            warn.exec_()
+            self.msg.setWindowTitle('Внимание')
+            self.msg.setText('Выберите два элемента для соединения.')
+            self.msg.setStandardButtons(QMessageBox.Ok)
+            self.msg.exec_()
 
         if len(selected_nodes) == 2:
             node1, node2 = selected_nodes
@@ -3054,19 +3078,15 @@ QLabel {
             # Проверяем, существует ли уже стрелка между node1 и node2
             for arrow in node1.arrows:
                 if (arrow.node1 == node1 and arrow.node2 == node2) or (arrow.node1 == node2 and arrow.node2 == node1):
-                    disconnect = QMessageBox.question(
-                        None,
-                        "Предупреждение",
-                        "Стрелка уже существует между выбранными элементами. Вы хотите удалить её?",
-                        QMessageBox.Yes | QMessageBox.No
-                    )
-                    if disconnect == QMessageBox.Yes:
-                        self.disconnect_nodes(node1, node2)
-                    return
+                    self.msg.setWindowTitle('Предупреждение')
+                    self.msg.setText('Стрелка уже существует между выбранными элементами. Повторное соединение не возможно.')
+                    self.msg.setStandardButtons(QMessageBox.Ok)
+                    self.msg.exec_()
+                    return # Принудительно прекращаем дальнейшие действия и избегаем повторного добавления
 
             # Создаем стрелку и привязываем её к выбранным узлам
             arrow = Arrow(node1, node2)
-            arrow.setZValue(-1)
+            arrow.setZValue(-1) # Стрелка всегда должна находится под объектами
             self.scene_.addItem(arrow)  # Добавляем стрелку на сцену
 
             # Привязываем стрелку к обоим узлам
@@ -3085,6 +3105,7 @@ QLabel {
             if isinstance(item, QtWidgets.QGraphicsItem):
                 item.setSelected(True)
 
+    # Ненужный метод
     def disconnect_nodes(self, node1, node2):
         self.reset_inaction()
         if hasattr(node1, 'arrows') and hasattr(node2, 'arrows'):
@@ -3095,14 +3116,16 @@ QLabel {
         self.scene_.update()
 
 
-
-
-                
     def delete_selected_item(self):
         self.reset_inaction()  # Сбрасываем второй таймер
-        selected_items = self.scene_.selectedItems()
+        selected_items = self.scene_.selectedItems()        
 
         for item in selected_items:
+            if isinstance(item, Arrow):
+                if item.scene():  # Проверяем, что стрелка все еще в сцене
+                    item.remove_arrow()  # Удаляем стрелку
+                self.on_selection_changed()
+
             if isinstance(item, (StartEvent, Decision, EndEvent, ActiveState, SignalSending, SignalReceipt, Splitter_Merge, ImageItem, Text_Edit)):
                 self.objectS_.remove(item)
                 if hasattr(item, 'arrows') and item.arrows:
@@ -3215,7 +3238,7 @@ QLabel {
             # self.timer_inaction.stop()
 
             self.time_updated.emit(self.today_uptadet, self.last_time, self.time_now_uptadet)
-            self.tray_icon.showMessage("Предупреждение", f"Работа приостановлена в {self.get_current_Realtime()}. Программа ожидает отклика пользователя", QSystemTrayIcon.Information, 1000000)
+            self.tray_icon.showMessage("Предупреждение", f"Работа приостановлена в {self.get_current_Realtime()}. Программа ожидает отклика пользователя", QSystemTrayIcon.MessageIcon.NoIcon, 1000000)
 
     def stop_inaction(self): #Остановка таймера бездействия (к примеру останавливате таймер)
         if self.running_inaction:     #когда пользователь вытаскивает элемент из тулбара
@@ -3694,12 +3717,16 @@ QLabel {
 
     def setDesigh(self, MainWindow):
 
-        MainWindow.setWindowIcon(QIcon("imgs/finalstate.png"))
+        MainWindow.setWindowIcon(QIcon("imgs/main_icon.png"))
         self.tray_icon = QSystemTrayIcon()
-        self.tray_icon.setIcon(QIcon("imgs/finalstate.png"))
+        self.tray_icon.setIcon(QIcon("imgs/main_icon.png"))
         self.tray_icon.setVisible(True)
         self.tray_icon.activated.connect(self.on_tray_icon_activated)
         self.tray_icon.setToolTip("UML editor")
+
+#         self.msg.setStyleSheet("""
+                
+# """)
 
         MainWindow.setStyleSheet("""
         QMenuBar {
@@ -4036,6 +4063,7 @@ QLabel {
         QtWidgets.QToolTip.setFont(QtGui.QFont("Arial", 10, QtGui.QFont.Bold))
 
         # Устанавливаем стиль для подсказок через global stylesheet
+        self.msg.setWindowFlag(QtCore.Qt.FramelessWindowHint)
         app.setStyleSheet("""
             QToolTip {
                 background-color: #f7f7f7;
@@ -4045,6 +4073,43 @@ QLabel {
                 font-size: 16px;
                 font-weight: 500;
             }
+            QMessageBox {
+                    background-color: #f5f5f5;
+                    color: #333333;
+                    border: 1px solid #cccccc;
+                    border-radius: 5px;
+                    padding: 10px;
+                    font-family: Arial, sans-serif;
+                    font-size: 20px;
+                    outline: none;
+                    text-align: justify;
+                }
+                QMessageBox QLabel {
+                    color: #333333;
+                    padding: 5px;
+                }
+                QMessageBox QPushButton {
+                    background-color: rgb(240, 240, 240);
+                    border: 1px solid rgb(150, 150, 150);
+                    border-radius: 6px;
+                    padding: 8px 16px;
+                    font-size: 14px;
+                    font-weight: bold;
+                    color: #2f2f2f;
+                }
+                QMessageBox QPushButton:hover {
+                    background-color: rgb(220, 220, 220);
+                    border: 1px solid rgb(100, 100, 100);
+                }
+                QMessageBox QPushButton:pressed {
+                    background-color: rgb(200, 200, 200);
+                }
+                QMessageBox QFrame {
+                    background-color: transparent;
+                }
+                QMessageBox QIcon {
+                    margin-right: 10px;
+                }
         """)
 
     def on_tray_icon_activated(self, reason):

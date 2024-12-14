@@ -111,6 +111,7 @@ class Arrow(QGraphicsItem):
         self.dragged_point_index = None
         self.top_point = None
         self.show_points = True #по умолчанию точки видны
+        self.setFlags(QGraphicsItem.ItemIsSelectable)
 
         self.right_arrow_enabled = True
         self.left_arrow_enabled = False

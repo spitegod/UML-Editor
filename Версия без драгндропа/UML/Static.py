@@ -2,6 +2,7 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QDateTime, QDate, QTime
+from PyQt5.QtGui import QIcon
 
 class Ui_StaticWidget(QtWidgets.QWidget): 
 
@@ -250,6 +251,7 @@ QLineEdit {
 
 
     def setDesigh(self, StaticWindow):
+        StaticWindow.setWindowIcon(QIcon("imgs/main_icon.png"))
         StaticWindow.setStyleSheet("""
             QWidget {
                 font-family: 'Arial', sans-serif;

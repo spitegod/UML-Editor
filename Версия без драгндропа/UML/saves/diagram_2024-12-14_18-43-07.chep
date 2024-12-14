@@ -1,0 +1,76 @@
+{
+    "items": [
+        {
+            "type": "StartEvent",
+            "position": {
+                "x": -321.0,
+                "y": 191.0
+            },
+            "size": null,
+            "radius": 30.0,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": "#000000",
+            "line_width": null,
+            "id": 5,
+            "dots": null,
+            "pixmap": null,
+            "opacity": null,
+            "rotation": null,
+            "direction": null
+        },
+        {
+            "type": "StartEvent",
+            "position": {
+                "x": -309.0,
+                "y": -53.0
+            },
+            "size": null,
+            "radius": 44.0,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": "#000000",
+            "line_width": null,
+            "id": 6,
+            "dots": null,
+            "pixmap": null,
+            "opacity": null,
+            "rotation": null,
+            "direction": null
+        }
+    ],
+    "arrows": [
+        {
+            "start_node_id": 5,
+            "end_node_id": 6,
+            "dots": [
+                [
+                    -216.47540983606558,
+                    90.0
+                ],
+                [
+                    -391.4754098360656,
+                    20.0
+                ],
+                [
+                    -343.4754098360656,
+                    99.0
+                ]
+            ],
+            "line_type": "solid",
+            "color": "#8b0000",
+            "width": 3,
+            "right_arrow": true,
+            "left_arrow": false,
+            "show_points": true
+        }
+    ]
+}
