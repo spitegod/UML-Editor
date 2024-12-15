@@ -2,6 +2,7 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QDateTime, QDate, QTime
+from PyQt5.QtGui import QIcon
 
 class Ui_StaticWidget(QtWidgets.QWidget): 
 
@@ -67,11 +68,7 @@ class Ui_StaticWidget(QtWidgets.QWidget):
         
         self.gridLayout_2 = QtWidgets.QGridLayout()
         self.gridLayout_2.setObjectName("gridLayout_2")
-        
-        # Заголовок "Статистика"
-        # self.label = QtWidgets.QLabel(StaticWidget)
-        # self.label.setObjectName("label")
-        # self.gridLayout_2.addWidget(self.label, 0, 0, 1, 1)
+    
         
         # Основная рабочая область
         self.horizontalLayout_workarea = QtWidgets.QHBoxLayout()
@@ -254,6 +251,7 @@ QLineEdit {
 
 
     def setDesigh(self, StaticWindow):
+        StaticWindow.setWindowIcon(QIcon("imgs/main_icon.png"))
         StaticWindow.setStyleSheet("""
             QWidget {
                 font-family: 'Arial', sans-serif;
@@ -384,7 +382,6 @@ QLineEdit {
                 width: 0px;
             }
         """)
-        # Убедитесь, что весь блок таблицы выделяется
 
 
 

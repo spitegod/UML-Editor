@@ -1,0 +1,212 @@
+{
+    "items": [
+        {
+            "type": "Splitter_Merge",
+            "position": {
+                "x": -231.0,
+                "y": -109.0
+            },
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": 124.0,
+            "height": 40,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": "#000000",
+            "line_width": null,
+            "id": 19,
+            "dots": null,
+            "pixmap": null,
+            "opacity": null,
+            "rotation": 0,
+            "direction": null
+        },
+        {
+            "type": "Splitter_Merge",
+            "position": {
+                "x": -231.0,
+                "y": -109.0
+            },
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": 124.0,
+            "height": 40,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": "#000000",
+            "line_width": null,
+            "id": 18,
+            "dots": null,
+            "pixmap": null,
+            "opacity": null,
+            "rotation": 0,
+            "direction": null
+        },
+        {
+            "type": "InnerCircle",
+            "position": [
+                0.0,
+                0.0
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": 49.5,
+            "height": 49.5,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": null,
+            "dots": null,
+            "pixmap": null,
+            "opacity": null,
+            "rotation": null,
+            "direction": null
+        },
+        {
+            "type": "EndEvent",
+            "position": {
+                "x": 105.5,
+                "y": -64.5
+            },
+            "size": null,
+            "radius": 49.5,
+            "inner_radius_ratio": 0.5,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": "#ffffff",
+            "line_width": null,
+            "id": 17,
+            "dots": null,
+            "pixmap": null,
+            "opacity": null,
+            "rotation": null,
+            "direction": null
+        },
+        {
+            "type": "Splitter_Merge",
+            "position": {
+                "x": 0,
+                "y": 0
+            },
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": 534.0,
+            "height": 40,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": "#000000",
+            "line_width": null,
+            "id": 16,
+            "dots": null,
+            "pixmap": null,
+            "opacity": null,
+            "rotation": 0,
+            "direction": null
+        },
+        {
+            "type": "InnerCircle",
+            "position": [
+                0.0,
+                0.0
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": 49.5,
+            "height": 49.5,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": null,
+            "dots": null,
+            "pixmap": null,
+            "opacity": null,
+            "rotation": null,
+            "direction": null
+        },
+        {
+            "type": "EndEvent",
+            "position": {
+                "x": -213.5,
+                "y": -62.5
+            },
+            "size": null,
+            "radius": 49.5,
+            "inner_radius_ratio": 0.5,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": "#bc3135",
+            "line_width": null,
+            "id": 15,
+            "dots": null,
+            "pixmap": null,
+            "opacity": null,
+            "rotation": null,
+            "direction": null
+        },
+        {
+            "type": "Text_into_object",
+            "position": [
+                283.0,
+                155.5
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": null,
+            "dots": null,
+            "pixmap": null,
+            "opacity": null,
+            "rotation": null,
+            "direction": null
+        },
+        {
+            "type": "ActiveState",
+            "position": {
+                "x": -92.5,
+                "y": -61.0
+            },
+            "size": null,
+            "radius": 15,
+            "inner_radius_ratio": null,
+            "width": 615.0,
+            "height": 338.0,
+            "text": "",
+            "start_node": null,
+            "end_node": null,
+            "color": "#505050",
+            "line_width": null,
+            "id": 14,
+            "dots": null,
+            "pixmap": null,
+            "opacity": null,
+            "rotation": null,
+            "direction": null
+        }
+    ],
+    "arrows": []
+}

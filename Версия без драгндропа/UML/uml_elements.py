@@ -1,5 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QPen, QPainterPath, QColor, QPolygonF, QBrush, QTransform
+from PyQt5.QtGui import QPen, QPainterPath, QColor, QPolygonF, QBrush, QTransform, QPainter
 from PyQt5.QtCore import QPointF, Qt, QLineF
 from PyQt5.QtWidgets import QGraphicsItem, QGraphicsEllipseItem, QGraphicsRectItem, QGraphicsPolygonItem
 
@@ -111,6 +111,7 @@ class Arrow(QGraphicsItem):
         self.dragged_point_index = None
         self.top_point = None
         self.show_points = True #по умолчанию точки видны
+        self.setFlags(QGraphicsItem.ItemIsSelectable)
 
         self.right_arrow_enabled = True
         self.left_arrow_enabled = False
@@ -131,7 +132,7 @@ class Arrow(QGraphicsItem):
         self.update()
 
     def boundingRect(self):
-        extra_margin = 100  # Добавочная область вокруг стрелки
+        extra_margin = 90  # Добавочная область вокруг стрелки
         rect = self.path.boundingRect()
         return rect.adjusted(-extra_margin, -extra_margin, extra_margin, extra_margin)
 
@@ -204,7 +205,6 @@ class Arrow(QGraphicsItem):
 
         start_point = self.get_edge_intersection(node1_rect, start_center, end_center)
         end_point = self.get_edge_intersection(node2_rect, end_center, start_center)
-
 
         if not self.relative_points:
             self.relative_points = [
@@ -1093,12 +1093,12 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
     #     self.update_text_position()
 
     def clone(self):
-        cloned_item = SignalSending(self.center_x, self.center_y, self.width, self.height)
+        cloned_item = SignalSending(self.center_x, self.center_y, self.width, self.height, self.current_reflection)
         cloned_item.setPolygon(self.polygon())
         cloned_item.setBrush(self.brush())
         cloned_item.setPen(self.pen())
-        
         cloned_item.text_item.setPlainText(self.text_item.toPlainText())
+        cloned_item.reflect(self.current_reflection)
 
         return cloned_item
 
@@ -1289,7 +1289,7 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
         self.update_text_position()
 
     def clone(self):
-        cloned_item = SignalSending(self.center_x, self.center_y, self.width, self.height)
+        cloned_item = SignalReceipt(self.center_x, self.center_y, self.width, self.height, self.current_reflection)
         cloned_item.setPolygon(self.polygon())
         cloned_item.setBrush(self.brush())
         cloned_item.setPen(self.pen())
@@ -1479,7 +1479,7 @@ class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
         self.arrows = []
 
     def clone(self):
-        clone_item = Splitter_Merge(self.center_x, self.center_y, self.width, self.height)
+        clone_item = Splitter_Merge(self.center_x, self.center_y, self.width, self.height, self.rot)
         clone_item.setPolygon(self.polygon())
         clone_item.setBrush(self.brush())
         clone_item.setPen(self.pen())
