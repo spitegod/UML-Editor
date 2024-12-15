@@ -798,6 +798,23 @@ class Text_into_object(QtWidgets.QGraphicsTextItem):
         wrapped_text += current_line
         self.setPlainText(wrapped_text)
 
+    def mousePressEvent(self, event):
+        if event.button() == QtCore.Qt.RightButton: # Перехватываем событие нажатия правой кнопки мыши по тексту
+            event.ignore() # Игнорируем событие, чтобы оно не обрабатывалось дальше
+            return
+        super().mousePressEvent(event)
+
+    def contextMenuEvent(self, event):
+        # Блокируем вызов контекстного меню
+        event.ignore()
+
+    def eventFilter(self, obj, event):
+        # Устанавливаем фильтр событий. Проверяем, является ли событие нажатием кнопки мыши
+        if event.type() == QtCore.QEvent.MouseButtonPress and event.button() == QtCore.Qt.RightButton:
+            return True # Блокируем дальнейшую обработку события
+        return super().eventFilter(obj, event) # Оставляем стандартную обработку остальных событий
+
+
 
 class ActiveState(QtWidgets.QGraphicsRectItem):
     _id_counter = 0
