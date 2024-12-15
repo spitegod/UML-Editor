@@ -1287,13 +1287,42 @@ class My_GraphicsScene(QtWidgets.QGraphicsScene):
         self.user_ = user_
         self.label = label
 
+        self.grid_step = 30  # Шаг сетки в пикселях
+        self.grid_color = QtGui.QColor(200, 200, 200, 200) # Цвет линии сетки
+        self.show_grid = False  # Флаг для отображения сетки (по умолчанию выключена)
+
 
     def drawBackground(self, painter, rect):
         # Включаем сглаживание
         painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
-        painter.setRenderHint(QtGui.QPainter.SmoothPixmapTransform, True)  # Для сглаживания изображения
+        painter.setRenderHint(QtGui.QPainter.SmoothPixmapTransform, True)
 
+        # Рисуем стандартный фон
         super().drawBackground(painter, rect)
+
+        if self.show_grid:
+            # Рисуем сетку
+            left = int(rect.left()) - (int(rect.left()) % self.grid_step)
+            top = int(rect.top()) - (int(rect.top()) % self.grid_step)
+
+            painter.setPen(QtGui.QPen(self.grid_color, 0.5))  # Тонкая линия для сетки
+
+            # Рисуем вертикальные линии
+            x = left
+            while x < rect.right():
+                painter.drawLine(QtCore.QPointF(x, rect.top()), QtCore.QPointF(x, rect.bottom()))
+                x += self.grid_step
+
+            # Рисуем горизонтальные линии
+            y = top
+            while y < rect.bottom():
+                painter.drawLine(QtCore.QPointF(rect.left(), y), QtCore.QPointF(rect.right(), y))
+                y += self.grid_step
+
+        # Переключение видимости сетки
+    def toggle_grid(self):
+        self.show_grid = not self.show_grid
+        self.update()  # Перерисовываем сцену, чтобы отобразить изменения
 
     def mousePressEvent(self, event):
 
@@ -1524,16 +1553,36 @@ class HelpWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Помощь")
-        self.setGeometry(100, 100, 400, 600)
-        
+        self.setGeometry(100, 100, 600, 600)
+        self.setWindowIcon(QIcon("imgs/main_icon.png"))
+
         layout = QVBoxLayout()
         
-        instruction_text = QTextEdit()
-        instruction_text.setReadOnly(True)
-        instruction_text.setText(self.load_instruction())
+        # Поле для поиска
+        self.search_input = QLineEdit(self)
+        self.search_input.setPlaceholderText("Поиск по тексту...")
+        self.search_input.textChanged.connect(self.search_text)
         
-        layout.addWidget(instruction_text)
+        # Кнопка для поиска
+        self.search_button = QPushButton("Поиск", self)
+        self.search_button.clicked.connect(self.search_text)
+        
+        # Ход layout для поиска
+        search_layout = QHBoxLayout()
+        search_layout.addWidget(self.search_input)
+        search_layout.addWidget(self.search_button)
+        
+        # Текстовое поле с инструкциями
+        self.instruction_text = QTextEdit()
+        self.instruction_text.setReadOnly(True)
+        self.instruction_text.setText(self.load_instruction())
+        
+        layout.addLayout(search_layout)  # Добавляем layout поиска
+        layout.addWidget(self.instruction_text)  # Добавляем QTextEdit
+        
         self.setLayout(layout)
+
+        self.setDesign()
 
     def load_instruction(self):
         # Загружаем текст инструкции из файла
@@ -1553,6 +1602,136 @@ class HelpWindow(QWidget):
             return "Файл с инструкцией не найден."
         except Exception as e:
             return f"Ошибка при загрузке инструкции: {e}"
+
+    def search_text(self):
+        # Получаем текст для поиска
+        search_term = self.search_input.text()
+
+        # Очищаем любые предыдущие выделения
+        cursor = self.instruction_text.textCursor()
+        cursor.setPosition(0)  # Сбросить курсор в начало
+        self.instruction_text.setTextCursor(cursor)
+
+        if search_term:
+            # Ищем текст и выделяем все совпадения
+            document = self.instruction_text.document()
+            cursor = document.find(search_term)
+
+            while not cursor.isNull():
+                self.highlight_cursor(cursor)
+                cursor = document.find(search_term, cursor)
+
+        else:
+            # Если поле поиска пустое, сбрасываем выделения
+            self.instruction_text.setTextCursor(cursor)
+
+    def highlight_cursor(self, cursor):
+        # Метод для выделения найденного текста
+        cursor.select(cursor.WordUnderCursor)  # Выделить найденное слово
+        self.instruction_text.setTextCursor(cursor)
+
+    def setDesign(self):
+        self.setStyleSheet("""
+         /* Общий стиль окна */
+        QWidget {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        /* Заголовок окна */
+        QDialog {
+            background-color: #2c3e50;
+            color: #fff;
+        }
+
+        QTextEdit {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 16px;
+            color: #333;
+            selection-background-color: #3498db;
+            selection-color: white;
+        }
+
+        QTextEdit::cursor {
+            color: #3498db;
+        }
+
+        QLineEdit {
+            padding: 6px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            margin: 10px;
+        }
+
+        QPushButton {
+            background-color: rgb(240, 240, 240);
+            border: 1px solid rgb(150, 150, 150);
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        QPushButton:hover {
+            background-color: rgb(220, 220, 220); 
+            border: 1px solid rgb(100, 100, 100); 
+        }
+
+        QPushButton:pressed {
+            background-color: rgb(200, 200, 200); 
+        }
+
+        /* Стиль для вертикальных и горизонтальных скроллеров */
+        QScrollBar:vertical {
+            border: none;
+            background: none;
+            width: 12px;
+            margin: 5px 0 5px 0;
+            border-radius: 6px;
+        }
+        QScrollBar::handle:vertical {
+            background: rgb(200, 200, 200);
+            min-height: 20px;
+            border-radius: 6px;
+        }
+        QScrollBar::handle:vertical:hover {
+            background: rgb(180, 180, 180);
+        }
+        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+            background: none;
+            height: 0px;
+        }
+
+        QScrollBar:horizontal {
+            border: none;
+            background: none;
+            height: 12px;
+            margin: 0px 5px 0px 5px;
+            border-radius: 6px;
+        }
+        QScrollBar::handle:horizontal {
+            background: rgb(200, 200, 200);
+            min-width: 20px;
+            border-radius: 6px;
+        }
+        QScrollBar::handle:horizontal:hover {
+            background: rgb(180, 180, 180);
+        }
+        QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+            background: none;
+            width: 0px;
+        }
+        /* Установим кнопки и отступы */
+        QVBoxLayout {
+            spacing: 10px;
+            margin: 10px;
+        }
+""")
 
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
@@ -1774,6 +1953,8 @@ class LoginWindow(QtWidgets.QDialog):
         self.login_button.clicked.connect(self.login)
         self.register_button.clicked.connect(self.register)
 
+        self.msg = QMessageBox() # Стандартное уведомелние, которое в дальнейшем будет кастомизироваться
+        self.msg.setWindowIcon(QtGui.QIcon("imgs/main_icon.png"))
         # Применение дизайна
         self.setDesign()
 
@@ -1795,13 +1976,21 @@ class LoginWindow(QtWidgets.QDialog):
             if user_data.get("password") == self.hash_password(password):
                 global global_start_time  # Получаем время начала работы
                 global_start_time = user_data.get("start_time")
-
-                QtWidgets.QMessageBox.information(self, "Успех", f"Добро пожаловать, {username}!")
+                self.msg.setWindowTitle("Успех")
+                self.msg.setText(f"Добро пожаловать, {username}!")
+                self.msg.setStandardButtons(QMessageBox.Ok)
+                self.msg.exec_()
                 self.accept()  # Закрыть окно с результатом успешного входа
             else:
-                QtWidgets.QMessageBox.warning(self, "Ошибка", "Неверный пароль!")
+                self.msg.setWindowTitle("Ошибка")
+                self.msg.setText("Неверный пароль!")
+                self.msg.setStandardButtons(QMessageBox.Ok)
+                self.msg.exec_()
         else:
-            QtWidgets.QMessageBox.warning(self, "Ошибка", "Пользователь не найден!")
+            self.msg.setWindowTitle("Ошибка")
+            self.msg.setText("Пользователь не найден!")
+            self.msg.setStandardButtons(QMessageBox.Ok)
+            self.msg.exec_()
 
     # Регистрация
     def register(self):
@@ -1812,7 +2001,10 @@ class LoginWindow(QtWidgets.QDialog):
             user_file = os.path.join(self.user_data_folder, f"{username}.json")
 
             if os.path.exists(user_file):
-                QtWidgets.QMessageBox.warning(self, "Ошибка", "Пользователь с таким именем уже существует!")
+                self.msg.setWindowTitle("Ошибка")
+                self.msg.setText("Пользователь с таким именем уже существует.")
+                self.msg.setStandardButtons(QMessageBox.Ok)
+                self.msg.exec_()
                 return
 
             hashed_password = self.hash_password(password)
@@ -1829,10 +2021,16 @@ class LoginWindow(QtWidgets.QDialog):
             with open(user_file, "w") as f:
                 json.dump(user_data, f)
 
-            QtWidgets.QMessageBox.information(self, "Успех", "Пользователь успешно зарегистрирован!")
+            self.msg.setWindowTitle("Успех")
+            self.msg.setText("Пользователь успешно зарегистрирован!")
+            self.msg.setStandardButtons(QMessageBox.Ok)
+            self.msg.exec_()
             self.accept()  # Закрыть окно с результатом успешной регистрации
         else:
-            QtWidgets.QMessageBox.warning(self, "Ошибка", "Логин и пароль должны быть длиннее 3 символов!")
+            self.msg.setWindowTitle("Ошибка")
+            self.msg.setText("Логин и пароль должны быть длиннее 3 символов.")
+            self.msg.setStandardButtons(QMessageBox.Ok)
+            self.msg.exec_()
 
     def setDesign(self):
         self.setStyleSheet("""
@@ -1876,6 +2074,49 @@ class LoginWindow(QtWidgets.QDialog):
         }
                            
 """)
+        self.msg.setWindowFlag(QtCore.Qt.FramelessWindowHint)
+        self.msg.setStyleSheet("""
+    QMessageBox {
+        background-color: #ffffff; /* Светлый фон */
+        color: #2f2f2f; /* Основной цвет текста */
+        border: 1px solid #dcdcdc;
+        font-family: Arial, sans-serif;
+        font-size: 18px;
+        text-align: justify; /* Выравнивание текста */
+        min-width: 400px;  /* Минимальная ширина окна */
+        padding: 20px;
+    }
+    QMessageBox QLabel {
+        color: #333333;
+        font-size: 18px;
+        font-weight: normal; /* Стандартный вес текста */
+        padding: 10px 0px; /* Отступы сверху и снизу */
+    }
+    QMessageBox QPushButton {
+        background-color: #f0f0f0;
+        border: 1px solid #b0b0b0;
+        border-radius: 6px; /* Округлые углы только для кнопок */
+        padding: 8px 16px;
+        font-size: 14px;
+        font-weight: bold;
+        color: #2f2f2f; /* Темный текст на кнопках */
+        margin: 5px;
+    }
+    QMessageBox QPushButton:hover {
+        background-color: #e0e0e0; /* Подсветка при наведении */
+        border: 1px solid #a0a0a0;
+    }
+    QMessageBox QPushButton:pressed {
+        background-color: #d0d0d0; /* при нажатии */
+    }
+    QMessageBox QFrame {
+        background-color: transparent;
+    }
+    QMessageBox QIcon {
+        margin-right: 10px; /* Отступ иконки от текста (Если кто захочет вставить иконку)*/
+    }
+""")
+
 
 
 
@@ -2359,6 +2600,10 @@ QLabel {
         self.scene_ = My_GraphicsScene(self, self.objectS_, self.user_, self.label_x_y)
         self.graphicsView.setScene(self.scene_)  # Устанавливаем сцену в QGraphicsView
 
+        # Подключение сетики
+        self.connect_objectS = QShortcut(QKeySequence("G"), self.graphicsView)
+        self.connect_objectS.activated.connect(self.scene_.toggle_grid)
+
         self.editing_dock = QtWidgets.QDockWidget("Панель редактирования", MainWindow)
         self.editing_dock.setObjectName("editing_dock")
         editing_widget = QtWidgets.QWidget()
@@ -2579,9 +2824,16 @@ QLabel {
             with open(filepath, "w") as file:
                 json.dump(data, file, indent=4)
             print("Файл сохранён:", filepath)
-            QtWidgets.QMessageBox.information(self, "Сохранение", f"Файл успешно сохранён в:\n{filepath}")
+            self.msg.setWindowTitle("Сохранение")
+            self.msg.setText(f"Файл успешно сохранён в:\n{filepath}")
+            self.msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            self.msg.exec_()
         except Exception as e:
-            QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось сохранить файл: {e}")
+            self.msg.setIcon(QMessageBox.Critical)
+            self.msg.setWindowTitle("Ошибка")
+            self.msg.setText(f"Не удалось сохранить файл: {e}")
+            self.msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            self.msg.exec_()
 
     # Сохранение с пользовательским названием в конкретное место
     def save_as(self, filepath=None):
@@ -2645,9 +2897,16 @@ QLabel {
             with open(filepath, "w") as file:
                 json.dump(data, file, indent=4)
             print("Файл сохранён:", filepath)
-            QtWidgets.QMessageBox.information(self, "Сохранение", f"Файл успешно сохранён в:\n{filepath}")
+            self.msg.setWindowTitle("Сохранение")
+            self.msg.setText(f"Файл успешно сохранён в:\n{filepath}")
+            self.msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            self.msg.exec_()
         except Exception as e:
-            QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось сохранить файл: {e}")
+            self.msg.setIcon(QMessageBox.Critical)
+            self.msg.setWindowTitle("Ошибка")
+            self.msg.setText(f"Не удалось сохранить файл: {e}")
+            self.msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            self.msg.exec_()
 
     # Открытие файла
     def open_file(self):
@@ -2669,7 +2928,11 @@ QLabel {
             self.load_from_data(data)
             print("Файл открыт:", filepath)
         except Exception as e:
-            QtWidgets.QMessageBox.critical(self, "Ошибка", f"Не удалось открыть файл: {e}")
+            self.msg.setIcon(QMessageBox.Critical)
+            self.msg.setWindowTitle("Ошибка")
+            self.msg.setText(f"Не удалось открыть файл: {e}")
+            self.msg.setStandardButtons(QtWidgets.QMessageBox.No)
+            self.msg.exec_()
 
     # Сериализация элементов для их дальнейшего сохранения
     def serialize_item(self, item):
@@ -2852,23 +3115,15 @@ QLabel {
 
         self.reset_inaction()
         print('Вызвано')
-        reply = QtWidgets.QMessageBox.question(
-            self,
-            "Выход",
-            "Вы уверены, что хотите выйти? Изменения не будут сохранены.",
-            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-            QtWidgets.QMessageBox.No,
-        )
 
         if len(self.objectS_) > 0:
-            reply = QtWidgets.QMessageBox.question(
-                self,
-                "Выход",
-                "Вы уверены, что хотите выйти? Изменения не будут сохранены.",
-                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                QtWidgets.QMessageBox.No,
-            )
+            self.msg.setWindowTitle("Выход")
+            self.msg.setText("Вы уверены, что хотите выйти? Изменения не будут сохранены.")
+            self.msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+            self.msg.setDefaultButton(QtWidgets.QMessageBox.No)
 
+            # Отображение окна и получение ответа
+            reply = self.msg.exec_()
 
             if reply == QtWidgets.QMessageBox.Yes:
                 print('egre')
@@ -2892,8 +3147,7 @@ QLabel {
             self.msg.setStandardButtons(QMessageBox.Ok )
             self.user_.pop_action()
             self.user_actions.emit(self.user_.nickname, self.user_.user_id, self.user_.start_work, self.user_.end_work, next(reversed(self.user_.action_history)), next(reversed(self.user_.action_history.values())), self.user_.action_history)
-
-            returnValue = self.msg.exec()
+            self.msg.exec()
 
     # def message_arrow(self):
     #     self.msg = QMessageBox()
@@ -3258,7 +3512,7 @@ QLabel {
         self.last_time = time_str  # Сохраняем последнее значение времени
         self.Time_inaction.setText(time_str2)
 
-        if self.elapsed_Time_inaction == QTime(0, 0, 30):
+        if self.elapsed_Time_inaction == QTime(0, 1, 0):
             self.stop()
     
     def reset_inaction(self):
@@ -3576,13 +3830,12 @@ QLabel {
     def create_new(self):
         self.reset_inaction()
         if len(self.objectS_) != 0:
-            reply = QtWidgets.QMessageBox.question(
-                self,
-                "Создание новой диаграммы",
-                "Вы уверены, что хотите создать новую диаграмму? Изменения не будут сохранены.",
-                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                QtWidgets.QMessageBox.No,
-            )
+            self.msg.setWindowTitle("Создание новой диаграммы")
+            self.msg.setText("Вы уверены, что хотите создать новую диаграмму? Изменения не будут сохранены.")
+            self.msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+            self.msg.setDefaultButton(QtWidgets.QMessageBox.No)
+
+            reply = self.msg.exec_()
 
             if reply == QtWidgets.QMessageBox.Yes:
                 self.objectS_.clear()
@@ -3609,16 +3862,18 @@ QLabel {
         # Загружаем изображение
         pixmap = QtGui.QPixmap(filepath)
         if pixmap.isNull():
-            QtWidgets.QMessageBox.warning(self, "Ошибка", "Не удалось загрузить изображение.")
+            self.msg.setIcon(QMessageBox.Warning)
+            self.msg.setWindowTitle("Ошибка")
+            self.msg.setText(f"Не удалось загрузить изображение.")
+            self.msg.exec_()
             return
 
         # Проверяем размер изображения
         if pixmap.width() > 200 or pixmap.height() > 200:
-            QtWidgets.QMessageBox.warning(
-                self,
-                "Ошибка",
-                f"Размер изображения превышает допустимый предел (200x200). Текущее: {pixmap.width()}x{pixmap.height()}."
-            )
+            self.msg.setIcon(QMessageBox.Warning)
+            self.msg.setWindowTitle("Ошибка")
+            self.msg.setText(f"Размер изображения превышает допустимый предел (200x200). Текущее: {pixmap.width()}x{pixmap.height()}.")
+            self.msg.exec_()
             return
 
         # Создаём объект изображения
@@ -4146,13 +4401,13 @@ QLabel {
     def quit_app(self):
         if len(self.objectS_) > 0: # Перед выходом проверяем наличее объектов на сцене
             # Если они есть предупреждаем об этом пользователя
-            reply = QtWidgets.QMessageBox.question(
-                self,
-                "Выход",
-                "Вы уверены, что хотите выйти? Изменения не будут сохранены.",
-                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                QtWidgets.QMessageBox.No,
-            )
+            self.msg.setWindowTitle("Выход")
+            self.msg.setText("Вы уверены, что хотите выйти? Изменения не будут сохранены.")
+            self.msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+            self.msg.setDefaultButton(QtWidgets.QMessageBox.No)
+
+            # Отображение окна и получение ответа
+            reply = self.msg.exec_()
 
             if reply == QtWidgets.QMessageBox.Yes: # Если пользователь всё равно хочет закрыть приложения
                 QtWidgets.QApplication.quit()
