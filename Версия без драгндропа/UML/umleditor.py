@@ -2820,19 +2820,32 @@ QLabel {
             base_data["opacity"] = item.opacity()
 
         elif isinstance(item, Text_Edit):
-            rect = item.boundingRect()
+            position = item.sceneBoundingRect()
+            p_center = position.center()
+            x = p_center.x() - len(item.toPlainText()) * 5.5
+            y = p_center.y()
+            base_data["position"] = {"x": x , "y": y - 16}
+            # rect = item.boundingRect()
             base_data["width"] = item.width
             base_data["height"] = item.height
             # rect = item.rect()
             base_data["id"] = item.unique_id
-            base_data["position"] = {"x": item.x_center, "y": item.y_center}
+            # base_data["position"] = {"x": item.x_center, "y": item.y_center}
             base_data["text"] = item.toPlainText()
 
         elif isinstance(item, Splitter_Merge):
+            position = item.sceneBoundingRect()
+            p_center = position.center()
+            x = p_center.x()
+            y = p_center.y()
+            if item.rot == 0:
+                base_data["position"] = {"x": x, "y": y + 10}
+            if item.rot == 90:
+                base_data["position"] = {"x": x - 10, "y": y}
             base_data["width"] = item.width
             base_data["height"] = item.height
             base_data["id"] = item.unique_id
-            base_data["position"] = {"x": item.center_x, "y": item.center_y}
+            # base_data["position"] = {"x": item.center_x, "y": item.center_y}
             base_data["rotation"] = item.rot
             if isinstance(item.color, QtGui.QColor):
                 base_data["color"] = item.color.name()  # HEX-строка
