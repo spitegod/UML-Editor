@@ -2604,7 +2604,7 @@ QLabel {
         self.user_ = User(self.username, 0, self.start_time, self.get_time_for_user(self.last_time))
         self.user_.add_action("Создана диаграмма UML", self.start_time)
         self.button.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.button.customContextMenuRequested.connect(self.open_dialog)
+
 
         self.scene_ = My_GraphicsScene(self, self.objectS_, self.user_, self.label_x_y)
         self.graphicsView.setScene(self.scene_)  # Устанавливаем сцену в QGraphicsView
@@ -2757,11 +2757,7 @@ QLabel {
         if self.editing_panel:
             self.editing_panel.update_coordinates(x, y)
 
-    def open_dialog(self):
-        print('')
-        # Создаем и отображаем диалоговое окно
-        dialog = DialogWindow()
-        dialog.exec_()
+
 
     # Быстрое сохранение в папку saves
     def save_to_file(self, filepath=None):
