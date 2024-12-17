@@ -2597,6 +2597,15 @@ QLabel {
         
         self.connect_objectS = QShortcut(QKeySequence("Ctrl+M"), self.graphicsView)
         self.connect_objectS.activated.connect(self.show_static_widget)
+
+        self.connect_objectS = QShortcut(QKeySequence("Alt+T"), self.graphicsView)
+        self.connect_objectS.activated.connect(self.show_toolbar)
+
+        self.connect_objectS = QShortcut(QKeySequence("Alt+O"), self.graphicsView)
+        self.connect_objectS.activated.connect(self.show_object_panel)
+
+        self.connect_objectS = QShortcut(QKeySequence("Alt+E"), self.graphicsView)
+        self.connect_objectS.activated.connect(self.show_edit_panel)
         # self.connect_objectS = QShortcut(QKeySequence("T"), self.graphicsView)
         # self.connect_objectS.activated.connect(self.disconnect_nodes)
 
