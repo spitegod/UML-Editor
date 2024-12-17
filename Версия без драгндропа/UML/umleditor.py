@@ -2588,6 +2588,15 @@ QLabel {
         self.connect_objectS = QShortcut(QKeySequence("0"), self.graphicsView)
         self.connect_objectS.activated.connect(self.insert_image)
         self.connect_objectS.activated.connect(self.message_overcrowed_objectS)
+
+        self.connect_objectS = QShortcut(QKeySequence("Ctrl+S"), self.graphicsView)
+        self.connect_objectS.activated.connect(self.save_to_file)
+        
+        self.connect_objectS = QShortcut(QKeySequence("Ctrl+N"), self.graphicsView)
+        self.connect_objectS.activated.connect(self.create_new)
+        
+        self.connect_objectS = QShortcut(QKeySequence("Ctrl+M"), self.graphicsView)
+        self.connect_objectS.activated.connect(self.show_static_widget)
         # self.connect_objectS = QShortcut(QKeySequence("T"), self.graphicsView)
         # self.connect_objectS.activated.connect(self.disconnect_nodes)
 
