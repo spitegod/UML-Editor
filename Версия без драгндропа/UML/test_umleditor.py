@@ -169,7 +169,7 @@ class TestInsertImage(unittest.TestCase):
         x, y = 200, 200  # Пример координат
         image_item = ImageItem(pixmap, x, y)
 
-        # Создаем экземпляр класса, в котором вызывается insert_image
+        # Создаем экземпляр класса, в котором вызывается draw_image
         your_class_instance = ImageItem()  # Передайте нужные параметры конструктора
 
         # Мокаем сцену и добавление объекта
@@ -180,7 +180,7 @@ class TestInsertImage(unittest.TestCase):
         with patch.object(your_class_instance.scene_, 'addItem', return_value=None):
             with patch.object(your_class_instance.objectS_, 'append', return_value=None):
                 # В реальности здесь будет передано изображение, x, y
-                your_class_instance.insert_image()
+                your_class_instance.draw_image()
 
         # Проверяем, что изображение было добавлено
         your_class_instance.scene_.addItem.assert_called_once()
@@ -199,7 +199,7 @@ class TestInsertImage(unittest.TestCase):
         pixmap = QtGui.QPixmap("path/to/large_image.png")
         pixmap = pixmap.scaled(300, 300)  # Можем подстроить размер для теста
 
-        # Создаем экземпляр класса, в котором вызывается insert_image
+        # Создаем экземпляр класса, в котором вызывается draw_image
         your_class_instance = ImageItem()  # Передайте нужные параметры конструктора
 
         # Мокаем сцену и добавление объекта
@@ -207,7 +207,7 @@ class TestInsertImage(unittest.TestCase):
         your_class_instance.objectS_ = []
 
         # Вызов метода
-        your_class_instance.insert_image()
+        your_class_instance.draw_image()
 
         # Проверяем, что метод не добавил объект на сцену из-за ошибки размера
         your_class_instance.scene_.addItem.assert_not_called()
@@ -230,12 +230,12 @@ class TestInsertImage(unittest.TestCase):
         mock_pixmap = MagicMock()
         mock_pixmap.isNull.return_value = True
 
-        # Создаем экземпляр класса, в котором вызывается insert_image
+        # Создаем экземпляр класса, в котором вызывается draw_image
         your_class_instance = ImageItem()  # Передайте нужные параметры конструктора
 
         # Вызов метода
         with patch('PyQt5.QtGui.QPixmap', return_value=mock_pixmap):
-            your_class_instance.insert_image()
+            your_class_instance.draw_image()
 
         # Проверяем, что метод не добавил объект на сцену
         your_class_instance.scene_.addItem.assert_not_called()
@@ -477,10 +477,10 @@ class TestStaticWidget(unittest.TestCase):
         window.static_widget = MagicMock()
         window.static_ui = MagicMock()
         window.user_ = MagicMock()
-        window.user_actions = MagicMock()
-        window.time_updated = MagicMock()
-        window.update_last_timeSW = MagicMock()
-        window.count_objectS = MagicMock()
+        window.USER_ACTIONS = MagicMock()
+        window.TIME_UPDATED = MagicMock()
+        window.UPDATE_LAST_TIME_FOR_SW = MagicMock()
+        window.COUNT_OBJECTS = MagicMock()
 
         # Присваиваем моки данным
         window.today = '2024-12-10'
@@ -492,10 +492,10 @@ class TestStaticWidget(unittest.TestCase):
         self.assertTrue(hasattr(window, 'static_widget'))
         self.assertTrue(hasattr(window, 'static_ui'))
         self.assertTrue(hasattr(window, 'user_'))
-        self.assertTrue(hasattr(window, 'user_actions'))
-        self.assertTrue(hasattr(window, 'time_updated'))
-        self.assertTrue(hasattr(window, 'update_last_timeSW'))
-        self.assertTrue(hasattr(window, 'count_objectS'))
+        self.assertTrue(hasattr(window, 'USER_ACTIONS'))
+        self.assertTrue(hasattr(window, 'TIME_UPDATED'))
+        self.assertTrue(hasattr(window, 'UPDATE_LAST_TIME_FOR_SW'))
+        self.assertTrue(hasattr(window, 'COUNT_OBJECTS'))
 
         # Проверяем, что методы и атрибуты инициализированы
         self.assertIsInstance(window.static_widget, MagicMock)

@@ -1,0 +1,189 @@
+{
+    "items": [
+        {
+            "type": "Text_into_object",
+            "position": [
+                -186.5,
+                102.5
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": null,
+            "dots": null,
+            "pixmap": null,
+            "opacity": null,
+            "rotation": null,
+            "direction": null
+        },
+        {
+            "type": "ActiveState",
+            "position": {
+                "x": -212.0,
+                "y": 86.0
+            },
+            "size": null,
+            "radius": 15,
+            "inner_radius_ratio": null,
+            "width": 100.0,
+            "height": 60.0,
+            "text": "\u0422\u0435\u043a\u0441\u0442",
+            "start_node": null,
+            "end_node": null,
+            "color": "#ffffff",
+            "line_width": null,
+            "id": 4,
+            "dots": null,
+            "pixmap": null,
+            "opacity": null,
+            "rotation": null,
+            "direction": null
+        },
+        {
+            "type": "Text_into_object",
+            "position": [
+                -51.5,
+                -16.5
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": null,
+            "dots": null,
+            "pixmap": null,
+            "opacity": null,
+            "rotation": null,
+            "direction": null
+        },
+        {
+            "type": "SignalReceipt",
+            "position": {
+                "x": -94.0,
+                "y": -85.0
+            },
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": 180,
+            "height": 60,
+            "text": "Signal receipt",
+            "start_node": null,
+            "end_node": null,
+            "color": "#ffffff",
+            "line_width": null,
+            "id": 3,
+            "dots": null,
+            "pixmap": null,
+            "opacity": null,
+            "rotation": null,
+            "direction": "\u0421\u043b\u0435\u0432\u0430"
+        },
+        {
+            "type": "InnerCircle",
+            "position": [
+                0.0,
+                0.0
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": 30.0,
+            "height": 30.0,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": null,
+            "dots": null,
+            "pixmap": null,
+            "opacity": null,
+            "rotation": null,
+            "direction": null
+        },
+        {
+            "type": "EndEvent",
+            "position": {
+                "x": -262.0,
+                "y": -11.0
+            },
+            "size": null,
+            "radius": 30.0,
+            "inner_radius_ratio": 0.5,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": "#ffffff",
+            "line_width": null,
+            "id": 2,
+            "dots": null,
+            "pixmap": null,
+            "opacity": null,
+            "rotation": null,
+            "direction": null
+        },
+        {
+            "type": "Text_into_object",
+            "position": [
+                25.5,
+                16.5
+            ],
+            "size": null,
+            "radius": null,
+            "inner_radius_ratio": null,
+            "width": null,
+            "height": null,
+            "text": null,
+            "start_node": null,
+            "end_node": null,
+            "color": null,
+            "line_width": null,
+            "id": null,
+            "dots": null,
+            "pixmap": null,
+            "opacity": null,
+            "rotation": null,
+            "direction": null
+        },
+        {
+            "type": "ActiveState",
+            "position": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "size": null,
+            "radius": 15,
+            "inner_radius_ratio": null,
+            "width": 100.0,
+            "height": 60.0,
+            "text": "\u0422\u0435\u043a\u0441\u0442",
+            "start_node": null,
+            "end_node": null,
+            "color": "#ffffff",
+            "line_width": null,
+            "id": 1,
+            "dots": null,
+            "pixmap": null,
+            "opacity": null,
+            "rotation": null,
+            "direction": null
+        }
+    ],
+    "arrows": []
+}
