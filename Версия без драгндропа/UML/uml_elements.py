@@ -427,10 +427,7 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
         else:
             self.is_resizing = False
         super().mousePressEvent(event)
-        if event.button() == QtCore.Qt.RightButton:  # Проверяем нажатие ПКМ
-            color = QtWidgets.QColorDialog.getColor()
-            if color.isValid():
-                self.setColor(color)  # Устанавливаем выбранный цвет
+ 
 
     def mouseMoveEvent(self, event):
         # Обновляем стрелки при движении объекта
