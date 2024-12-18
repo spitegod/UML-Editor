@@ -89,6 +89,9 @@ class Arrow(QGraphicsItem):
     def remove_arrow(self):
         if self.is_removed:
             return  # Если стрелка уже удалена, ничего не делаем
+        
+        # Удаляем стрелку из сцены
+        self.scene().removeItem(self)
 
         # Удаляем стрелку из списков узлов
         if self.node1 and self in self.node1.arrows: # Если стрелка связана с первым узлом
@@ -96,8 +99,6 @@ class Arrow(QGraphicsItem):
         if self.node2 and self in self.node2.arrows: # Если стрелка связана со вторым узлом 
             self.node2.arrows.remove(self)           # удаляем её из списка стрелок второго узла
     
-        # Удаляем стрелку из сцены
-        self.scene().removeItem(self)
 
         # Обновляем флаг и очищаем ссылки на первый и второй элемент(node1 и node2)
         self.is_removed = True
@@ -251,6 +252,15 @@ class Arrow(QGraphicsItem):
             if line.intersect(edge, intersection_point) == QLineF.BoundedIntersection:
                 return intersection_point
         return start  # Возвращаем начальную точку, если нет пересечений
+
+    '''Для удаления стрелок со сцены которых на самом деле нет'''
+    def advance(self, phase):
+        if phase == 0:  # Фаза 0 - проверка состояния
+            if not self.scene():  # Если стрелка не в сцене, ничего не делаем
+                return
+            # Если узлы больше не существуют или стрелка уже удалена, убрать её
+            if not self.node1 or not self.node2 or self.is_removed:
+                self.remove_arrow()
 
 '''Класс Decision(Ромб)'''
 class Decision(QGraphicsPolygonItem):

@@ -1340,6 +1340,11 @@ class My_GraphicsScene(QGraphicsScene):
         self.grid_color = QtGui.QColor(200, 200, 200, 200)  # Цвет линии сетки
         self.show_grid = False                              # Флаг для отображения сетки (по умолчанию выключена)
 
+        self.setItemIndexMethod(QGraphicsScene.NoIndex)     # Включение индексации для работы с advance
+        self.advance()                                      # у сцены и стрекли(). Запускает фазу обновления, 
+                                                            # чтобы предотвращать появления "остаточных" стрелок после их удаления со сцены.   
+
+
     '''Бэграунд сцены'''
     def drawBackground(self, painter, rect):
         # Включаем сглаживание
@@ -3284,6 +3289,7 @@ QLabel {
             arrow.update_arrow()  # Обновляем стрелку вручную, если нужно
             self.scene_.update()  # Перерисовываем сцену
             self.user_.add_action(f"Соединены '{node1.__class__.__name__}' и '{node2.__class__.__name__}'", self.get_current_Realtime())
+            self.debug_scene_objects()
     
     # Выделение всех элементов (Ctrl+A)
     def select_all_item(self):
@@ -3292,8 +3298,18 @@ QLabel {
             # Проверяем может ли элемент выделяться
             if isinstance(item, QtWidgets.QGraphicsItem):
                 item.setSelected(True)
+        self.debug_scene_objects()
 
+    # Откладочное сообщение для проверки сцены на наличие лишних стрелок
+    def debug_scene_objects(self):
+        i = 0
+        print("---------------------------------------------------------------------------------")
+        for item in self.scene_.items():
+            if isinstance(item, Arrow):
+                print(f"Arrow {i}: {item}, Node1: {item.node1}, Node2: {item.node2}")
+                i += 1
 
+    # Удаление выделенного элемента
     def delete_selected_item(self):
         self.reset_inaction()  # Сбрасываем второй таймер
         selected_items = self.scene_.selectedItems()        
