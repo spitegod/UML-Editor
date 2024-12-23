@@ -2118,7 +2118,21 @@ class LoginWindow(QtWidgets.QDialog):
 """)
 
 
+class SettingsDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Настройки")
+        self.setGeometry(300, 300, 400, 300)
 
+        # Пример содержимого окна настроек
+        layout = QVBoxLayout()
+        label = QLabel("Здесь будут настройки приложения.")
+        close_button = QPushButton("Закрыть")
+        close_button.clicked.connect(self.close)
+
+        layout.addWidget(label)
+        layout.addWidget(close_button)
+        self.setLayout(layout)
 
 class Ui_MainWindow(QtWidgets.QMainWindow):
     time_updated = pyqtSignal(str, str, str)  # Создаем сигнал с параметром типа str для передачи запущенного времени
@@ -2426,6 +2440,7 @@ QLabel {
         self.action_3.triggered.connect(self.save_as)
         self.action_4.triggered.connect(self.create_new)
         self.action.triggered.connect(self.open_file)
+        self.action_settings.triggered.connect(self.open_settings)
         self.action_exit.triggered.connect(self.close_application)
 
         self.action_add_image.triggered.connect(self.insert_image)
@@ -2689,6 +2704,11 @@ QLabel {
             list_item = QtWidgets.QListWidgetItem(list_item_text)
             self.object_list_widget.addItem(list_item)
             
+
+    def open_settings(self):
+        self.settings_dialog = SettingsDialog(self)
+        self.settings_dialog.exec_()
+
 
     def show_help(self):
         self.reset_inaction()
