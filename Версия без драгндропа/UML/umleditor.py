@@ -2158,7 +2158,12 @@ class SettingsDialog(QDialog):
         page = QWidget()
         layout = QVBoxLayout(page)
         layout.addWidget(QLabel("Настройки сохранения"))
-        layout.addWidget(QLabel("В разработке"))
+        # Чекбокс для сохранения в режиме "Только просмотр"
+        readonly_checkbox = QCheckBox("Сохранять в режиме 'Только просмотр'")
+        readonly_checkbox.setChecked(False)  # По умолчанию выключен
+        
+        # Добавляем элементы в макет
+        layout.addWidget(readonly_checkbox)
         return page
 
     def display_section(self, index):
