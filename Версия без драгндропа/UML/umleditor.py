@@ -38,7 +38,11 @@ from PyQt5.QtCore import pyqtSlot
 
 global_username = ""
 global_start_time = None
+global_is_editable = False
+
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+
 class EditingPanel(QWidget):
     def __init__(self, editable_item, main_window):
         super().__init__()
@@ -2162,9 +2166,16 @@ class SettingsDialog(QDialog):
         readonly_checkbox = QCheckBox("Сохранять в режиме 'Только просмотр'")
         readonly_checkbox.setChecked(False)  # По умолчанию выключен
         
+        # Подключаем сигнал к функции, изменяющей global_is_editable
+        readonly_checkbox.stateChanged.connect(self.update_global_is_editable)
         # Добавляем элементы в макет
         layout.addWidget(readonly_checkbox)
         return page
+
+    def update_global_is_editable(self, state):
+        global global_is_editable
+        global_is_editable = (state == Qt.Checked)
+        print(f"global_is_editable обновлено: {global_is_editable}")
 
     def display_section(self, index):
         self.settings_stack.setCurrentIndex(index)
@@ -2673,6 +2684,7 @@ QLabel {
         self.scene_ = My_GraphicsScene(self, self.objectS_, self.user_, self.label_x_y)
         self.graphicsView.setScene(self.scene_)  # Устанавливаем сцену в QGraphicsView
 
+
         # Подключение сетики
         self.connect_objectS = QShortcut(QKeySequence("G"), self.graphicsView)
         self.connect_objectS.activated.connect(self.scene_.toggle_grid)
@@ -2847,6 +2859,9 @@ QLabel {
         data = {"items": [], "arrows": []}
         elements = {}
 
+        global global_is_editable
+        data["is_editable"] = global_is_editable
+
         # Сохраняем элементы, пропуская стрелки
         for item in self.scene_.items():
             if isinstance(item, QtWidgets.QGraphicsItem) and not isinstance(item, Arrow) and not isinstance(item, QGraphicsEllipseItem):
@@ -2923,6 +2938,9 @@ QLabel {
         # Массивы для хранения данных
         data = {"items": [], "arrows": []} 
         elements = {}
+
+        global global_is_editable
+        data["is_editable"] = global_is_editable
 
         # Сохраняем элементы, пропуская стрелки
         for item in self.scene_.items():
@@ -3927,13 +3945,17 @@ QLabel {
                 # Обновляем стрелку сразу после добавления
                 arrow.update_arrow()  # Обновляем стрелку вручную, если нужно
                 self.scene_.update()
-
         # Добавляем элемент на сцену
         self.scene_.addItem(item)
         try:
             elements[position] = item
         except TypeError:
             pass  # Игнорировать ошибку и продолжить выполнение
+
+        if data.get("is_editable"):
+            self.graphicsView.setInteractive(False)
+        else:
+            self.graphicsView.setInteractive(True)
 
     # Обработка кнопки "Создать"
     def create_new(self):
