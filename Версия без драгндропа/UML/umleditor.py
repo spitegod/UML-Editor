@@ -2122,17 +2122,47 @@ class SettingsDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Настройки")
-        self.setGeometry(300, 300, 400, 300)
+        self.setGeometry(300, 300, 600, 400)
 
-        # Пример содержимого окна настроек
-        layout = QVBoxLayout()
-        label = QLabel("Здесь будут настройки приложения.")
-        close_button = QPushButton("Закрыть")
-        close_button.clicked.connect(self.close)
+        # Основной макет диалога настроек
+        main_layout = QHBoxLayout(self)
 
-        layout.addWidget(label)
-        layout.addWidget(close_button)
-        self.setLayout(layout)
+        # Левый список разделов настроек
+        self.section_list = QListWidget()
+        self.section_list.addItems(["Общие","Сохранение"])
+        self.section_list.currentRowChanged.connect(self.display_section)
+
+        # Основная область для настройки выбранного раздела
+        self.settings_stack = QStackedWidget()
+
+        # Добавляем страницы для каждого раздела
+        self.settings_stack.addWidget(self.create_general_settings())
+        self.settings_stack.addWidget(self.create_save_settings())
+
+        # Добавляем виджеты в основной макет
+        main_layout.addWidget(self.section_list, 1)  # Список занимает 1 часть
+        main_layout.addWidget(self.settings_stack, 3)  # Детальные настройки - 3 части
+
+        self.setLayout(main_layout)
+
+    def create_general_settings(self):
+        """Создаем страницу для общих настроек."""
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.addWidget(QLabel("Общие настройки"))
+        layout.addWidget(QLabel("В разработке"))
+        return page
+
+    def create_save_settings(self):
+        """Создаем страницу для настроек сохранения."""
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.addWidget(QLabel("Настройки сохранения"))
+        layout.addWidget(QLabel("В разработке"))
+        return page
+
+    def display_section(self, index):
+        self.settings_stack.setCurrentIndex(index)
 
 class Ui_MainWindow(QtWidgets.QMainWindow):
     time_updated = pyqtSignal(str, str, str)  # Создаем сигнал с параметром типа str для передачи запущенного времени
