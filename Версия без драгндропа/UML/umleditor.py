@@ -2358,6 +2358,10 @@ QLabel {
         # self.action_PNG.setObjectName("action_PNG")
         self.action_4 = QtWidgets.QAction(MainWindow)
         self.action_4.setObjectName("action_4")
+
+        self.action_settings = QtWidgets.QAction(MainWindow)
+        self.action_settings.setObjectName("action_settings")
+
         self.action_exit = QtWidgets.QAction(MainWindow)
         self.action_exit.setObjectName("action_exit")
         self.action_add_image = QtWidgets.QAction(MainWindow)
@@ -2391,6 +2395,7 @@ QLabel {
         self.menu.addAction(self.action_3)
         self.menu.addSeparator()
         # self.menu.addAction(self.action_PNG)
+        self.menu.addAction(self.action_settings)
         self.menu.addSeparator()
         self.menu.addAction(self.action_exit)
         self.menu_insert.addAction(self.action_add_image)
@@ -4009,6 +4014,7 @@ QLabel {
         self.action_3.setText(_translate("MainWindow", "Сохранить как"))
         # self.action_PNG.setText(_translate("MainWindow", "Экспорт в PNG"))
         self.action_4.setText(_translate("MainWindow", "Создать"))
+        self.action_settings.setText(_translate("MainWindow", "Настройки"))
         self.action_exit.setText(_translate("MainWindow", "Выход"))
 
         self.action_add_image.setText(_translate("MainWindow", "Изображение"))
