@@ -2164,7 +2164,7 @@ class SettingsDialog(QDialog):
         layout.addWidget(QLabel("Настройки сохранения"))
         # Чекбокс для сохранения в режиме "Только просмотр"
         readonly_checkbox = QCheckBox("Сохранять в режиме 'Только просмотр'")
-        readonly_checkbox.setChecked(False)  # По умолчанию выключен
+        readonly_checkbox.setChecked(global_is_editable)  # По умолчанию выключен
         
         # Подключаем сигнал к функции, изменяющей global_is_editable
         readonly_checkbox.stateChanged.connect(self.update_global_is_editable)
