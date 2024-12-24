@@ -39,6 +39,7 @@ from PyQt5.QtCore import pyqtSlot
 global_username = ""
 global_start_time = None
 global_is_editable = False
+global_save_name = "diagram_"
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
@@ -2150,7 +2151,6 @@ class SettingsDialog(QDialog):
         self.setLayout(main_layout)
 
     def create_general_settings(self):
-        """Создаем страницу для общих настроек."""
         page = QWidget()
         layout = QVBoxLayout(page)
         layout.addWidget(QLabel("Общие настройки"))
@@ -2158,10 +2158,17 @@ class SettingsDialog(QDialog):
         return page
 
     def create_save_settings(self):
-        """Создаем страницу для настроек сохранения."""
         page = QWidget()
         layout = QVBoxLayout(page)
         layout.addWidget(QLabel("Настройки сохранения"))
+
+        # Поле ввода для наименования быстрого сохранения
+        layout.addWidget(QLabel("Наименование быстрого сохранения:"))
+        save_name_input = QLineEdit(global_save_name)
+        layout.addWidget(save_name_input)
+        
+        # Сохранение изменений в global_save_name
+        save_name_input.textChanged.connect(self.update_save_name)
         # Чекбокс для сохранения в режиме "Только просмотр"
         readonly_checkbox = QCheckBox("Сохранять в режиме 'Только просмотр'")
         readonly_checkbox.setChecked(global_is_editable)  # По умолчанию выключен
@@ -2171,6 +2178,10 @@ class SettingsDialog(QDialog):
         # Добавляем элементы в макет
         layout.addWidget(readonly_checkbox)
         return page
+
+    def update_save_name(self, new_name):
+        global global_save_name
+        global_save_name = new_name    
 
     def update_global_is_editable(self, state):
         global global_is_editable
@@ -2854,7 +2865,7 @@ QLabel {
         # Если путь не задан, создаём имя файла по умолчанию
         if not filepath:
             current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")  # Временная метка
-            filepath = os.path.join(saves_dir, f"diagram_{current_time}.chep")
+            filepath = os.path.join(saves_dir, f"{global_save_name}{current_time}.chep")
 
         data = {"items": [], "arrows": []}
         elements = {}
