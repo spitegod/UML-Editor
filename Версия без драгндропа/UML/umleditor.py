@@ -2129,6 +2129,100 @@ class SettingsDialog(QDialog):
         self.setWindowTitle("Настройки")
         self.setGeometry(300, 300, 600, 400)
 
+        # Применяем стили
+        self.setStyleSheet("""
+            QWidget {
+                font-family: 'Arial', sans-serif;
+                font-size: 14px;
+                color: #2f2f2f;
+            }
+
+            QLabel {
+                font-size: 18px;
+                font-weight: bold;
+                color: #2f2f2f;
+                margin-bottom: 8px;
+            }
+
+            QLineEdit {
+                background-color: rgb(240, 240, 240);
+                border: 1px solid rgb(200, 200, 200);
+                border-radius: 6px;
+                padding: 8px;
+                font-family: 'Arial';
+                font-size: 16px;
+                color: #2f2f2f;
+            }
+
+            QLineEdit:focus {
+                border: 1px solid rgb(150, 150, 150);
+                background-color: rgb(255, 255, 255);
+            }
+
+            QPushButton {
+                background-color: rgb(240, 240, 240);
+                border: 1px solid rgb(150, 150, 150);
+                border-radius: 6px;
+                padding: 8px 16px;
+                font-size: 16px;
+                font-weight: bold;
+                color: #2f2f2f;
+            }
+
+            QPushButton:hover {
+                background-color: rgb(220, 220, 220);
+                border: 1px solid rgb(100, 100, 100);
+            }
+
+            QPushButton:pressed {
+                background-color: rgb(200, 200, 200);
+            }
+
+            QCheckBox {
+                font-size: 16px;
+                color: #2f2f2f;
+            }
+
+            QCheckBox::indicator {
+                width: 18px;
+                height: 18px;
+            }
+
+            QCheckBox::indicator:checked {
+                background-color: rgb(100, 200, 100);
+                border-radius: 4px;
+            }
+
+            QCheckBox::indicator:unchecked {
+                background-color: rgb(200, 200, 200);
+                border-radius: 4px;
+            }
+
+            QListWidget {
+                font-size: 16px;
+                color: #2f2f2f;
+                background-color: rgb(240, 240, 240);
+                border: 1px solid rgb(200, 200, 200);
+                border-radius: 6px;
+            }
+
+            QListWidget::item {
+                padding: 8px 16px;
+            }
+
+            QListWidget::item:selected {
+                background-color: #2f2f2f;
+                color: white;
+            }
+
+            QStackedWidget {
+                background-color: rgb(240, 240, 240);
+                border: 1px solid rgb(200, 200, 200);
+                border-radius: 6px;
+                padding: 16px;
+            }
+        """)
+
         # Основной макет диалога настроек
         main_layout = QHBoxLayout(self)
 
