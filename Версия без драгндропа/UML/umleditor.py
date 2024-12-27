@@ -40,6 +40,7 @@ global_username = ""
 global_start_time = None
 global_is_editable = False
 global_save_name = "diagram_"
+global_is_transparent = True
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
@@ -2278,7 +2279,10 @@ class SettingsDialog(QDialog):
         page = QWidget()
         layout = QVBoxLayout(page)
         layout.addWidget(QLabel("Настройки экспорта"))
-        layout.addWidget(QLabel("В разработке"))
+        transparent_checkbox = QCheckBox("Экспортировать с прозрачным фоном")
+        transparent_checkbox.setChecked(global_is_transparent)  # По умолчанию выключен
+        transparent_checkbox.stateChanged.connect(self.update_global_is_transparent)
+        layout.addWidget(transparent_checkbox)
         return page
 
     def update_save_name(self, new_name):
@@ -2292,6 +2296,11 @@ class SettingsDialog(QDialog):
 
     def display_section(self, index):
         self.settings_stack.setCurrentIndex(index)
+
+    def update_global_is_transparent(self, state):
+        global global_is_transparent
+        global_is_transparent = (state == Qt.Checked)
+        print(f"global_is_transparent обновлено: {global_is_transparent}")
 
 class Ui_MainWindow(QtWidgets.QMainWindow):
     time_updated = pyqtSignal(str, str, str)  # Создаем сигнал с параметром типа str для передачи запущенного времени
@@ -2964,8 +2973,10 @@ QLabel {
         file_path, _ = QFileDialog.getSaveFileName(main_window, "Сохранить диаграмму как", "", "Images (*.png)")
         if file_path:
             pixmap = QPixmap(int(rect.width()), int(rect.height()))
-            pixmap.fill(QtCore.Qt.transparent)  # Заполняем прозрачным фоном
-            # Рисуем сцену на QPixmap
+            if global_is_transparent:
+                pixmap.fill(QtCore.Qt.transparent)  # Заполняем прозрачным фоном
+            else:
+                pixmap.fill(QtCore.Qt.white)  # Заполняем белым фоном
             painter = QPainter(pixmap)
             scene.render(painter)
             painter.end()
