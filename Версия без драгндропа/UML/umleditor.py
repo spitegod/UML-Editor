@@ -2228,7 +2228,7 @@ class SettingsDialog(QDialog):
 
         # Левый список разделов настроек
         self.section_list = QListWidget()
-        self.section_list.addItems(["Общие","Сохранение"])
+        self.section_list.addItems(["Общие","Сохранение", "Экспорт"])
         self.section_list.currentRowChanged.connect(self.display_section)
 
         # Основная область для настройки выбранного раздела
@@ -2237,6 +2237,7 @@ class SettingsDialog(QDialog):
         # Добавляем страницы для каждого раздела
         self.settings_stack.addWidget(self.create_general_settings())
         self.settings_stack.addWidget(self.create_save_settings())
+        self.settings_stack.addWidget(self.create_export_settings())
 
         # Добавляем виджеты в основной макет
         main_layout.addWidget(self.section_list, 1)  # Список занимает 1 часть
@@ -2271,6 +2272,13 @@ class SettingsDialog(QDialog):
         readonly_checkbox.stateChanged.connect(self.update_global_is_editable)
         # Добавляем элементы в макет
         layout.addWidget(readonly_checkbox)
+        return page
+
+    def create_export_settings(self):
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.addWidget(QLabel("Настройки экспорта"))
+        layout.addWidget(QLabel("В разработке"))
         return page
 
     def update_save_name(self, new_name):
