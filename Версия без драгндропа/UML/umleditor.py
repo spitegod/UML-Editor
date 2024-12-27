@@ -2519,6 +2519,8 @@ QLabel {
         self.action_2.setObjectName("action_2")
         self.action_3 = QtWidgets.QAction(MainWindow)
         self.action_3.setObjectName("action_3")
+        self.action_export = QtWidgets.QAction(MainWindow)
+        self.action_export.setObjectName("action_export")
         # self.action_PNG = QtWidgets.QAction(MainWindow)
         # self.action_PNG.setObjectName("action_PNG")
         self.action_4 = QtWidgets.QAction(MainWindow)
@@ -2559,6 +2561,8 @@ QLabel {
         self.menu.addAction(self.action_2)
         self.menu.addAction(self.action_3)
         self.menu.addSeparator()
+        self.menu.addAction(self.action_export)
+        self.menu.addSeparator()
         # self.menu.addAction(self.action_PNG)
         self.menu.addAction(self.action_settings)
         self.menu.addSeparator()
@@ -2590,6 +2594,7 @@ QLabel {
         self.action_2.triggered.connect(self.save_to_file)
         self.action_3.triggered.connect(self.save_as)
         self.action_4.triggered.connect(self.create_new)
+        self.action_export.triggered.connect(self.export)
         self.action.triggered.connect(self.open_file)
         self.action_settings.triggered.connect(self.open_settings)
         self.action_exit.triggered.connect(self.close_application)
@@ -2944,6 +2949,25 @@ QLabel {
             self.editing_panel.update_coordinates(x, y)
 
 
+    def export(self):
+        scene = self.scene_  # Получаем сцену из главного окна
+        rect = scene.sceneRect()
+
+        file_path, _ = QFileDialog.getSaveFileName(main_window, "Сохранить диаграмму как", "", "Images (*.png)")
+        if file_path:
+            pixmap = QPixmap(int(rect.width()), int(rect.height()))
+            pixmap.fill(QtCore.Qt.transparent)  # Заполняем прозрачным фоном
+            # Рисуем сцену на QPixmap
+            painter = QPainter(pixmap)
+            scene.render(painter)
+            painter.end()
+
+            # Сохраняем QPixmap в файл
+            if pixmap.save(file_path, "PNG"):
+                print(f"Диаграмма КАРТИНКА успешно сохранена: {file_path}")
+            else:
+                print("Ошибка сохранения диаграммы!")
+
 
     # Быстрое сохранение в папку saves
     def save_to_file(self, filepath=None):
@@ -2963,24 +2987,6 @@ QLabel {
         if not filepath:
             current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")  # Временная метка
             filepath = os.path.join(saves_dir, f"{global_save_name}{current_time}.chep")
-            rect = scene.sceneRect()
-            pixmap = QPixmap(int(rect.width()), int(rect.height()))
-            pixmap.fill(QtCore.Qt.transparent)  # Заполняем прозрачным фоном
-
-            file_path, _ = QFileDialog.getSaveFileName(main_window, "Сохранить диаграмму как", "", "Images (*.png)")
-            if file_path:
-
-                # Рисуем сцену на QPixmap
-                painter = QPainter(pixmap)
-                scene.render(painter)
-                painter.end()
-
-                # Сохраняем QPixmap в файл
-                if pixmap.save(file_path, "PNG"):
-                    print(f"Диаграмма КАРТИНКА успешно сохранена: {file_path}")
-                else:
-                    print("Ошибка сохранения диаграммы!")
-
         data = {"items": [], "arrows": []}
         elements = {}
 
@@ -4214,6 +4220,7 @@ QLabel {
         self.action.setText(_translate("MainWindow", "Открыть"))
         self.action_2.setText(_translate("MainWindow", "Сохранить"))
         self.action_3.setText(_translate("MainWindow", "Сохранить как"))
+        self.action_export.setText(_translate("MainWindow", "Экспорт в PNG"))
         # self.action_PNG.setText(_translate("MainWindow", "Экспорт в PNG"))
         self.action_4.setText(_translate("MainWindow", "Создать"))
         self.action_settings.setText(_translate("MainWindow", "Настройки"))
