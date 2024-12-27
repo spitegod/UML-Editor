@@ -2956,10 +2956,30 @@ QLabel {
         if not os.path.exists(saves_dir):
             os.makedirs(saves_dir)
 
+        scene = self.scene_  # Получаем сцену из главного окна
+        rect = scene.sceneRect()
+
         # Если путь не задан, создаём имя файла по умолчанию
         if not filepath:
             current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")  # Временная метка
             filepath = os.path.join(saves_dir, f"{global_save_name}{current_time}.chep")
+            rect = scene.sceneRect()
+            pixmap = QPixmap(int(rect.width()), int(rect.height()))
+            pixmap.fill(QtCore.Qt.transparent)  # Заполняем прозрачным фоном
+
+            file_path, _ = QFileDialog.getSaveFileName(main_window, "Сохранить диаграмму как", "", "Images (*.png)")
+            if file_path:
+
+                # Рисуем сцену на QPixmap
+                painter = QPainter(pixmap)
+                scene.render(painter)
+                painter.end()
+
+                # Сохраняем QPixmap в файл
+                if pixmap.save(file_path, "PNG"):
+                    print(f"Диаграмма КАРТИНКА успешно сохранена: {file_path}")
+                else:
+                    print("Ошибка сохранения диаграммы!")
 
         data = {"items": [], "arrows": []}
         elements = {}
