@@ -41,6 +41,7 @@ global_start_time = None
 global_is_editable = False
 global_save_name = "diagram_"
 global_is_transparent = True
+global_format = "PNG"
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
@@ -2279,9 +2280,18 @@ class SettingsDialog(QDialog):
         page = QWidget()
         layout = QVBoxLayout(page)
         layout.addWidget(QLabel("Настройки экспорта"))
+        # Метка выбора формата
+        format_label = QLabel("Выберите формат экспорта:")
+        layout.addWidget(format_label)
+
+        # Выпадающий список форматов
+        self.format_combo = QComboBox(self)
+        self.format_combo.addItems(["PNG", "JPG"])
+        layout.addWidget(self.format_combo)
         transparent_checkbox = QCheckBox("Экспортировать с прозрачным фоном")
         transparent_checkbox.setChecked(global_is_transparent)  # По умолчанию выключен
         transparent_checkbox.stateChanged.connect(self.update_global_is_transparent)
+        self.format_combo.currentTextChanged.connect(self.on_format_change)
         layout.addWidget(transparent_checkbox)
         return page
 
@@ -2301,6 +2311,11 @@ class SettingsDialog(QDialog):
         global global_is_transparent
         global_is_transparent = (state == Qt.Checked)
         print(f"global_is_transparent обновлено: {global_is_transparent}")
+
+    def on_format_change(self, text):
+        global global_format
+        global_format = text  # Сохраняем выбранный текст в переменную
+        print(f"Выбранный формат: {global_format}")  # Обновляем метку
 
 class Ui_MainWindow(QtWidgets.QMainWindow):
     time_updated = pyqtSignal(str, str, str)  # Создаем сигнал с параметром типа str для передачи запущенного времени
@@ -2969,24 +2984,42 @@ QLabel {
     def export(self):
         scene = self.scene_  # Получаем сцену из главного окна
         rect = scene.sceneRect()
+        
+        if global_format == "JPG":
+            file_path, _ = QFileDialog.getSaveFileName(main_window, "Сохранить диаграмму как", "", "Images (*.jpg)")
+            if file_path:
+                pixmap = QPixmap(int(rect.width()), int(rect.height()))
+                if global_is_transparent:
+                    pixmap.fill(QtCore.Qt.transparent)  # Заполняем прозрачным фоном
+                else:
+                    pixmap.fill(QtCore.Qt.white)  # Заполняем белым фоном
+                painter = QPainter(pixmap)
+                scene.render(painter)
+                painter.end()
 
-        file_path, _ = QFileDialog.getSaveFileName(main_window, "Сохранить диаграмму как", "", "Images (*.png)")
-        if file_path:
-            pixmap = QPixmap(int(rect.width()), int(rect.height()))
-            if global_is_transparent:
-                pixmap.fill(QtCore.Qt.transparent)  # Заполняем прозрачным фоном
-            else:
-                pixmap.fill(QtCore.Qt.white)  # Заполняем белым фоном
-            painter = QPainter(pixmap)
-            scene.render(painter)
-            painter.end()
+                # Сохраняем QPixmap в файл
+                if pixmap.save(file_path, "JPG"):
+                    print(f"Диаграмма КАРТИНКА успешно сохранена: {file_path}")
+                else:
+                    print("Ошибка сохранения диаграммы!")
 
-            # Сохраняем QPixmap в файл
-            if pixmap.save(file_path, "PNG"):
-                print(f"Диаграмма КАРТИНКА успешно сохранена: {file_path}")
-            else:
-                print("Ошибка сохранения диаграммы!")
+        if global_format == "PNG":
+            file_path, _ = QFileDialog.getSaveFileName(main_window, "Сохранить диаграмму как", "", "Images (*.png)")
+            if file_path:
+                pixmap = QPixmap(int(rect.width()), int(rect.height()))
+                if global_is_transparent:
+                    pixmap.fill(QtCore.Qt.transparent)  # Заполняем прозрачным фоном
+                else:
+                    pixmap.fill(QtCore.Qt.white)  # Заполняем белым фоном
+                painter = QPainter(pixmap)
+                scene.render(painter)
+                painter.end()
 
+                # Сохраняем QPixmap в файл
+                if pixmap.save(file_path, "PNG"):
+                    print(f"Диаграмма КАРТИНКА успешно сохранена: {file_path}")
+                else:
+                    print("Ошибка сохранения диаграммы!")
 
     # Быстрое сохранение в папку saves
     def save_to_file(self, filepath=None):
@@ -4239,7 +4272,7 @@ QLabel {
         self.action.setText(_translate("MainWindow", "Открыть"))
         self.action_2.setText(_translate("MainWindow", "Сохранить"))
         self.action_3.setText(_translate("MainWindow", "Сохранить как"))
-        self.action_export.setText(_translate("MainWindow", "Экспорт в PNG"))
+        self.action_export.setText(_translate("MainWindow", "Экспорт"))
         # self.action_PNG.setText(_translate("MainWindow", "Экспорт в PNG"))
         self.action_4.setText(_translate("MainWindow", "Создать"))
         self.action_settings.setText(_translate("MainWindow", "Настройки"))
