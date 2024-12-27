@@ -2288,11 +2288,11 @@ class SettingsDialog(QDialog):
         self.format_combo = QComboBox(self)
         self.format_combo.addItems(["PNG", "JPG"])
         layout.addWidget(self.format_combo)
-        transparent_checkbox = QCheckBox("Экспортировать с прозрачным фоном")
-        transparent_checkbox.setChecked(global_is_transparent)  # По умолчанию выключен
-        transparent_checkbox.stateChanged.connect(self.update_global_is_transparent)
+        self.transparent_checkbox = QCheckBox("Экспортировать с прозрачным фоном")
+        self.transparent_checkbox.setChecked(global_is_transparent)  # По умолчанию выключен
+        self.transparent_checkbox.stateChanged.connect(self.update_global_is_transparent)
         self.format_combo.currentTextChanged.connect(self.on_format_change)
-        layout.addWidget(transparent_checkbox)
+        layout.addWidget(self.transparent_checkbox)
         return page
 
     def update_save_name(self, new_name):
@@ -2315,6 +2315,16 @@ class SettingsDialog(QDialog):
     def on_format_change(self, text):
         global global_format
         global_format = text  # Сохраняем выбранный текст в переменную
+        if text == "JPG":
+            # Отключаем и скрываем чекбокс для прозрачного фона
+            self.transparent_checkbox.setChecked(False)  # Снимаем галочку
+            print(f"global_is_transparent обновлено: {global_is_transparent}")
+            self.transparent_checkbox.setEnabled(False)  # Делаем недоступным
+
+        else:
+            # Включаем и показываем чекбокс для прозрачного фона
+            self.transparent_checkbox.setEnabled(True)        
+            self.transparent_checkbox.show()
         print(f"Выбранный формат: {global_format}")  # Обновляем метку
 
 class Ui_MainWindow(QtWidgets.QMainWindow):
