@@ -2131,113 +2131,135 @@ class SettingsDialog(QDialog):
         self.setWindowTitle("Настройки")
         self.setGeometry(300, 300, 600, 400)
 
-        # Применяем стили
         self.setStyleSheet("""
-            QWidget {
-                font-family: 'Arial', sans-serif;
-                font-size: 14px;
-                color: #2f2f2f;
-            }
+        QWidget {
+            font-family: 'Arial', sans-serif;
+            font-size: 14px;
+            color: #2f2f2f;
+        }
 
-            QLabel {
-                font-size: 18px;
-                font-weight: bold;
-                color: #2f2f2f;
-                margin-bottom: 8px;
-            }
+        QLabel {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2f2f2f;
+            margin-bottom: 8px;
+        }
 
-            QLineEdit {
-                background-color: rgb(240, 240, 240);
-                border: 1px solid rgb(200, 200, 200);
-                border-radius: 6px;
-                padding: 8px;
-                font-family: 'Arial';
-                font-size: 16px;
-                color: #2f2f2f;
-            }
+        QLineEdit {
+            background-color: rgb(240, 240, 240);
+            border: 1px solid rgb(200, 200, 200);
+            border-radius: 6px;
+            padding: 8px;
+            font-family: 'Arial';
+            font-size: 16px;
+            color: #2f2f2f;
+        }
 
-            QLineEdit:focus {
-                border: 1px solid rgb(150, 150, 150);
-                background-color: rgb(255, 255, 255);
-            }
+        QLineEdit:focus {
+            border: 1px solid rgb(150, 150, 150);
+            background-color: rgb(255, 255, 255);
+        }
 
-            QPushButton {
-                background-color: rgb(240, 240, 240);
-                border: 1px solid rgb(150, 150, 150);
-                border-radius: 6px;
-                padding: 8px 16px;
-                font-size: 16px;
-                font-weight: bold;
-                color: #2f2f2f;
-            }
+        QPushButton {
+            background-color: rgb(240, 240, 240);
+            border: 1px solid rgb(150, 150, 150);
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #2f2f2f;
+        }
 
-            QPushButton:hover {
-                background-color: rgb(220, 220, 220);
-                border: 1px solid rgb(100, 100, 100);
-            }
+        QPushButton:hover {
+            background-color: rgb(220, 220, 220);
+            border: 1px solid rgb(100, 100, 100);
+        }
 
-            QPushButton:pressed {
-                background-color: rgb(200, 200, 200);
-            }
+        QPushButton:pressed {
+            background-color: rgb(200, 200, 200);
+        }
 
-            QCheckBox {
-                font-size: 16px;
-                color: #2f2f2f;
-            }
+        QCheckBox {
+            font-size: 16px;
+            color: #2f2f2f;
+        }
 
-            QCheckBox::indicator {
-                width: 18px;
-                height: 18px;
-            }
+        QCheckBox::indicator {
+            width: 18px;
+            height: 18px;
+        }
 
-            QCheckBox::indicator:checked {
-                background-color: rgb(100, 200, 100);
-                border-radius: 4px;
-            }
+        QCheckBox::indicator:checked {
+            background-color: rgb(100, 200, 100);
+            border-radius: 4px;
+        }
 
-            QCheckBox::indicator:unchecked {
-                background-color: rgb(200, 200, 200);
-                border-radius: 4px;
-            }
+        QCheckBox::indicator:unchecked {
+            background-color: rgb(200, 200, 200);
+            border-radius: 4px;
+        }
 
-            QListWidget {
-                font-size: 16px;
-                color: #2f2f2f;
-                background-color: rgb(240, 240, 240);
-                border: 1px solid rgb(200, 200, 200);
-                border-radius: 6px;
-            }
+        QListWidget {
+            font-size: 16px;
+            color: #2f2f2f;
+            background-color: rgb(240, 240, 240);
+            border: 1px solid rgb(200, 200, 200);
+            border-radius: 6px;
+        }
 
-            QListWidget::item {
-                padding: 8px 16px;
-            }
+        QListWidget::item {
+            padding: 8px 16px;
+        }
 
-            QListWidget::item:selected {
-                background-color: #2f2f2f;
-                color: white;
-            }
+        QListWidget::item:selected {
+            background-color: #2f2f2f;
+            color: white;
+        }
 
-            QStackedWidget {
-                background-color: rgb(240, 240, 240);
-                border: 1px solid rgb(200, 200, 200);
-                border-radius: 6px;
-                padding: 16px;
-            }
-        """)
+        QStackedWidget {
+            background-color: rgb(240, 240, 240);
+            border: 1px solid rgb(200, 200, 200);
+            border-radius: 6px;
+            padding: 16px;
+        }
+
+        QComboBox {
+            background-color: rgb(240, 240, 240);
+            border: 1px solid rgb(200, 200, 200);
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-family: 'Arial';
+            font-size: 16px;
+            color: #2f2f2f;
+        }
+
+        QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 20px;
+            border-left: 1px solid rgb(200, 200, 200);
+        }
+
+        QComboBox QAbstractItemView {
+            background-color: rgb(240, 240, 240);
+            selection-background-color: rgb(200, 200, 200);
+            border: 1px solid rgb(150, 150, 150);
+            font-size: 16px;
+        }
+    """)
 
         # Основной макет диалога настроек
         main_layout = QHBoxLayout(self)
 
         # Левый список разделов настроек
         self.section_list = QListWidget()
-        self.section_list.addItems(["Общие","Сохранение", "Экспорт"])
+        self.section_list.addItems(["Сохранение", "Экспорт"])
         self.section_list.currentRowChanged.connect(self.display_section)
 
         # Основная область для настройки выбранного раздела
         self.settings_stack = QStackedWidget()
 
         # Добавляем страницы для каждого раздела
-        self.settings_stack.addWidget(self.create_general_settings())
         self.settings_stack.addWidget(self.create_save_settings())
         self.settings_stack.addWidget(self.create_export_settings())
 
@@ -2247,17 +2269,10 @@ class SettingsDialog(QDialog):
 
         self.setLayout(main_layout)
 
-    def create_general_settings(self):
-        page = QWidget()
-        layout = QVBoxLayout(page)
-        layout.addWidget(QLabel("Общие настройки"))
-        layout.addWidget(QLabel("В разработке"))
-        return page
-
     def create_save_settings(self):
         page = QWidget()
         layout = QVBoxLayout(page)
-        layout.addWidget(QLabel("Настройки сохранения"))
+        layout.setAlignment(Qt.AlignTop)  # Прижимаем все элементы к верху
 
         # Поле ввода для наименования быстрого сохранения
         layout.addWidget(QLabel("Наименование быстрого сохранения:"))
@@ -2279,9 +2294,10 @@ class SettingsDialog(QDialog):
     def create_export_settings(self):
         page = QWidget()
         layout = QVBoxLayout(page)
-        layout.addWidget(QLabel("Настройки экспорта"))
+        layout.setAlignment(Qt.AlignTop)  # Прижимаем все элементы к верху
+
         # Метка выбора формата
-        format_label = QLabel("Выберите формат экспорта:")
+        format_label = QLabel("Формат экспорта:")
         layout.addWidget(format_label)
 
         # Выпадающий список форматов
