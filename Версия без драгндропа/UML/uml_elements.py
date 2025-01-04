@@ -357,6 +357,7 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
         self.center_y = y
         self.color = color
         self.border_color = QtCore.Qt.black  # Цвет окантовки
+        self.setToolTip("Decision. Используется для представления условной\n точки ответвления с одним входом и несколькими выходами.")
         self.setPolygon(self.create_diamond(self.center_x, self.center_y, self.size))
         self.setBrush(self.color)
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать элемент
