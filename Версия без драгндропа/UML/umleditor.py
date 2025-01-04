@@ -2276,13 +2276,13 @@ class SettingsDialog(QDialog):
         layout = QVBoxLayout(page)
         layout.setAlignment(Qt.AlignTop)
         # Заголовок
-        layout.addWidget(QLabel("Настройки шага:"))
+        layout.addWidget(QLabel("Шаг перемещения стрелкой (пиксели):"))
 
         # Спин бокс для ввода значения global_step
         self.step_input = QSpinBox()
         self.step_input.setValue(global_step)  # Устанавливаем начальное значение
         self.step_input.setAlignment(Qt.AlignCenter)
-        # self.step_input.valueChanged.connect(self.on_step_changed)  # Сигнал для обработки изменений
+        self.step_input.valueChanged.connect(self.on_step_changed)  # Сигнал для обработки изменений
         layout.addWidget(self.step_input)
 
         return page
@@ -2360,6 +2360,11 @@ class SettingsDialog(QDialog):
             self.transparent_checkbox.setEnabled(True)        
             self.transparent_checkbox.show()
         print(f"Выбранный формат: {global_format}")  # Обновляем метку
+
+    def on_step_changed(self):
+        global global_step
+        # Обновляем значение global_step при изменении значения в спинбоксе
+        global_step = self.step_input.value()
 
 class Ui_MainWindow(QtWidgets.QMainWindow):
     time_updated = pyqtSignal(str, str, str)  # Создаем сигнал с параметром типа str для передачи запущенного времени
@@ -2862,19 +2867,18 @@ QLabel {
         self.connect_objectS = QShortcut(QKeySequence("Ctrl+E"), self.graphicsView)
         self.connect_objectS.activated.connect(self.export)
 
-        step = 10
         # Создание ярлыков для каждой стрелки
         shortcut_up = QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Up), self.graphicsView)
-        shortcut_up.activated.connect(lambda: self.moveSelectedItems(0, -step))  # Перемещение вверх
+        shortcut_up.activated.connect(lambda: self.moveSelectedItems(0, -global_step))  # Перемещение вверх
 
         shortcut_down = QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Down), self.graphicsView)
-        shortcut_down.activated.connect(lambda: self.moveSelectedItems(0, step))  # Перемещение вниз
+        shortcut_down.activated.connect(lambda: self.moveSelectedItems(0, global_step))  # Перемещение вниз
 
         shortcut_left = QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Left), self.graphicsView)
-        shortcut_left.activated.connect(lambda: self.moveSelectedItems(-step, 0))  # Перемещение влево
+        shortcut_left.activated.connect(lambda: self.moveSelectedItems(-global_step, 0))  # Перемещение влево
 
         shortcut_right = QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Right), self.graphicsView)
-        shortcut_right.activated.connect(lambda: self.moveSelectedItems(step, 0))  # Перемещение вправо
+        shortcut_right.activated.connect(lambda: self.moveSelectedItems(global_step, 0))  # Перемещение вправо
         # self.connect_objectS = QShortcut(QKeySequence("T"), self.graphicsView)
         # self.connect_objectS.activated.connect(self.disconnect_nodes)
 
