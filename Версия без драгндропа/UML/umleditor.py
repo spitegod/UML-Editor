@@ -2840,6 +2840,9 @@ QLabel {
 
         self.connect_objectS = QShortcut(QKeySequence("Alt+E"), self.graphicsView)
         self.connect_objectS.activated.connect(self.show_edit_panel)
+        
+        self.connect_objectS = QShortcut(QKeySequence("Ctrl+E"), self.graphicsView)
+        self.connect_objectS.activated.connect(self.export)
         # self.connect_objectS = QShortcut(QKeySequence("T"), self.graphicsView)
         # self.connect_objectS.activated.connect(self.disconnect_nodes)
 
