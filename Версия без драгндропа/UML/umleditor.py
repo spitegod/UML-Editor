@@ -2246,6 +2246,36 @@ class SettingsDialog(QDialog):
             selection-background-color: rgb(200, 200, 200);
             border: 1px solid rgb(150, 150, 150);
             font-size: 16px;
+        }                
+        
+        QSpinBox {
+            background-color: rgb(240, 240, 240);
+            border: 1px solid rgb(200, 200, 200);
+            border-radius: 6px;
+            padding: 6px;
+            font-size: 16px;
+            color: #2f2f2f;
+            width: 40px;
+        }
+
+        QSpinBox::up-button, QSpinBox::down-button {
+            border: 1px solid rgb(200, 200, 200);
+            width: 20px;
+            height: 14px;
+            background-color: transparent;
+        }
+
+        QSpinBox::up-button:hover, QSpinBox::down-button:hover {
+            background-color: rgb(220, 220, 220);
+        }
+
+        QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
+            background-color: rgb(200, 200, 200);
+        }
+
+        QSpinBox::up-button:disabled, QSpinBox::down-button:disabled {
+            background-color: rgb(200, 200, 200);
+            border: 1px solid rgb(180, 180, 180);
         }
     """)
 
