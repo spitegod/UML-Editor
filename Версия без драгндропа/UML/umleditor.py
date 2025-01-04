@@ -42,6 +42,7 @@ global_is_editable = False
 global_save_name = "diagram_"
 global_is_transparent = True
 global_format = "PNG"
+global_step = 10
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
@@ -2253,13 +2254,14 @@ class SettingsDialog(QDialog):
 
         # Левый список разделов настроек
         self.section_list = QListWidget()
-        self.section_list.addItems(["Сохранение", "Экспорт"])
+        self.section_list.addItems(["Общие", "Сохранение", "Экспорт"])
         self.section_list.currentRowChanged.connect(self.display_section)
 
         # Основная область для настройки выбранного раздела
         self.settings_stack = QStackedWidget()
 
         # Добавляем страницы для каждого раздела
+        self.settings_stack.addWidget(self.create_main_settings())
         self.settings_stack.addWidget(self.create_save_settings())
         self.settings_stack.addWidget(self.create_export_settings())
 
@@ -2268,6 +2270,22 @@ class SettingsDialog(QDialog):
         main_layout.addWidget(self.settings_stack, 3)  # Детальные настройки - 3 части
 
         self.setLayout(main_layout)
+
+    def create_main_settings(self):
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setAlignment(Qt.AlignTop)
+        # Заголовок
+        layout.addWidget(QLabel("Настройки шага:"))
+
+        # Спин бокс для ввода значения global_step
+        self.step_input = QSpinBox()
+        self.step_input.setValue(global_step)  # Устанавливаем начальное значение
+        self.step_input.setAlignment(Qt.AlignCenter)
+        # self.step_input.valueChanged.connect(self.on_step_changed)  # Сигнал для обработки изменений
+        layout.addWidget(self.step_input)
+
+        return page
 
     def create_save_settings(self):
         page = QWidget()
