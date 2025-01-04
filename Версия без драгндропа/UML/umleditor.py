@@ -2843,8 +2843,24 @@ QLabel {
         
         self.connect_objectS = QShortcut(QKeySequence("Ctrl+E"), self.graphicsView)
         self.connect_objectS.activated.connect(self.export)
+
+        step = 10
+        # Создание ярлыков для каждой стрелки
+        shortcut_up = QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Up), self.graphicsView)
+        shortcut_up.activated.connect(lambda: self.moveSelectedItems(0, -step))  # Перемещение вверх
+
+        shortcut_down = QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Down), self.graphicsView)
+        shortcut_down.activated.connect(lambda: self.moveSelectedItems(0, step))  # Перемещение вниз
+
+        shortcut_left = QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Left), self.graphicsView)
+        shortcut_left.activated.connect(lambda: self.moveSelectedItems(-step, 0))  # Перемещение влево
+
+        shortcut_right = QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Right), self.graphicsView)
+        shortcut_right.activated.connect(lambda: self.moveSelectedItems(step, 0))  # Перемещение вправо
         # self.connect_objectS = QShortcut(QKeySequence("T"), self.graphicsView)
         # self.connect_objectS.activated.connect(self.disconnect_nodes)
+
+    
 
 
         self.user_ = User(self.username, 0, self.start_time, self.get_time_for_user(self.last_time))
@@ -2886,6 +2902,12 @@ QLabel {
         self.object_list_widget.itemClicked.connect(self.object_panel_on_item)
 
         self.setDesigh(MainWindow)
+    
+    def moveSelectedItems(self, dx, dy):
+        selected_items = self.scene_.selectedItems()
+        if selected_items:
+            for item in selected_items:
+                item.moveBy(dx, dy)
 
     def show_toolbar(self):
         self.reset_inaction()
