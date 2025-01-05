@@ -2204,7 +2204,7 @@ class SettingsDialog(QDialog):
             font-size: 16px;
             color: #2f2f2f;
             background-color: rgb(240, 240, 240);
-            border: 1px solid rgb(200, 200, 200);
+            border: 0px solid rgb(200, 200, 200);
             border-radius: 6px;
         }
 
