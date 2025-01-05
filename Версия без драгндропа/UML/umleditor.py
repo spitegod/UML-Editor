@@ -36,13 +36,15 @@ from PyQt5.QtCore import pyqtSlot
 #         self.scene.objectS_.append(self.shape)  # Добавляем в список объектов
 #         # print(f"{self.shape_type} добавлен, объектов на сцене:", len(self.scene.objectS_))
 
-global_username = ""
-global_start_time = None
-global_is_editable = False
-global_save_name = "diagram_"
-global_is_transparent = True
-global_format = "PNG"
-global_step = 10
+
+# Глобальные переменные
+global_username = "" # Имя
+global_start_time = None # Время начала работы
+global_is_editable = False # Флаг режима только просмотр
+global_save_name = "diagram_" # Наименование быстрого сохранение
+global_is_transparent = True # Флаг экспорта с прозрачным фоном
+global_format = "PNG" # Формат экспорта
+global_step = 10 # Шаг перемещения элемента стрелками
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
@@ -1975,6 +1977,7 @@ class LoginWindow(QtWidgets.QDialog):
         username = self.username_input.text()
         password = self.password_input.text()
 
+        # Открытие файла пользователя
         user_file = os.path.join(self.user_data_folder, f"{username}.json")
         if os.path.exists(user_file):
             with open(user_file, "r") as f:
@@ -1984,6 +1987,8 @@ class LoginWindow(QtWidgets.QDialog):
             if user_data.get("password") == self.hash_password(password):
                 global global_start_time  # Получаем время начала работы
                 global_start_time = user_data.get("start_time")
+
+                # Обновляем данные пользовательских настроек
                 global global_is_editable
                 global_is_editable = user_data.get("global_is_editable")
                 global global_save_name
@@ -1994,6 +1999,7 @@ class LoginWindow(QtWidgets.QDialog):
                 global_format = user_data.get("global_format")
                 global global_step
                 global_step = user_data.get("global_step")
+
                 self.msg.setWindowTitle("Успех")
                 self.msg.setText(f"Добро пожаловать, {username}!")
                 self.msg.setStandardButtons(QMessageBox.Ok)
@@ -2026,6 +2032,8 @@ class LoginWindow(QtWidgets.QDialog):
                 return
 
             hashed_password = self.hash_password(password)
+
+            # Создаём пользователя
             user_data = {
                 "username": username,
                 "password": hashed_password,
@@ -2143,6 +2151,7 @@ class LoginWindow(QtWidgets.QDialog):
 """)
 
 
+# Класс окна настроек
 class SettingsDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -2296,7 +2305,7 @@ class SettingsDialog(QDialog):
             border: 1px solid rgb(180, 180, 180);
         }
     """)
-    # Основной макет диалога настроек
+        # Основной макет диалога настроек
         main_layout = QVBoxLayout(self)
 
         # Верхний макет с секциями и настройками
@@ -2340,11 +2349,13 @@ class SettingsDialog(QDialog):
 
         self.setLayout(main_layout)
 
+    # Обработка нажатия на кнопку "Сохранить"
     def on_save_clicked(self):
-        self.user_data_folder = "user_data"
+        # Получаем папку
         self.user_data_folder = "user_data"
         os.makedirs(self.user_data_folder, exist_ok=True)
 
+        # Получаем файл
         user_file = os.path.join(self.user_data_folder, f"{global_username}.json")
         user_data = {}
 
@@ -2357,7 +2368,7 @@ class SettingsDialog(QDialog):
                 except json.JSONDecodeError:
                     print("Ошибка чтения JSON. Файл будет перезаписан.")
 
-        # Обновляем только глобальные значения
+        # Обновляем пользовательские настройки
         user_data.update({
             "global_username": global_username,
             "global_start_time": global_start_time,
@@ -2373,10 +2384,12 @@ class SettingsDialog(QDialog):
             json.dump(user_data, f, indent=4)
             print("Настройки сохранены.")
 
+    # Раздел настроек "Основные"
     def create_main_settings(self):
         page = QWidget()
         layout = QVBoxLayout(page)
         layout.setAlignment(Qt.AlignTop)
+
         # Заголовок
         layout.addWidget(QLabel("Шаг перемещения стрелкой (пиксели):"))
 
@@ -2389,6 +2402,7 @@ class SettingsDialog(QDialog):
 
         return page
 
+    # Раздел настроек "Сохранение"
     def create_save_settings(self):
         page = QWidget()
         layout = QVBoxLayout(page)
@@ -2401,16 +2415,19 @@ class SettingsDialog(QDialog):
         
         # Сохранение изменений в global_save_name
         save_name_input.textChanged.connect(self.update_save_name)
+
         # Чекбокс для сохранения в режиме "Только просмотр"
         readonly_checkbox = QCheckBox("Сохранять в режиме 'Только просмотр'")
         readonly_checkbox.setChecked(global_is_editable)  # По умолчанию выключен
         
         # Подключаем сигнал к функции, изменяющей global_is_editable
         readonly_checkbox.stateChanged.connect(self.update_global_is_editable)
+
         # Добавляем элементы в макет
         layout.addWidget(readonly_checkbox)
         return page
 
+    # Раздел "Экспорт"
     def create_export_settings(self):
         page = QWidget()
         layout = QVBoxLayout(page)
@@ -2431,23 +2448,28 @@ class SettingsDialog(QDialog):
         layout.addWidget(self.transparent_checkbox)
         return page
 
+    # Обновление наименования быстрого сохранения
     def update_save_name(self, new_name):
         global global_save_name
         global_save_name = new_name    
 
+    # Обновление флага только просмотр
     def update_global_is_editable(self, state):
         global global_is_editable
         global_is_editable = (state == Qt.Checked)
         print(f"global_is_editable обновлено: {global_is_editable}")
 
+    # Функция для правильной работы списка разделов
     def display_section(self, index):
         self.settings_stack.setCurrentIndex(index)
 
+    # Обновление флага экспорта с прозрачным фоном
     def update_global_is_transparent(self, state):
         global global_is_transparent
         global_is_transparent = (state == Qt.Checked)
         print(f"global_is_transparent обновлено: {global_is_transparent}")
 
+    # Смена формата экспорта
     def on_format_change(self, text):
         global global_format
         global_format = text  # Сохраняем выбранный текст в переменную
@@ -2463,6 +2485,7 @@ class SettingsDialog(QDialog):
             self.transparent_checkbox.show()
         print(f"Выбранный формат: {global_format}")  # Обновляем метку
 
+    # Смена шага перемещения стрелками
     def on_step_changed(self):
         global global_step
         # Обновляем значение global_step при изменении значения в спинбоксе
