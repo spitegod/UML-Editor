@@ -2020,7 +2020,14 @@ class LoginWindow(QtWidgets.QDialog):
                 "username": username,
                 "password": hashed_password,
                 "start_time": datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
-                "end_time": None
+                "end_time": None,
+                "global_username": "",
+                "global_start_time": None,
+                "global_is_editable": False,
+                "global_save_name": "diagram_",
+                "global_is_transparent": True,
+                "global_format": "PNG",
+                "global_step": 10
             }
 
             global global_start_time  # Получаем время начала работы
@@ -2131,6 +2138,7 @@ class SettingsDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Настройки")
         self.setGeometry(300, 300, 600, 400)
+
 
         self.setStyleSheet("""
         QWidget {
@@ -2300,6 +2308,44 @@ class SettingsDialog(QDialog):
         main_layout.addWidget(self.settings_stack, 3)  # Детальные настройки - 3 части
 
         self.setLayout(main_layout)
+
+        # Кнопка "Сохранить" снизу
+        save_button = QPushButton("Сохранить")
+        save_button.clicked.connect(self.on_save_clicked)
+        main_layout.addWidget(save_button)
+
+    def on_save_clicked(self):
+        self.user_data_folder = "user_data"
+        self.user_data_folder = "user_data"
+        os.makedirs(self.user_data_folder, exist_ok=True)
+
+        user_file = os.path.join(self.user_data_folder, f"{global_username}.json")
+        user_data = {}
+
+        # Читаем существующий файл, если он есть
+        if os.path.exists(user_file):
+            with open(user_file, "r") as f:
+                try:
+                    user_data = json.load(f)
+                    print("Файл успешно прочитан.")
+                except json.JSONDecodeError:
+                    print("Ошибка чтения JSON. Файл будет перезаписан.")
+
+        # Обновляем только глобальные значения
+        user_data.update({
+            "global_username": global_username,
+            "global_start_time": global_start_time,
+            "global_is_editable": global_is_editable,
+            "global_save_name": global_save_name,
+            "global_is_transparent": global_is_transparent,
+            "global_format": global_format,
+            "global_step": global_step
+        })
+
+        # Сохраняем изменения в файл
+        with open(user_file, "w") as f:
+            json.dump(user_data, f, indent=4)
+            print("Настройки сохранены.")
 
     def create_main_settings(self):
         page = QWidget()
