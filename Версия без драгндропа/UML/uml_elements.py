@@ -112,6 +112,7 @@ class Arrow(QGraphicsItem):
         self.top_point = None
         self.show_points = True #по умолчанию точки видны
         self.setFlags(QGraphicsItem.ItemIsSelectable)
+        self.setToolTip("Arrow. Используется для представления потока\n управления от одного действия к другому")
 
         self.right_arrow_enabled = True
         self.left_arrow_enabled = False
@@ -357,6 +358,7 @@ class Decision(QtWidgets.QGraphicsPolygonItem):
         self.center_y = y
         self.color = color
         self.border_color = QtCore.Qt.black  # Цвет окантовки
+        self.setToolTip("Decision. Используется для представления условной\n точки ответвления с одним входом и несколькими выходами.")
         self.setPolygon(self.create_diamond(self.center_x, self.center_y, self.size))
         self.setBrush(self.color)
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать элемент
@@ -490,6 +492,7 @@ class StartEvent(QtWidgets.QGraphicsEllipseItem):
         self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать элемент
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
+        self.setToolTip("StartEvent. Используется для представления отправной\n точки или начального состояния деятельности")
         self.setAcceptHoverEvents(True)  # Для отслеживания наведения
 
         self.is_resizing = False  # Флаг, указывающий, идет ли изменение размера
@@ -636,6 +639,7 @@ class EndEvent(QtWidgets.QGraphicsEllipseItem):
         self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)  # Позволяет перемещать элемент
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
+        self.setToolTip("EndEvent. Используется для обозначения конца всех\n контрольных потоков в рамках деятельности.")
         self.setAcceptHoverEvents(True)  # Для отслеживания наведения
 
         self.is_resizing = False  # Флаг, указывающий, идет ли изменение размера
@@ -831,6 +835,7 @@ class ActiveState(QtWidgets.QGraphicsRectItem):
         self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
+        self.setToolTip("ActiveState. Используется для представления\n деятельности процесса")
         self.setAcceptHoverEvents(True)  # Для отслеживания наведения
 
         self.is_resizing = False  # Флаг, указывающий, идет ли изменение размера
@@ -1083,6 +1088,7 @@ class SignalSending(QtWidgets.QGraphicsPolygonItem):
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении положения
+        self.setToolTip("SignalSending. Используется для представления действия\n по отправке сигнала на приемную деятельность")
         self.setAcceptHoverEvents(True)
 
         self.is_resizing = False # Флаг, указывающий, идет ли изменение размера
@@ -1284,7 +1290,8 @@ class SignalReceipt(QtWidgets.QGraphicsPolygonItem):
         self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
-        self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении 
+        self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Отправляет события об изменении
+        self.setToolTip("SignalReceipt. Используется для обозначения того, что сигнал получен.") 
         self.setAcceptHoverEvents(True)
 
         self.is_resizing = False # Флаг, указывающий, идет ли изменение размера
@@ -1479,6 +1486,7 @@ class Splitter_Merge(QtWidgets.QGraphicsPolygonItem):
         self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable)
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
+        self.setToolTip("Splitter/Merge. Используется для представления потока, который\n может разветвляться на два и более параллельных потока или для\n представления двух входов, которые объединяются в один выход") 
         self.setAcceptHoverEvents(True)
 
         rect = self.boundingRect()

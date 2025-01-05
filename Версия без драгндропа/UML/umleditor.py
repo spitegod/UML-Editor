@@ -36,9 +36,19 @@ from PyQt5.QtCore import pyqtSlot
 #         self.scene.objectS_.append(self.shape)  # Добавляем в список объектов
 #         # print(f"{self.shape_type} добавлен, объектов на сцене:", len(self.scene.objectS_))
 
-global_username = ""
-global_start_time = None
+
+# Глобальные переменные
+global_username = "" # Имя
+global_start_time = None # Время начала работы
+global_is_editable = False # Флаг режима только просмотр
+global_save_name = "diagram_" # Наименование быстрого сохранение
+global_is_transparent = True # Флаг экспорта с прозрачным фоном
+global_format = "PNG" # Формат экспорта
+global_step = 10 # Шаг перемещения элемента стрелками
+
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+
 class EditingPanel(QWidget):
     def __init__(self, editable_item, main_window):
         super().__init__()
@@ -1967,6 +1977,7 @@ class LoginWindow(QtWidgets.QDialog):
         username = self.username_input.text()
         password = self.password_input.text()
 
+        # Открытие файла пользователя
         user_file = os.path.join(self.user_data_folder, f"{username}.json")
         if os.path.exists(user_file):
             with open(user_file, "r") as f:
@@ -1976,6 +1987,19 @@ class LoginWindow(QtWidgets.QDialog):
             if user_data.get("password") == self.hash_password(password):
                 global global_start_time  # Получаем время начала работы
                 global_start_time = user_data.get("start_time")
+
+                # Обновляем данные пользовательских настроек
+                global global_is_editable
+                global_is_editable = user_data.get("global_is_editable")
+                global global_save_name
+                global_save_name = user_data.get("global_save_name")
+                global global_is_transparent
+                global_is_transparent = user_data.get("global_is_transparent")
+                global global_format
+                global_format = user_data.get("global_format")
+                global global_step
+                global_step = user_data.get("global_step")
+
                 self.msg.setWindowTitle("Успех")
                 self.msg.setText(f"Добро пожаловать, {username}!")
                 self.msg.setStandardButtons(QMessageBox.Ok)
@@ -2008,11 +2032,20 @@ class LoginWindow(QtWidgets.QDialog):
                 return
 
             hashed_password = self.hash_password(password)
+
+            # Создаём пользователя
             user_data = {
                 "username": username,
                 "password": hashed_password,
                 "start_time": datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
-                "end_time": None
+                "end_time": None,
+                "global_username": "",
+                "global_start_time": None,
+                "global_is_editable": False,
+                "global_save_name": "diagram_",
+                "global_is_transparent": True,
+                "global_format": "PNG",
+                "global_step": 10
             }
 
             global global_start_time  # Получаем время начала работы
@@ -2118,7 +2151,345 @@ class LoginWindow(QtWidgets.QDialog):
 """)
 
 
+# Класс окна настроек
+class SettingsDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Настройки")
+        self.setGeometry(300, 300, 800, 400)
 
+
+        self.setStyleSheet("""
+        QWidget {
+            font-family: 'Arial', sans-serif;
+            font-size: 14px;
+            color: #2f2f2f;
+        }
+
+        QLabel {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2f2f2f;
+            margin-bottom: 8px;
+        }
+
+        QLineEdit {
+            background-color: rgb(240, 240, 240);
+            border: 1px solid rgb(200, 200, 200);
+            border-radius: 6px;
+            padding: 8px;
+            font-family: 'Arial';
+            font-size: 16px;
+            color: #2f2f2f;
+        }
+
+        QLineEdit:focus {
+            border: 1px solid rgb(150, 150, 150);
+            background-color: rgb(255, 255, 255);
+        }
+
+        QPushButton {
+            background-color: rgb(240, 240, 240);
+            border: 1px solid rgb(150, 150, 150);
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #2f2f2f;
+        }
+
+        QPushButton:hover {
+            background-color: rgb(220, 220, 220);
+            border: 1px solid rgb(100, 100, 100);
+        }
+
+        QPushButton:pressed {
+            background-color: rgb(200, 200, 200);
+        }
+
+        QCheckBox {
+            font-size: 16px;
+            color: #2f2f2f;
+        }
+
+        QCheckBox::indicator {
+            width: 18px;
+            height: 18px;
+        }
+
+        QCheckBox::indicator:checked {
+            background-color: rgb(100, 200, 100);
+            border-radius: 4px;
+        }
+
+        QCheckBox::indicator:unchecked {
+            background-color: rgb(200, 200, 200);
+            border-radius: 4px;
+        }
+
+        QListWidget {
+            font-size: 16px;
+            color: #2f2f2f;
+            background-color: rgb(240, 240, 240);
+            border: 0px solid rgb(200, 200, 200);
+            border-radius: 6px;
+        }
+
+        QListWidget::item {
+            padding: 8px 16px;
+        }
+
+        QListWidget::item:selected {
+            background-color: #2f2f2f;
+            color: white;
+        }
+
+        QStackedWidget {
+            background-color: rgb(240, 240, 240);
+            border: 1px solid rgb(200, 200, 200);
+            border-radius: 6px;
+            padding: 16px;
+        }
+
+        QComboBox {
+            background-color: rgb(240, 240, 240);
+            border: 1px solid rgb(200, 200, 200);
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-family: 'Arial';
+            font-size: 16px;
+            color: #2f2f2f;
+        }
+
+        QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 20px;
+            border-left: 1px solid rgb(200, 200, 200);
+        }
+
+        QComboBox QAbstractItemView {
+            background-color: rgb(240, 240, 240);
+            selection-background-color: rgb(200, 200, 200);
+            border: 1px solid rgb(150, 150, 150);
+            font-size: 16px;
+        }                
+        
+        QSpinBox {
+            background-color: rgb(240, 240, 240);
+            border: 1px solid rgb(200, 200, 200);
+            border-radius: 6px;
+            padding: 6px;
+            font-size: 16px;
+            color: #2f2f2f;
+            width: 40px;
+        }
+
+        QSpinBox::up-button, QSpinBox::down-button {
+            border: 1px solid rgb(200, 200, 200);
+            width: 20px;
+            height: 14px;
+            background-color: transparent;
+        }
+
+        QSpinBox::up-button:hover, QSpinBox::down-button:hover {
+            background-color: rgb(220, 220, 220);
+        }
+
+        QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
+            background-color: rgb(200, 200, 200);
+        }
+
+        QSpinBox::up-button:disabled, QSpinBox::down-button:disabled {
+            background-color: rgb(200, 200, 200);
+            border: 1px solid rgb(180, 180, 180);
+        }
+    """)
+        # Основной макет диалога настроек
+        main_layout = QVBoxLayout(self)
+
+        # Верхний макет с секциями и настройками
+        top_layout = QHBoxLayout()
+
+        # Левый список разделов настроек
+        self.section_list = QListWidget()
+        self.section_list.addItems(["Общие", "Сохранение", "Экспорт"])
+        self.section_list.currentRowChanged.connect(self.display_section)
+
+        # Основная область для настройки выбранного раздела
+        self.settings_stack = QStackedWidget()
+
+        # Добавляем страницы для каждого раздела
+        self.settings_stack.addWidget(self.create_main_settings())
+        self.settings_stack.addWidget(self.create_save_settings())
+        self.settings_stack.addWidget(self.create_export_settings())
+
+        # Добавляем виджеты в верхний макет
+        top_layout.addWidget(self.section_list, 1)  # Список занимает 1 часть
+        top_layout.addWidget(self.settings_stack, 3)  # Детальные настройки - 3 части
+
+        # Добавляем верхний макет в основной
+        main_layout.addLayout(top_layout)
+
+        # Нижний вертикальный макет с подписью и кнопкой
+        bottom_layout = QVBoxLayout()
+
+        # Подпись
+        notice_label = QLabel("⚠️ Изменения применяются сразу, но будут сброшены при следующем запуске, если не нажать \"Сохранить\".")
+        notice_label.setStyleSheet("color: red; font-size: 12px;")
+        bottom_layout.addWidget(notice_label, alignment=Qt.AlignLeft)
+
+        # Кнопка "Сохранить"
+        save_button = QPushButton("Сохранить")
+        save_button.clicked.connect(self.on_save_clicked)
+        bottom_layout.addWidget(save_button, alignment=Qt.AlignRight)
+
+        # Помещаем нижний вертикальный макет в основной
+        main_layout.addLayout(bottom_layout)
+
+        self.setLayout(main_layout)
+
+    # Обработка нажатия на кнопку "Сохранить"
+    def on_save_clicked(self):
+        # Получаем папку
+        self.user_data_folder = "user_data"
+        os.makedirs(self.user_data_folder, exist_ok=True)
+
+        # Получаем файл
+        user_file = os.path.join(self.user_data_folder, f"{global_username}.json")
+        user_data = {}
+
+        # Читаем существующий файл, если он есть
+        if os.path.exists(user_file):
+            with open(user_file, "r") as f:
+                try:
+                    user_data = json.load(f)
+                    print("Файл успешно прочитан.")
+                except json.JSONDecodeError:
+                    print("Ошибка чтения JSON. Файл будет перезаписан.")
+
+        # Обновляем пользовательские настройки
+        user_data.update({
+            "global_username": global_username,
+            "global_start_time": global_start_time,
+            "global_is_editable": global_is_editable,
+            "global_save_name": global_save_name,
+            "global_is_transparent": global_is_transparent,
+            "global_format": global_format,
+            "global_step": global_step
+        })
+
+        # Сохраняем изменения в файл
+        with open(user_file, "w") as f:
+            json.dump(user_data, f, indent=4)
+            print("Настройки сохранены.")
+
+    # Раздел настроек "Основные"
+    def create_main_settings(self):
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setAlignment(Qt.AlignTop)
+
+        # Заголовок
+        layout.addWidget(QLabel("Шаг перемещения стрелкой (пиксели):"))
+
+        # Спин бокс для ввода значения global_step
+        self.step_input = QSpinBox()
+        self.step_input.setValue(global_step)  # Устанавливаем начальное значение
+        self.step_input.setAlignment(Qt.AlignCenter)
+        self.step_input.valueChanged.connect(self.on_step_changed)  # Сигнал для обработки изменений
+        layout.addWidget(self.step_input)
+
+        return page
+
+    # Раздел настроек "Сохранение"
+    def create_save_settings(self):
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setAlignment(Qt.AlignTop)  # Прижимаем все элементы к верху
+
+        # Поле ввода для наименования быстрого сохранения
+        layout.addWidget(QLabel("Наименование быстрого сохранения:"))
+        save_name_input = QLineEdit(global_save_name)
+        layout.addWidget(save_name_input)
+        
+        # Сохранение изменений в global_save_name
+        save_name_input.textChanged.connect(self.update_save_name)
+
+        # Чекбокс для сохранения в режиме "Только просмотр"
+        readonly_checkbox = QCheckBox("Сохранять в режиме 'Только просмотр'")
+        readonly_checkbox.setChecked(global_is_editable)  # По умолчанию выключен
+        
+        # Подключаем сигнал к функции, изменяющей global_is_editable
+        readonly_checkbox.stateChanged.connect(self.update_global_is_editable)
+
+        # Добавляем элементы в макет
+        layout.addWidget(readonly_checkbox)
+        return page
+
+    # Раздел "Экспорт"
+    def create_export_settings(self):
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setAlignment(Qt.AlignTop)  # Прижимаем все элементы к верху
+
+        # Метка выбора формата
+        format_label = QLabel("Формат экспорта:")
+        layout.addWidget(format_label)
+
+        # Выпадающий список форматов
+        self.format_combo = QComboBox(self)
+        self.format_combo.addItems(["PNG", "JPG"])
+        layout.addWidget(self.format_combo)
+        self.transparent_checkbox = QCheckBox("Экспортировать с прозрачным фоном")
+        self.transparent_checkbox.setChecked(global_is_transparent)  # По умолчанию выключен
+        self.transparent_checkbox.stateChanged.connect(self.update_global_is_transparent)
+        self.format_combo.currentTextChanged.connect(self.on_format_change)
+        layout.addWidget(self.transparent_checkbox)
+        return page
+
+    # Обновление наименования быстрого сохранения
+    def update_save_name(self, new_name):
+        global global_save_name
+        global_save_name = new_name    
+
+    # Обновление флага только просмотр
+    def update_global_is_editable(self, state):
+        global global_is_editable
+        global_is_editable = (state == Qt.Checked)
+        print(f"global_is_editable обновлено: {global_is_editable}")
+
+    # Функция для правильной работы списка разделов
+    def display_section(self, index):
+        self.settings_stack.setCurrentIndex(index)
+
+    # Обновление флага экспорта с прозрачным фоном
+    def update_global_is_transparent(self, state):
+        global global_is_transparent
+        global_is_transparent = (state == Qt.Checked)
+        print(f"global_is_transparent обновлено: {global_is_transparent}")
+
+    # Смена формата экспорта
+    def on_format_change(self, text):
+        global global_format
+        global_format = text  # Сохраняем выбранный текст в переменную
+        if text == "JPG":
+            # Отключаем и скрываем чекбокс для прозрачного фона
+            self.transparent_checkbox.setChecked(False)  # Снимаем галочку
+            print(f"global_is_transparent обновлено: {global_is_transparent}")
+            self.transparent_checkbox.setEnabled(False)  # Делаем недоступным
+
+        else:
+            # Включаем и показываем чекбокс для прозрачного фона
+            self.transparent_checkbox.setEnabled(True)        
+            self.transparent_checkbox.show()
+        print(f"Выбранный формат: {global_format}")  # Обновляем метку
+
+    # Смена шага перемещения стрелками
+    def on_step_changed(self):
+        global global_step
+        # Обновляем значение global_step при изменении значения в спинбоксе
+        global_step = self.step_input.value()
 
 class Ui_MainWindow(QtWidgets.QMainWindow):
     time_updated = pyqtSignal(str, str, str)  # Создаем сигнал с параметром типа str для передачи запущенного времени
@@ -2354,10 +2725,16 @@ QLabel {
         self.action_2.setObjectName("action_2")
         self.action_3 = QtWidgets.QAction(MainWindow)
         self.action_3.setObjectName("action_3")
+        self.action_export = QtWidgets.QAction(MainWindow)
+        self.action_export.setObjectName("action_export")
         # self.action_PNG = QtWidgets.QAction(MainWindow)
         # self.action_PNG.setObjectName("action_PNG")
         self.action_4 = QtWidgets.QAction(MainWindow)
         self.action_4.setObjectName("action_4")
+
+        self.action_settings = QtWidgets.QAction(MainWindow)
+        self.action_settings.setObjectName("action_settings")
+
         self.action_exit = QtWidgets.QAction(MainWindow)
         self.action_exit.setObjectName("action_exit")
         self.action_add_image = QtWidgets.QAction(MainWindow)
@@ -2390,7 +2767,10 @@ QLabel {
         self.menu.addAction(self.action_2)
         self.menu.addAction(self.action_3)
         self.menu.addSeparator()
+        self.menu.addAction(self.action_export)
+        self.menu.addSeparator()
         # self.menu.addAction(self.action_PNG)
+        self.menu.addAction(self.action_settings)
         self.menu.addSeparator()
         self.menu.addAction(self.action_exit)
         self.menu_insert.addAction(self.action_add_image)
@@ -2420,7 +2800,9 @@ QLabel {
         self.action_2.triggered.connect(self.save_to_file)
         self.action_3.triggered.connect(self.save_as)
         self.action_4.triggered.connect(self.create_new)
+        self.action_export.triggered.connect(self.export)
         self.action.triggered.connect(self.open_file)
+        self.action_settings.triggered.connect(self.open_settings)
         self.action_exit.triggered.connect(self.close_application)
 
         self.action_add_image.triggered.connect(self.insert_image)
@@ -2606,8 +2988,26 @@ QLabel {
 
         self.connect_objectS = QShortcut(QKeySequence("Alt+E"), self.graphicsView)
         self.connect_objectS.activated.connect(self.show_edit_panel)
+        
+        self.connect_objectS = QShortcut(QKeySequence("Ctrl+E"), self.graphicsView)
+        self.connect_objectS.activated.connect(self.export)
+
+        # Создание ярлыков для каждой стрелки
+        shortcut_up = QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Up), self.graphicsView)
+        shortcut_up.activated.connect(lambda: self.moveSelectedItems(0, -global_step))  # Перемещение вверх
+
+        shortcut_down = QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Down), self.graphicsView)
+        shortcut_down.activated.connect(lambda: self.moveSelectedItems(0, global_step))  # Перемещение вниз
+
+        shortcut_left = QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Left), self.graphicsView)
+        shortcut_left.activated.connect(lambda: self.moveSelectedItems(-global_step, 0))  # Перемещение влево
+
+        shortcut_right = QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Right), self.graphicsView)
+        shortcut_right.activated.connect(lambda: self.moveSelectedItems(global_step, 0))  # Перемещение вправо
         # self.connect_objectS = QShortcut(QKeySequence("T"), self.graphicsView)
         # self.connect_objectS.activated.connect(self.disconnect_nodes)
+
+    
 
 
         self.user_ = User(self.username, 0, self.start_time, self.get_time_for_user(self.last_time))
@@ -2617,6 +3017,7 @@ QLabel {
 
         self.scene_ = My_GraphicsScene(self, self.objectS_, self.user_, self.label_x_y)
         self.graphicsView.setScene(self.scene_)  # Устанавливаем сцену в QGraphicsView
+
 
         # Подключение сетики
         self.connect_objectS = QShortcut(QKeySequence("G"), self.graphicsView)
@@ -2648,6 +3049,12 @@ QLabel {
         self.object_list_widget.itemClicked.connect(self.object_panel_on_item)
 
         self.setDesigh(MainWindow)
+    
+    def moveSelectedItems(self, dx, dy):
+        selected_items = self.scene_.selectedItems()
+        if selected_items:
+            for item in selected_items:
+                item.moveBy(dx, dy)
 
     def show_toolbar(self):
         self.reset_inaction()
@@ -2684,6 +3091,11 @@ QLabel {
             list_item = QtWidgets.QListWidgetItem(list_item_text)
             self.object_list_widget.addItem(list_item)
             
+
+    def open_settings(self):
+        self.settings_dialog = SettingsDialog(self)
+        self.settings_dialog.exec_()
+
 
     def show_help(self):
         self.reset_inaction()
@@ -2767,6 +3179,45 @@ QLabel {
             self.editing_panel.update_coordinates(x, y)
 
 
+    def export(self):
+        scene = self.scene_  # Получаем сцену из главного окна
+        rect = scene.sceneRect()
+        
+        if global_format == "JPG":
+            file_path, _ = QFileDialog.getSaveFileName(main_window, "Сохранить диаграмму как", "", "Images (*.jpg)")
+            if file_path:
+                pixmap = QPixmap(int(rect.width()), int(rect.height()))
+                if global_is_transparent:
+                    pixmap.fill(QtCore.Qt.transparent)  # Заполняем прозрачным фоном
+                else:
+                    pixmap.fill(QtCore.Qt.white)  # Заполняем белым фоном
+                painter = QPainter(pixmap)
+                scene.render(painter)
+                painter.end()
+
+                # Сохраняем QPixmap в файл
+                if pixmap.save(file_path, "JPG"):
+                    print(f"Диаграмма КАРТИНКА успешно сохранена: {file_path}")
+                else:
+                    print("Ошибка сохранения диаграммы!")
+
+        if global_format == "PNG":
+            file_path, _ = QFileDialog.getSaveFileName(main_window, "Сохранить диаграмму как", "", "Images (*.png)")
+            if file_path:
+                pixmap = QPixmap(int(rect.width()), int(rect.height()))
+                if global_is_transparent:
+                    pixmap.fill(QtCore.Qt.transparent)  # Заполняем прозрачным фоном
+                else:
+                    pixmap.fill(QtCore.Qt.white)  # Заполняем белым фоном
+                painter = QPainter(pixmap)
+                scene.render(painter)
+                painter.end()
+
+                # Сохраняем QPixmap в файл
+                if pixmap.save(file_path, "PNG"):
+                    print(f"Диаграмма КАРТИНКА успешно сохранена: {file_path}")
+                else:
+                    print("Ошибка сохранения диаграммы!")
 
     # Быстрое сохранение в папку saves
     def save_to_file(self, filepath=None):
@@ -2779,13 +3230,18 @@ QLabel {
         if not os.path.exists(saves_dir):
             os.makedirs(saves_dir)
 
+        scene = self.scene_  # Получаем сцену из главного окна
+        rect = scene.sceneRect()
+
         # Если путь не задан, создаём имя файла по умолчанию
         if not filepath:
             current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")  # Временная метка
-            filepath = os.path.join(saves_dir, f"diagram_{current_time}.chep")
-
+            filepath = os.path.join(saves_dir, f"{global_save_name}{current_time}.chep")
         data = {"items": [], "arrows": []}
         elements = {}
+
+        global global_is_editable
+        data["is_editable"] = global_is_editable
 
         # Сохраняем элементы, пропуская стрелки
         for item in self.scene_.items():
@@ -2863,6 +3319,9 @@ QLabel {
         # Массивы для хранения данных
         data = {"items": [], "arrows": []} 
         elements = {}
+
+        global global_is_editable
+        data["is_editable"] = global_is_editable
 
         # Сохраняем элементы, пропуская стрелки
         for item in self.scene_.items():
@@ -3867,13 +4326,17 @@ QLabel {
                 # Обновляем стрелку сразу после добавления
                 arrow.update_arrow()  # Обновляем стрелку вручную, если нужно
                 self.scene_.update()
-
         # Добавляем элемент на сцену
         self.scene_.addItem(item)
         try:
             elements[position] = item
         except TypeError:
             pass  # Игнорировать ошибку и продолжить выполнение
+
+        if data.get("is_editable"):
+            self.graphicsView.setInteractive(False)
+        else:
+            self.graphicsView.setInteractive(True)
 
     # Обработка кнопки "Создать"
     def create_new(self):
@@ -4007,8 +4470,10 @@ QLabel {
         self.action.setText(_translate("MainWindow", "Открыть"))
         self.action_2.setText(_translate("MainWindow", "Сохранить"))
         self.action_3.setText(_translate("MainWindow", "Сохранить как"))
+        self.action_export.setText(_translate("MainWindow", "Экспорт"))
         # self.action_PNG.setText(_translate("MainWindow", "Экспорт в PNG"))
         self.action_4.setText(_translate("MainWindow", "Создать"))
+        self.action_settings.setText(_translate("MainWindow", "Настройки"))
         self.action_exit.setText(_translate("MainWindow", "Выход"))
 
         self.action_add_image.setText(_translate("MainWindow", "Изображение"))
