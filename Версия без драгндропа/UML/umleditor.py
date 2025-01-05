@@ -2296,9 +2296,11 @@ class SettingsDialog(QDialog):
             border: 1px solid rgb(180, 180, 180);
         }
     """)
+    # Основной макет диалога настроек
+        main_layout = QVBoxLayout(self)
 
-        # Основной макет диалога настроек
-        main_layout = QHBoxLayout(self)
+        # Верхний макет с секциями и настройками
+        top_layout = QHBoxLayout()
 
         # Левый список разделов настроек
         self.section_list = QListWidget()
@@ -2313,16 +2315,30 @@ class SettingsDialog(QDialog):
         self.settings_stack.addWidget(self.create_save_settings())
         self.settings_stack.addWidget(self.create_export_settings())
 
-        # Добавляем виджеты в основной макет
-        main_layout.addWidget(self.section_list, 1)  # Список занимает 1 часть
-        main_layout.addWidget(self.settings_stack, 3)  # Детальные настройки - 3 части
+        # Добавляем виджеты в верхний макет
+        top_layout.addWidget(self.section_list, 1)  # Список занимает 1 часть
+        top_layout.addWidget(self.settings_stack, 3)  # Детальные настройки - 3 части
 
-        self.setLayout(main_layout)
+        # Добавляем верхний макет в основной
+        main_layout.addLayout(top_layout)
 
-        # Кнопка "Сохранить" снизу
+        # Нижний вертикальный макет с подписью и кнопкой
+        bottom_layout = QVBoxLayout()
+
+        # Подпись
+        notice_label = QLabel("⚠️ Изменения применяются сразу, но будут сброшены при следующем запуске, если не нажать \"Сохранить\".")
+        notice_label.setStyleSheet("color: red; font-size: 12px;")
+        bottom_layout.addWidget(notice_label, alignment=Qt.AlignLeft)
+
+        # Кнопка "Сохранить"
         save_button = QPushButton("Сохранить")
         save_button.clicked.connect(self.on_save_clicked)
-        main_layout.addWidget(save_button)
+        bottom_layout.addWidget(save_button, alignment=Qt.AlignRight)
+
+        # Помещаем нижний вертикальный макет в основной
+        main_layout.addLayout(bottom_layout)
+
+        self.setLayout(main_layout)
 
     def on_save_clicked(self):
         self.user_data_folder = "user_data"
