@@ -1984,6 +1984,16 @@ class LoginWindow(QtWidgets.QDialog):
             if user_data.get("password") == self.hash_password(password):
                 global global_start_time  # Получаем время начала работы
                 global_start_time = user_data.get("start_time")
+                global global_is_editable
+                global_is_editable = user_data.get("global_is_editable")
+                global global_save_name
+                global_save_name = user_data.get("global_save_name")
+                global global_is_transparent
+                global_is_transparent = user_data.get("global_is_transparent")
+                global global_format
+                global_format = user_data.get("global_format")
+                global global_step
+                global_step = user_data.get("global_step")
                 self.msg.setWindowTitle("Успех")
                 self.msg.setText(f"Добро пожаловать, {username}!")
                 self.msg.setStandardButtons(QMessageBox.Ok)
@@ -2137,7 +2147,7 @@ class SettingsDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Настройки")
-        self.setGeometry(300, 300, 600, 400)
+        self.setGeometry(300, 300, 800, 400)
 
 
         self.setStyleSheet("""
